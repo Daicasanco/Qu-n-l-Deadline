@@ -1318,12 +1318,14 @@ function updateTaskAssigneeFilter() {
     const select = document.getElementById('taskAssigneeFilter')
     if (!select) return
     select.innerHTML = '<option value="">Tất cả</option>'
-    window.allEmployees.forEach(e => {
-        const option = document.createElement('option')
-        option.value = e.id
-        option.textContent = e.name
-        select.appendChild(option)
-    })
+    if (window.allEmployees) {
+        window.allEmployees.filter(e => e.role === 'employee').forEach(e => {
+            const option = document.createElement('option')
+            option.value = e.id
+            option.textContent = e.name
+            select.appendChild(option)
+        })
+    }
 }
 
 // Gắn event cho filter

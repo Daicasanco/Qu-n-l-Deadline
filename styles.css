@@ -472,7 +472,7 @@ body {
 /* --- BADGE GRADIENT & MODERN --- */
 .badge-gradient-blue {
     background: linear-gradient(90deg, #36d1c4 0%, #5b86e5 100%);
-    color: #fff;
+    color: #222;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(91,134,229,0.08);
 }
@@ -488,41 +488,35 @@ body {
 }
 .badge-gradient-red {
     background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%);
-    color: #fff;
+    color: #222;
     font-weight: 600;
 }
 .badge-gradient-gray {
     background: linear-gradient(90deg, #bdc3c7 0%, #2c3e50 100%);
-    color: #fff;
+    color: #222;
     font-weight: 600;
 }
 .badge-money {
-    background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+    background: linear-gradient(90deg, #20bdff 0%, #5433ff 100%);
     color: #222;
-    font-weight: 700;
-    border: 1px solid #ffe066;
+    font-weight: 600;
+    padding-left: 0.75em;
+    padding-right: 0.75em;
 }
-.badge-note {
-    background: linear-gradient(90deg, #e0eafc 0%, #cfdef3 100%);
-    color: #333;
-    font-weight: 500;
+.badge-id {
+    background-color: #6c757d;
+    color: #222;
+    font-weight: 600;
 }
-
-/* --- ACTION BUTTONS --- */
-.btn-action {
-    margin: 0 2px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border: none;
-    font-size: 1rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 8px;
-    transition: background 0.2s, color 0.2s;
+.table-dark th, .table-dark td {
+    color: #222 !important;
 }
-.btn-action.edit { background: linear-gradient(90deg, #36d1c4 0%, #5b86e5 100%); color: #fff; }
-.btn-action.delete { background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%); color: #fff; }
-.btn-action.cancel { background: linear-gradient(90deg, #bdc3c7 0%, #2c3e50 100%); color: #fff; }
-.btn-action.transfer { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); color: #222; }
-.btn-action:hover { filter: brightness(1.08); }
+.btn, .btn-action, .btn-edit, .btn-delete, .btn-claim, .btn-unclaim, .btn-transfer, .btn-status {
+    color: #222 !important;
+}
+.dropdown-menu, .dropdown-item {
+    color: #222 !important;
+}
 
 /* --- TABLE CELL ALIGN --- */
 .table td, .table th {

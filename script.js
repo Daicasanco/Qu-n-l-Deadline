@@ -912,9 +912,25 @@ function renderTasksTable() {
     // Lọc theo trạng thái và người thực hiện
     const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
     const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
+    
+    console.log('Filtering tasks...')
+    console.log('Status filter:', statusFilter)
+    console.log('Assignee filter:', assigneeFilter)
+    console.log('Current project ID:', currentProjectId)
+    console.log('Total tasks:', tasks.length)
+    
     let projectTasks = tasks.filter(t => t.project_id === currentProjectId)
-    if (statusFilter) projectTasks = projectTasks.filter(t => t.status === statusFilter)
-    if (assigneeFilter) projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
+    console.log('Tasks in current project:', projectTasks.length)
+    
+    if (statusFilter) {
+        projectTasks = projectTasks.filter(t => t.status === statusFilter)
+        console.log('After status filter:', projectTasks.length)
+    }
+    if (assigneeFilter) {
+        projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
+        console.log('After assignee filter:', projectTasks.length)
+    }
+    
     if (projectTasks.length === 0) {
         tbody.innerHTML = `<tr><td colspan="11" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
         return

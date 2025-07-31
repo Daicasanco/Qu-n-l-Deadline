@@ -185,7 +185,7 @@
                             <div class="row mb-3" id="taskFiltersRow">
                                 <div class="col-md-4">
                                     <label class="form-label">Lọc theo trạng thái:</label>
-                                    <select class="form-select" id="taskStatusFilter">
+                                    <select class="form-select" id="taskStatusFilter" onchange="renderTasksTable()">
                                         <option value="">Tất cả</option>
                                         <option value="pending">Chờ thực hiện</option>
                                         <option value="in-progress">Đang thực hiện</option>
@@ -195,7 +195,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Lọc theo người thực hiện:</label>
-                                    <select class="form-select" id="taskAssigneeFilter">
+                                    <select class="form-select" id="taskAssigneeFilter" onchange="renderTasksTable()">
                                         <option value="">Tất cả</option>
                                         <!-- Nhân viên sẽ được render bằng JS -->
                                     </select>

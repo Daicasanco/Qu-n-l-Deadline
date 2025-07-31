@@ -15,6 +15,37 @@ let employees = []
 let filteredProjects = []
 let currentProjectId = null
 
+// View Management Functions
+function showProjectsView() {
+    document.getElementById('projectsView').style.display = ''
+    document.getElementById('tasksView').style.display = 'none'
+    currentProjectId = null
+    updateDashboard()
+    
+    // Update UI to show/hide buttons based on current view
+    updateUserInterface()
+}
+
+function showTasksView(projectId) {
+    document.getElementById('projectsView').style.display = 'none'
+    document.getElementById('tasksView').style.display = ''
+    
+    // Set current project
+    currentProjectId = projectId
+    
+    // Update project name in header
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+        document.getElementById('currentProjectName').textContent = project.name
+    }
+    
+    // Render tasks for this project
+    renderTasksTable()
+    
+    // Update UI to show/hide buttons based on current view
+    updateUserInterface()
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp()
@@ -72,6 +103,9 @@ async function loadDataFromSupabase() {
         updateDashboard()
         updateUserInterface()
         updateAssigneeDropdowns() // Ensure dropdowns are updated after data load
+        
+        // Ensure we start with projects view
+        showProjectsView()
         
         // Setup realtime subscriptions
         setupRealtimeSubscriptions()
@@ -228,7 +262,11 @@ function updateUserInterface() {
     if (currentUser) {
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
-        addTaskBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        
+        // Chỉ hiện nút "Thêm Công việc" khi ở trong tasks view và là manager
+        const isInTasksView = document.getElementById('tasksView').style.display !== 'none'
+        addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
+        
         viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
         // Update assignee dropdowns
@@ -811,7 +849,11 @@ function renderProjectsTable() {
         
         row.innerHTML = `
             <td>${project.id}</td>
-            <td><strong>${project.name}</strong></td>
+            <td>
+                <a href="#" onclick="selectProject(${project.id})" class="text-decoration-none">
+                    <strong>${project.name}</strong>
+                </a>
+            </td>
             <td>${project.description || '-'}</td>
             <td>${getProjectStatusBadge(project.status)}</td>
             <td>${project.manager_name || 'N/A'}</td>
@@ -819,9 +861,6 @@ function renderProjectsTable() {
             <td><span class="badge bg-info">${taskCount}</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary btn-sm" onclick="selectProject(${project.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
                     ${currentUser && currentUser.role === 'manager' && currentUser.id === project.manager_id ? 
                         `<button class="btn btn-outline-warning btn-sm" onclick="editProject(${project.id})">
                             <i class="fas fa-edit"></i>
@@ -958,12 +997,8 @@ function renderTasksTable() {
 }
 
 function selectProject(projectId) {
-    currentProjectId = projectId
-    const project = projects.find(p => p.id === projectId)
-    document.getElementById('currentProjectName').textContent = project ? project.name : 'Chọn dự án'
-    
-    // Load tasks for this project
-    loadTasks(projectId)
+    // Switch to tasks view
+    showTasksView(projectId)
 }
 
 function updateDashboard() {

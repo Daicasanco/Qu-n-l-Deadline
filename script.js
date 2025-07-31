@@ -81,10 +81,8 @@ async function loadProjects() {
     try {
         let query = supabase.from('projects').select('*')
         
-        // If user is employee, only show active projects
-        if (currentUser && currentUser.role === 'employee') {
-            query = query.eq('status', 'active')
-        }
+        // Employees có thể xem tất cả projects, không chỉ active
+        // Chỉ filter nếu cần thiết cho performance
         
         const { data, error } = await query
         
@@ -213,11 +211,13 @@ function updateUserInterface() {
     const currentUserSpan = document.getElementById('currentUser')
     const addProjectBtn = document.getElementById('addProjectBtn')
     const addTaskBtn = document.getElementById('addTaskBtn')
+    const viewEmployeesBtn = document.getElementById('viewEmployeesBtn')
     
     if (currentUser) {
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         addTaskBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
         // Update assignee dropdowns
         updateAssigneeDropdowns()
@@ -225,6 +225,7 @@ function updateUserInterface() {
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
         addTaskBtn.style.display = 'none'
+        viewEmployeesBtn.style.display = 'none'
     }
 }
 
@@ -858,20 +859,6 @@ function updateManagerFilter(managers) {
     })
 }
 
-function updateAssigneeDropdowns() {
-    const assigneeSelects = document.querySelectorAll('#taskAssignee')
-    
-    assigneeSelects.forEach(select => {
-        select.innerHTML = '<option value="">Chọn người thực hiện</option>'
-        employees.forEach(employee => {
-            const option = document.createElement('option')
-            option.value = employee.id
-            option.textContent = employee.name
-            select.appendChild(option)
-        })
-    })
-}
-
 // Filter Functions
 function applyProjectFilters() {
     const statusFilter = document.getElementById('projectStatusFilter').value
@@ -1105,3 +1092,63 @@ function checkOverdueTasks() {
 
 // Initialize overdue check on load
 checkOverdueTasks() 
+
+// Employee Management Functions
+function showEmployeesList() {
+    if (!currentUser || currentUser.role !== 'manager') {
+        showNotification('Chỉ quản lý mới có thể xem danh sách nhân viên', 'error')
+        return
+    }
+    
+    // Populate employees table
+    const tbody = document.getElementById('employeesTableBody')
+    tbody.innerHTML = ''
+    
+    if (employees.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h4>Không có nhân viên nào</h4>
+                        <p>Chưa có nhân viên trong hệ thống</p>
+                    </div>
+                </td>
+            </tr>
+        `
+        return
+    }
+    
+    employees.forEach(employee => {
+        const row = document.createElement('tr')
+        row.innerHTML = `
+            <td>${employee.id}</td>
+            <td><strong>${employee.name}</strong></td>
+            <td>${employee.email}</td>
+            <td>
+                <span class="badge ${employee.role === 'manager' ? 'bg-primary' : 'bg-success'}">
+                    ${employee.role === 'manager' ? 'Quản lý' : 'Nhân viên'}
+                </span>
+            </td>
+        `
+        tbody.appendChild(row)
+    })
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('employeesModal'))
+    modal.show()
+}
+
+function updateAssigneeDropdowns() {
+    const assigneeSelects = document.querySelectorAll('#taskAssignee')
+    
+    assigneeSelects.forEach(select => {
+        select.innerHTML = '<option value="">Không chỉ định (để nhân viên tự nhận)</option>'
+        employees.forEach(employee => {
+            const option = document.createElement('option')
+            option.value = employee.id
+            option.textContent = employee.name
+            select.appendChild(option)
+        })
+    })
+} 

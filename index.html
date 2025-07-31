@@ -339,6 +339,39 @@
         </div>
     </div>
 
+    <!-- Transfer Task Modal -->
+    <div class="modal fade" id="transferModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chuyển giao công việc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="transferForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="transferTaskId">
+                        
+                        <div class="mb-3">
+                            <label for="transferAssignee" class="form-label">Chọn người nhận *</label>
+                            <select class="form-select" id="transferAssignee" required>
+                                <option value="">Chọn người nhận</option>
+                            </select>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Công việc sẽ được chuyển giao cho người được chọn. Bạn sẽ không còn quyền quản lý công việc này.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Chuyển giao</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="notificationToast" class="toast" role="alert">

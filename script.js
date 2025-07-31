@@ -108,10 +108,8 @@ async function loadTasks(projectId = null) {
             query = query.eq('project_id', projectId)
         }
         
-        // If user is employee, only show tasks assigned to them
-        if (currentUser && currentUser.role === 'employee') {
-            query = query.eq('assignee_id', currentUser.id)
-        }
+        // Employees có thể xem tất cả tasks trong project, không chỉ tasks được assign
+        // Chỉ filter theo assignee_id nếu cần thiết cho performance
         
         const { data, error } = await query
         
@@ -386,7 +384,7 @@ async function addTask() {
     const projectId = currentProjectId || document.getElementById('taskProjectId').value
     
     // Validate input
-    if (!name || !deadline || !assigneeId || !projectId) {
+    if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
         return
     }
@@ -401,7 +399,7 @@ async function addTask() {
                 priority: priority,
                 status: 'pending',
                 project_id: parseInt(projectId),
-                assignee_id: assigneeId, // UUID
+                assignee_id: assigneeId || null, // Có thể null nếu không assign
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -423,11 +421,94 @@ async function addTask() {
     }
 }
 
+// Nhận công việc (Employee nhận task)
+async function claimTask(taskId) {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để nhận công việc', 'error')
+        return
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                assignee_id: currentUser.id,
+                status: 'in-progress',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', taskId)
+            .is('assignee_id', null) // Chỉ update nếu chưa có người nhận
+        
+        if (error) throw error
+        
+        showNotification('Đã nhận công việc thành công!', 'success')
+        
+    } catch (error) {
+        console.error('Error claiming task:', error)
+        showNotification('Lỗi nhận công việc hoặc công việc đã được nhận', 'error')
+    }
+}
+
+// Chuyển giao công việc
+async function transferTask(taskId, newAssigneeId) {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập', 'error')
+        return
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                assignee_id: newAssigneeId,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', taskId)
+            .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được chuyển
+        
+        if (error) throw error
+        
+        showNotification('Chuyển giao công việc thành công!', 'success')
+        
+    } catch (error) {
+        console.error('Error transferring task:', error)
+        showNotification('Lỗi chuyển giao công việc', 'error')
+    }
+}
+
+// Hủy nhận công việc (trả về trạng thái chưa có người nhận)
+async function unclaimTask(taskId) {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập', 'error')
+        return
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                assignee_id: null,
+                status: 'pending',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', taskId)
+            .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được hủy
+        
+        if (error) throw error
+        
+        showNotification('Đã hủy nhận công việc!', 'success')
+        
+    } catch (error) {
+        console.error('Error unclaiming task:', error)
+        showNotification('Lỗi hủy nhận công việc', 'error')
+    }
+}
+
 async function editTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
-    // Check permissions
+    // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
         return
@@ -439,7 +520,7 @@ async function editTask(id) {
     document.getElementById('taskDescription').value = task.description || ''
     document.getElementById('taskDeadline').value = task.deadline.slice(0, 16)
     document.getElementById('taskPriority').value = task.priority
-    document.getElementById('taskAssignee').value = task.assignee_id
+    document.getElementById('taskAssignee').value = task.assignee_id || ''
     document.getElementById('taskStatus').value = task.status
     
     // Show status field for editing
@@ -475,7 +556,7 @@ async function updateTask() {
     const status = document.getElementById('taskStatus').value
     
     // Validate input
-    if (!name || !deadline || !assigneeId) {
+    if (!name || !deadline) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
         return
     }
@@ -488,7 +569,7 @@ async function updateTask() {
                 description: description,
                 deadline: new Date(deadline).toISOString(),
                 priority: priority,
-                assignee_id: assigneeId, // UUID
+                assignee_id: assigneeId || null, // Có thể null
                 status: status,
                 updated_at: new Date().toISOString()
             })
@@ -517,7 +598,7 @@ async function deleteTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
-    // Check permissions
+    // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền xóa công việc này', 'error')
         return
@@ -545,7 +626,7 @@ async function changeTaskStatus(id, newStatus) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
-    // Check permissions
+    // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền thay đổi trạng thái công việc này', 'error')
         return
@@ -639,7 +720,7 @@ function renderTasksTable() {
     if (!currentProjectId) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center">
+                <td colspan="9" class="text-center">
                     <div class="empty-state">
                         <i class="fas fa-tasks"></i>
                         <h4>Chưa chọn dự án</h4>
@@ -656,7 +737,7 @@ function renderTasksTable() {
     if (projectTasks.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center">
+                <td colspan="9" class="text-center">
                     <div class="empty-state">
                         <i class="fas fa-tasks"></i>
                         <h4>Không có công việc nào</h4>
@@ -681,7 +762,9 @@ function renderTasksTable() {
         }
         
         const assignee = employees.find(e => e.id === task.assignee_id)
-        const assigneeName = assignee ? assignee.name : 'N/A'
+        const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
+        const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
+        const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
         
         row.innerHTML = `
             <td>${task.id}</td>
@@ -690,20 +773,39 @@ function renderTasksTable() {
             <td>${formatDateTime(task.deadline)}</td>
             <td>${getPriorityBadge(task.priority)}</td>
             <td>${getTaskStatusBadge(task.status)}</td>
-            <td>${assigneeName}</td>
+            <td>
+                <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
+                    ${assigneeName}
+                </span>
+            </td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
+                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
                         `<button class="btn btn-outline-primary btn-sm" onclick="editTask(${task.id})">
                             <i class="fas fa-edit"></i>
                         </button>` : ''
                     }
-                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
+                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
                         `<button class="btn btn-outline-danger btn-sm" onclick="deleteTask(${task.id})">
                             <i class="fas fa-trash"></i>
                         </button>` : ''
                     }
-                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
+                    ${canClaim ? 
+                        `<button class="btn btn-success btn-sm" onclick="claimTask(${task.id})" title="Nhận công việc">
+                            <i class="fas fa-check"></i> Nhận
+                        </button>` : ''
+                    }
+                    ${isCurrentUserAssignee ? 
+                        `<button class="btn btn-warning btn-sm" onclick="unclaimTask(${task.id})" title="Hủy nhận">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>` : ''
+                    }
+                    ${isCurrentUserAssignee ? 
+                        `<button class="btn btn-info btn-sm" onclick="showTransferModal(${task.id})" title="Chuyển giao">
+                            <i class="fas fa-exchange-alt"></i> Chuyển
+                        </button>` : ''
+                    }
+                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
                         `<div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="fas fa-cog"></i>
@@ -893,6 +995,65 @@ function showAddTaskModal() {
     modal.show()
 }
 
+// Modal chuyển giao công việc
+function showTransferModal(taskId) {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập', 'error')
+        return
+    }
+    
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || task.assignee_id !== currentUser.id) {
+        showNotification('Bạn không có quyền chuyển giao công việc này', 'error')
+        return
+    }
+    
+    // Set task ID cho transfer form
+    document.getElementById('transferTaskId').value = taskId
+    
+    // Populate employee dropdown
+    const transferAssigneeSelect = document.getElementById('transferAssignee')
+    transferAssigneeSelect.innerHTML = '<option value="">Chọn người nhận</option>'
+    
+    employees.forEach(employee => {
+        if (employee.id !== currentUser.id) { // Không hiển thị chính mình
+            const option = document.createElement('option')
+            option.value = employee.id
+            option.textContent = employee.name
+            transferAssigneeSelect.appendChild(option)
+        }
+    })
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('transferModal'))
+    modal.show()
+}
+
+// Xử lý chuyển giao công việc
+async function handleTransferTask() {
+    const taskId = document.getElementById('transferTaskId').value
+    const newAssigneeId = document.getElementById('transferAssignee').value
+    
+    if (!newAssigneeId) {
+        showNotification('Vui lòng chọn người nhận', 'error')
+        return
+    }
+    
+    try {
+        await transferTask(taskId, newAssigneeId)
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('transferModal'))
+        modal.hide()
+        
+        // Clear form
+        document.getElementById('transferForm').reset()
+        
+    } catch (error) {
+        console.error('Error in handleTransferTask:', error)
+    }
+}
+
 function refreshData() {
     loadDataFromSupabase()
     showNotification('Đã làm mới dữ liệu', 'info')
@@ -914,6 +1075,11 @@ function setupEventListeners() {
     document.getElementById('taskForm').addEventListener('submit', function(e) {
         e.preventDefault()
         saveTask()
+    })
+    
+    document.getElementById('transferForm').addEventListener('submit', function(e) {
+        e.preventDefault()
+        handleTransferTask()
     })
     
     // Auto-check overdue tasks

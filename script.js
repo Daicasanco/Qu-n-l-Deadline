@@ -81,8 +81,10 @@ async function loadProjects() {
     try {
         let query = supabase.from('projects').select('*')
         
-        // Employees có thể xem tất cả projects, không chỉ active
-        // Chỉ filter nếu cần thiết cho performance
+        // Nhân viên chỉ xem các dự án đang hoạt động
+        if (currentUser && currentUser.role === 'employee') {
+            query = query.eq('status', 'active')
+        }
         
         const { data, error } = await query
         
@@ -106,8 +108,8 @@ async function loadTasks(projectId = null) {
             query = query.eq('project_id', projectId)
         }
         
-        // Employees có thể xem tất cả tasks trong project, không chỉ tasks được assign
-        // Chỉ filter theo assignee_id nếu cần thiết cho performance
+        // Nhân viên có thể xem tất cả task trong dự án (đã được RLS policy xử lý)
+        // RLS policy sẽ đảm bảo chỉ hiển thị task trong các dự án đang hoạt động
         
         const { data, error } = await query
         

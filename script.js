@@ -1,515 +1,820 @@
-// Deadline Management System - Main JavaScript
+// Project Management System with Supabase
+
+// Supabase Configuration - Sử dụng config file
+const SUPABASE_URL = window.config ? window.config.SUPABASE_URL : 'YOUR_SUPABASE_URL'
+const SUPABASE_ANON_KEY = window.config ? window.config.SUPABASE_ANON_KEY : 'YOUR_SUPABASE_ANON_KEY'
+
+// Initialize Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Global variables
-let currentUser = null;
-let deadlines = [];
-let users = [];
-let filteredDeadlines = [];
+let currentUser = null
+let projects = []
+let tasks = []
+let employees = []
+let filteredProjects = []
+let currentProjectId = null
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
+    initializeApp()
+})
 
 function initializeApp() {
-    // Load data from localStorage
-    loadData();
-    
     // Check if user is logged in
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem('currentUser')
     if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        updateUserInterface();
+        currentUser = JSON.parse(savedUser)
+        updateUserInterface()
     }
     
-    // Load deadlines
-    loadDeadlines();
+    // Load data from Supabase
+    loadDataFromSupabase()
     
     // Set up event listeners
-    setupEventListeners();
+    setupEventListeners()
     
-    // Update dashboard
-    updateDashboard();
+    // Set up realtime subscriptions
+    setupRealtimeSubscriptions()
 }
 
-// Data Management
-function loadData() {
-    // Load users
-    const savedUsers = localStorage.getItem('users');
-    if (savedUsers) {
-        users = JSON.parse(savedUsers);
-    } else {
-        // Create default admin user
-        users = [
-            {
-                id: 1,
-                name: 'Admin',
-                email: 'admin@example.com',
-                password: 'admin123',
-                role: 'admin',
-                createdAt: new Date().toISOString()
-            }
-        ];
-        saveUsers();
-    }
-    
-    // Load deadlines
-    const savedDeadlines = localStorage.getItem('deadlines');
-    if (savedDeadlines) {
-        deadlines = JSON.parse(savedDeadlines);
-    } else {
-        // Create sample deadlines
-        deadlines = [
-            {
-                id: 1,
-                title: 'Hoàn thành báo cáo tháng',
-                description: 'Viết báo cáo tổng kết tháng 12 cho ban lãnh đạo',
-                deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                priority: 'high',
-                status: 'pending',
-                assignee: 'admin@example.com',
-                createdBy: 'admin@example.com',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            },
-            {
-                id: 2,
-                title: 'Chuẩn bị presentation',
-                description: 'Tạo slide thuyết trình cho dự án mới',
-                deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-                priority: 'medium',
-                status: 'in-progress',
-                assignee: 'admin@example.com',
-                createdBy: 'admin@example.com',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            }
-        ];
-        saveDeadlines();
+// Supabase Data Management
+async function loadDataFromSupabase() {
+    try {
+        // Load employees
+        const { data: employeesData, error: employeesError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('role', 'employee')
+        
+        if (employeesError) throw employeesError
+        employees = employeesData || []
+        
+        // Load managers
+        const { data: managersData, error: managersError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('role', 'manager')
+        
+        if (managersError) throw managersError
+        const managers = managersData || []
+        
+        // Update manager filter dropdown
+        updateManagerFilter(managers)
+        
+        // Load projects
+        await loadProjects()
+        
+        // Load tasks
+        await loadTasks()
+        
+        // Update UI
+        updateDashboard()
+        
+    } catch (error) {
+        console.error('Error loading data:', error)
+        showNotification('Lỗi tải dữ liệu', 'error')
     }
 }
 
-function saveUsers() {
-    localStorage.setItem('users', JSON.stringify(users));
+async function loadProjects() {
+    try {
+        let query = supabase.from('projects').select('*')
+        
+        // If user is employee, only show active projects
+        if (currentUser && currentUser.role === 'employee') {
+            query = query.eq('status', 'active')
+        }
+        
+        const { data, error } = await query
+        
+        if (error) throw error
+        projects = data || []
+        filteredProjects = [...projects]
+        
+        renderProjectsTable()
+        
+    } catch (error) {
+        console.error('Error loading projects:', error)
+        showNotification('Lỗi tải dữ liệu dự án', 'error')
+    }
 }
 
-function saveDeadlines() {
-    localStorage.setItem('deadlines', JSON.stringify(deadlines));
+async function loadTasks(projectId = null) {
+    try {
+        let query = supabase.from('tasks').select('*')
+        
+        if (projectId) {
+            query = query.eq('project_id', projectId)
+        }
+        
+        // If user is employee, only show tasks assigned to them
+        if (currentUser && currentUser.role === 'employee') {
+            query = query.eq('assignee_id', currentUser.id)
+        }
+        
+        const { data, error } = await query
+        
+        if (error) throw error
+        tasks = data || []
+        
+        renderTasksTable()
+        
+    } catch (error) {
+        console.error('Error loading tasks:', error)
+        showNotification('Lỗi tải dữ liệu công việc', 'error')
+    }
+}
+
+// Realtime Subscriptions
+function setupRealtimeSubscriptions() {
+    // Subscribe to project changes
+    supabase
+        .channel('projects')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, payload => {
+            console.log('Project change:', payload)
+            loadProjects()
+            showNotification('Dữ liệu dự án đã được cập nhật', 'info')
+        })
+        .subscribe()
+    
+    // Subscribe to task changes
+    supabase
+        .channel('tasks')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
+            console.log('Task change:', payload)
+            if (currentProjectId) {
+                loadTasks(currentProjectId)
+            }
+            showNotification('Dữ liệu công việc đã được cập nhật', 'info')
+        })
+        .subscribe()
 }
 
 // User Management
-function register() {
-    const name = document.getElementById('registerName').value;
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const role = document.getElementById('registerRole').value;
-    
-    // Validate input
-    if (!name || !email || !password) {
-        showNotification('Vui lòng điền đầy đủ thông tin', 'error');
-        return;
-    }
-    
-    // Check if email already exists
-    if (users.find(user => user.email === email)) {
-        showNotification('Email đã tồn tại', 'error');
-        return;
-    }
-    
-    // Create new user
-    const newUser = {
-        id: users.length + 1,
-        name: name,
-        email: email,
-        password: password, // In real app, should hash password
-        role: role,
-        createdAt: new Date().toISOString()
-    };
-    
-    users.push(newUser);
-    saveUsers();
-    
-    // Close modal and show success message
-    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-    modal.hide();
-    
-    showNotification('Đăng ký thành công!', 'success');
-    
-    // Clear form
-    document.getElementById('registerForm').reset();
-}
-
-function login() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+async function login() {
+    const email = document.getElementById('loginEmail').value
+    const password = document.getElementById('loginPassword').value
     
     // Validate input
     if (!email || !password) {
-        showNotification('Vui lòng điền đầy đủ thông tin', 'error');
-        return;
+        showNotification('Vui lòng điền đầy đủ thông tin', 'error')
+        return
     }
     
-    // Find user
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (!user) {
-        showNotification('Email hoặc mật khẩu không đúng', 'error');
-        return;
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        })
+        
+        if (error) throw error
+        
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('email', email)
+            .single()
+        
+        if (profileError) throw profileError
+        
+        // Set current user
+        currentUser = profile
+        localStorage.setItem('currentUser', JSON.stringify(profile))
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'))
+        modal.hide()
+        
+        // Update UI
+        updateUserInterface()
+        
+        // Reload data
+        loadDataFromSupabase()
+        
+        showNotification(`Chào mừng ${profile.name}!`, 'success')
+        
+        // Clear form
+        document.getElementById('loginForm').reset()
+        
+    } catch (error) {
+        console.error('Login error:', error)
+        showNotification('Email hoặc mật khẩu không đúng', 'error')
     }
-    
-    // Set current user
-    currentUser = user;
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-    modal.hide();
-    
-    // Update UI
-    updateUserInterface();
-    
-    showNotification(`Chào mừng ${user.name}!`, 'success');
-    
-    // Clear form
-    document.getElementById('loginForm').reset();
 }
 
 function logout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
-    updateUserInterface();
-    showNotification('Đã đăng xuất', 'info');
+    currentUser = null
+    localStorage.removeItem('currentUser')
+    updateUserInterface()
+    showNotification('Đã đăng xuất', 'info')
 }
 
 function updateUserInterface() {
-    const currentUserSpan = document.getElementById('currentUser');
-    const addDeadlineBtn = document.getElementById('addDeadlineBtn');
+    const currentUserSpan = document.getElementById('currentUser')
+    const addProjectBtn = document.getElementById('addProjectBtn')
+    const addTaskBtn = document.getElementById('addTaskBtn')
     
     if (currentUser) {
-        currentUserSpan.textContent = currentUser.name;
-        addDeadlineBtn.style.display = 'inline-block';
+        currentUserSpan.textContent = currentUser.name
+        addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        addTaskBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
         // Update assignee dropdowns
-        updateAssigneeDropdowns();
+        updateAssigneeDropdowns()
     } else {
-        currentUserSpan.textContent = 'Guest';
-        addDeadlineBtn.style.display = 'none';
+        currentUserSpan.textContent = 'Guest'
+        addProjectBtn.style.display = 'none'
+        addTaskBtn.style.display = 'none'
     }
 }
 
-// Deadline Management
-function loadDeadlines() {
-    filteredDeadlines = [...deadlines];
-    renderDeadlinesTable();
-    updateDashboard();
-}
-
-function addDeadline() {
-    const title = document.getElementById('deadlineTitle').value;
-    const description = document.getElementById('deadlineDescription').value;
-    const deadline = document.getElementById('deadlineDate').value;
-    const priority = document.getElementById('deadlinePriority').value;
-    const assignee = document.getElementById('deadlineAssignee').value;
+// Project Management
+async function addProject() {
+    const name = document.getElementById('projectName').value
+    const description = document.getElementById('projectDescription').value
+    const status = document.getElementById('projectStatus').value
     
     // Validate input
-    if (!title || !deadline || !assignee) {
-        showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
-        return;
+    if (!name) {
+        showNotification('Vui lòng điền tên dự án', 'error')
+        return
     }
     
-    // Create new deadline
-    const newDeadline = {
-        id: deadlines.length + 1,
-        title: title,
-        description: description,
-        deadline: new Date(deadline).toISOString(),
-        priority: priority,
-        status: 'pending',
-        assignee: assignee,
-        createdBy: currentUser.email,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    deadlines.push(newDeadline);
-    saveDeadlines();
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('deadlineModal'));
-    modal.hide();
-    
-    // Reload data
-    loadDeadlines();
-    
-    showNotification('Thêm deadline thành công!', 'success');
-    
-    // Clear form
-    document.getElementById('deadlineForm').reset();
+    try {
+        const { data, error } = await supabase
+            .from('projects')
+            .insert([{
+                name: name,
+                description: description,
+                status: status,
+                manager_id: currentUser.id,
+                created_at: new Date().toISOString()
+            }])
+            .select()
+        
+        if (error) throw error
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('projectModal'))
+        modal.hide()
+        
+        showNotification('Thêm dự án thành công!', 'success')
+        
+        // Clear form
+        document.getElementById('projectForm').reset()
+        
+    } catch (error) {
+        console.error('Error adding project:', error)
+        showNotification('Lỗi thêm dự án', 'error')
+    }
 }
 
-function editDeadline(id) {
-    const deadline = deadlines.find(d => d.id === id);
-    if (!deadline) return;
+async function editProject(id) {
+    const project = projects.find(p => p.id === id)
+    if (!project) return
     
     // Check permissions
-    if (currentUser.role !== 'admin' && currentUser.email !== deadline.assignee) {
-        showNotification('Bạn không có quyền chỉnh sửa deadline này', 'error');
-        return;
+    if (currentUser.role !== 'manager' || currentUser.id !== project.manager_id) {
+        showNotification('Bạn không có quyền chỉnh sửa dự án này', 'error')
+        return
     }
     
     // Fill form
-    document.getElementById('deadlineId').value = deadline.id;
-    document.getElementById('deadlineTitle').value = deadline.title;
-    document.getElementById('deadlineDescription').value = deadline.description;
-    document.getElementById('deadlineDate').value = deadline.deadline.slice(0, 16);
-    document.getElementById('deadlinePriority').value = deadline.priority;
-    document.getElementById('deadlineAssignee').value = deadline.assignee;
-    document.getElementById('deadlineStatus').value = deadline.status;
-    
-    // Show status field for editing
-    document.getElementById('statusField').style.display = 'block';
+    document.getElementById('projectId').value = project.id
+    document.getElementById('projectName').value = project.name
+    document.getElementById('projectDescription').value = project.description || ''
+    document.getElementById('projectStatus').value = project.status
     
     // Update modal title
-    document.getElementById('deadlineModalTitle').textContent = 'Chỉnh sửa Deadline';
+    document.getElementById('projectModalTitle').textContent = 'Chỉnh sửa Dự án'
     
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('deadlineModal'));
-    modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('projectModal'))
+    modal.show()
 }
 
-function saveDeadline() {
-    const id = document.getElementById('deadlineId').value;
+async function saveProject() {
+    const id = document.getElementById('projectId').value
     
     if (id) {
-        // Update existing deadline
-        updateDeadline();
+        // Update existing project
+        await updateProject()
     } else {
-        // Add new deadline
-        addDeadline();
+        // Add new project
+        await addProject()
     }
 }
 
-function updateDeadline() {
-    const id = parseInt(document.getElementById('deadlineId').value);
-    const title = document.getElementById('deadlineTitle').value;
-    const description = document.getElementById('deadlineDescription').value;
-    const deadline = document.getElementById('deadlineDate').value;
-    const priority = document.getElementById('deadlinePriority').value;
-    const assignee = document.getElementById('deadlineAssignee').value;
-    const status = document.getElementById('deadlineStatus').value;
+async function updateProject() {
+    const id = parseInt(document.getElementById('projectId').value)
+    const name = document.getElementById('projectName').value
+    const description = document.getElementById('projectDescription').value
+    const status = document.getElementById('projectStatus').value
     
     // Validate input
-    if (!title || !deadline || !assignee) {
-        showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
-        return;
+    if (!name) {
+        showNotification('Vui lòng điền tên dự án', 'error')
+        return
     }
     
-    // Find and update deadline
-    const deadlineIndex = deadlines.findIndex(d => d.id === id);
-    if (deadlineIndex === -1) return;
-    
-    deadlines[deadlineIndex] = {
-        ...deadlines[deadlineIndex],
-        title: title,
-        description: description,
-        deadline: new Date(deadline).toISOString(),
-        priority: priority,
-        assignee: assignee,
-        status: status,
-        updatedAt: new Date().toISOString()
-    };
-    
-    saveDeadlines();
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('deadlineModal'));
-    modal.hide();
-    
-    // Reload data
-    loadDeadlines();
-    
-    showNotification('Cập nhật deadline thành công!', 'success');
-    
-    // Clear form and hide status field
-    document.getElementById('deadlineForm').reset();
-    document.getElementById('statusField').style.display = 'none';
-    document.getElementById('deadlineModalTitle').textContent = 'Thêm Deadline';
-}
-
-function deleteDeadline(id) {
-    const deadline = deadlines.find(d => d.id === id);
-    if (!deadline) return;
-    
-    // Check permissions
-    if (currentUser.role !== 'admin' && currentUser.email !== deadline.createdBy) {
-        showNotification('Bạn không có quyền xóa deadline này', 'error');
-        return;
-    }
-    
-    if (confirm('Bạn có chắc chắn muốn xóa deadline này?')) {
-        deadlines = deadlines.filter(d => d.id !== id);
-        saveDeadlines();
-        loadDeadlines();
-        showNotification('Xóa deadline thành công!', 'success');
+    try {
+        const { error } = await supabase
+            .from('projects')
+            .update({
+                name: name,
+                description: description,
+                status: status,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+        
+        if (error) throw error
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('projectModal'))
+        modal.hide()
+        
+        showNotification('Cập nhật dự án thành công!', 'success')
+        
+        // Clear form
+        document.getElementById('projectForm').reset()
+        document.getElementById('projectModalTitle').textContent = 'Thêm Dự án'
+        
+    } catch (error) {
+        console.error('Error updating project:', error)
+        showNotification('Lỗi cập nhật dự án', 'error')
     }
 }
 
-function changeStatus(id, newStatus) {
-    const deadline = deadlines.find(d => d.id === id);
-    if (!deadline) return;
+async function deleteProject(id) {
+    const project = projects.find(p => p.id === id)
+    if (!project) return
     
     // Check permissions
-    if (currentUser.role !== 'admin' && currentUser.email !== deadline.assignee) {
-        showNotification('Bạn không có quyền thay đổi trạng thái deadline này', 'error');
-        return;
+    if (currentUser.role !== 'manager' || currentUser.id !== project.manager_id) {
+        showNotification('Bạn không có quyền xóa dự án này', 'error')
+        return
     }
     
-    deadline.status = newStatus;
-    deadline.updatedAt = new Date().toISOString();
+    if (confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
+        try {
+            const { error } = await supabase
+                .from('projects')
+                .delete()
+                .eq('id', id)
+            
+            if (error) throw error
+            
+            showNotification('Xóa dự án thành công!', 'success')
+            
+        } catch (error) {
+            console.error('Error deleting project:', error)
+            showNotification('Lỗi xóa dự án', 'error')
+        }
+    }
+}
+
+// Task Management
+async function addTask() {
+    const name = document.getElementById('taskName').value
+    const description = document.getElementById('taskDescription').value
+    const deadline = document.getElementById('taskDeadline').value
+    const priority = document.getElementById('taskPriority').value
+    const assigneeId = document.getElementById('taskAssignee').value
+    const projectId = currentProjectId || document.getElementById('taskProjectId').value
     
-    saveDeadlines();
-    loadDeadlines();
+    // Validate input
+    if (!name || !deadline || !assigneeId || !projectId) {
+        showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
+        return
+    }
     
-    showNotification('Cập nhật trạng thái thành công!', 'success');
+    try {
+        const { data, error } = await supabase
+            .from('tasks')
+            .insert([{
+                name: name,
+                description: description,
+                deadline: new Date(deadline).toISOString(),
+                priority: priority,
+                status: 'pending',
+                project_id: parseInt(projectId),
+                assignee_id: parseInt(assigneeId),
+                created_at: new Date().toISOString()
+            }])
+            .select()
+        
+        if (error) throw error
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
+        modal.hide()
+        
+        showNotification('Thêm công việc thành công!', 'success')
+        
+        // Clear form
+        document.getElementById('taskForm').reset()
+        
+    } catch (error) {
+        console.error('Error adding task:', error)
+        showNotification('Lỗi thêm công việc', 'error')
+    }
+}
+
+async function editTask(id) {
+    const task = tasks.find(t => t.id === id)
+    if (!task) return
+    
+    // Check permissions
+    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+        showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
+        return
+    }
+    
+    // Fill form
+    document.getElementById('taskId').value = task.id
+    document.getElementById('taskName').value = task.name
+    document.getElementById('taskDescription').value = task.description || ''
+    document.getElementById('taskDeadline').value = task.deadline.slice(0, 16)
+    document.getElementById('taskPriority').value = task.priority
+    document.getElementById('taskAssignee').value = task.assignee_id
+    document.getElementById('taskStatus').value = task.status
+    
+    // Show status field for editing
+    document.getElementById('taskStatusField').style.display = 'block'
+    
+    // Update modal title
+    document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'))
+    modal.show()
+}
+
+async function saveTask() {
+    const id = document.getElementById('taskId').value
+    
+    if (id) {
+        // Update existing task
+        await updateTask()
+    } else {
+        // Add new task
+        await addTask()
+    }
+}
+
+async function updateTask() {
+    const id = parseInt(document.getElementById('taskId').value)
+    const name = document.getElementById('taskName').value
+    const description = document.getElementById('taskDescription').value
+    const deadline = document.getElementById('taskDeadline').value
+    const priority = document.getElementById('taskPriority').value
+    const assigneeId = document.getElementById('taskAssignee').value
+    const status = document.getElementById('taskStatus').value
+    
+    // Validate input
+    if (!name || !deadline || !assigneeId) {
+        showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
+        return
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                name: name,
+                description: description,
+                deadline: new Date(deadline).toISOString(),
+                priority: priority,
+                assignee_id: parseInt(assigneeId),
+                status: status,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+        
+        if (error) throw error
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
+        modal.hide()
+        
+        showNotification('Cập nhật công việc thành công!', 'success')
+        
+        // Clear form and hide status field
+        document.getElementById('taskForm').reset()
+        document.getElementById('taskStatusField').style.display = 'none'
+        document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+        
+    } catch (error) {
+        console.error('Error updating task:', error)
+        showNotification('Lỗi cập nhật công việc', 'error')
+    }
+}
+
+async function deleteTask(id) {
+    const task = tasks.find(t => t.id === id)
+    if (!task) return
+    
+    // Check permissions
+    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+        showNotification('Bạn không có quyền xóa công việc này', 'error')
+        return
+    }
+    
+    if (confirm('Bạn có chắc chắn muốn xóa công việc này?')) {
+        try {
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', id)
+            
+            if (error) throw error
+            
+            showNotification('Xóa công việc thành công!', 'success')
+            
+        } catch (error) {
+            console.error('Error deleting task:', error)
+            showNotification('Lỗi xóa công việc', 'error')
+        }
+    }
+}
+
+async function changeTaskStatus(id, newStatus) {
+    const task = tasks.find(t => t.id === id)
+    if (!task) return
+    
+    // Check permissions
+    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+        showNotification('Bạn không có quyền thay đổi trạng thái công việc này', 'error')
+        return
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+        
+        if (error) throw error
+        
+        showNotification('Cập nhật trạng thái thành công!', 'success')
+        
+    } catch (error) {
+        console.error('Error updating task status:', error)
+        showNotification('Lỗi cập nhật trạng thái', 'error')
+    }
 }
 
 // UI Functions
-function renderDeadlinesTable() {
-    const tbody = document.getElementById('deadlinesTableBody');
-    tbody.innerHTML = '';
+function renderProjectsTable() {
+    const tbody = document.getElementById('projectsTableBody')
+    tbody.innerHTML = ''
     
-    if (filteredDeadlines.length === 0) {
+    if (filteredProjects.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center">
+                <td colspan="8" class="text-center">
                     <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <h4>Không có deadline nào</h4>
-                        <p>Hãy thêm deadline đầu tiên để bắt đầu</p>
+                        <i class="fas fa-project-diagram"></i>
+                        <h4>Không có dự án nào</h4>
+                        <p>Hãy thêm dự án đầu tiên để bắt đầu</p>
                     </div>
                 </td>
             </tr>
-        `;
-        return;
+        `
+        return
     }
     
-    filteredDeadlines.forEach(deadline => {
-        const row = document.createElement('tr');
+    filteredProjects.forEach(project => {
+        const row = document.createElement('tr')
         
-        // Add row class based on priority and status
-        if (deadline.status === 'overdue') {
-            row.classList.add('table-row-overdue');
-        } else if (deadline.priority === 'urgent') {
-            row.classList.add('table-row-urgent');
-        } else if (deadline.priority === 'high') {
-            row.classList.add('table-row-high');
+        // Add row class based on status
+        if (project.status === 'completed') {
+            row.classList.add('table-row-completed')
+        } else if (project.status === 'paused') {
+            row.classList.add('table-row-paused')
         }
         
-        const assignee = users.find(u => u.email === deadline.assignee);
-        const assigneeName = assignee ? assignee.name : deadline.assignee;
+        // Get task count for this project
+        const taskCount = tasks.filter(t => t.project_id === project.id).length
         
         row.innerHTML = `
-            <td>${deadline.id}</td>
-            <td><strong>${deadline.title}</strong></td>
-            <td>${deadline.description || '-'}</td>
-            <td>${formatDateTime(deadline.deadline)}</td>
-            <td>${getPriorityBadge(deadline.priority)}</td>
-            <td>${getStatusBadge(deadline.status)}</td>
-            <td>${assigneeName}</td>
-            <td>${formatDateTime(deadline.createdAt)}</td>
+            <td>${project.id}</td>
+            <td><strong>${project.name}</strong></td>
+            <td>${project.description || '-'}</td>
+            <td>${getProjectStatusBadge(project.status)}</td>
+            <td>${project.manager_name || 'N/A'}</td>
+            <td>${formatDateTime(project.created_at)}</td>
+            <td><span class="badge bg-info">${taskCount}</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    ${currentUser && (currentUser.role === 'admin' || currentUser.email === deadline.assignee) ? 
-                        `<button class="btn btn-outline-primary btn-sm" onclick="editDeadline(${deadline.id})">
+                    <button class="btn btn-outline-primary btn-sm" onclick="selectProject(${project.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${currentUser && currentUser.role === 'manager' && currentUser.id === project.manager_id ? 
+                        `<button class="btn btn-outline-warning btn-sm" onclick="editProject(${project.id})">
                             <i class="fas fa-edit"></i>
-                        </button>` : ''
-                    }
-                    ${currentUser && (currentUser.role === 'admin' || currentUser.email === deadline.createdBy) ? 
-                        `<button class="btn btn-outline-danger btn-sm" onclick="deleteDeadline(${deadline.id})">
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteProject(${project.id})">
                             <i class="fas fa-trash"></i>
                         </button>` : ''
                     }
-                    ${currentUser && (currentUser.role === 'admin' || currentUser.email === deadline.assignee) ? 
+                </div>
+            </td>
+        `
+        
+        tbody.appendChild(row)
+    })
+}
+
+function renderTasksTable() {
+    const tbody = document.getElementById('tasksTableBody')
+    tbody.innerHTML = ''
+    
+    if (!currentProjectId) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <h4>Chưa chọn dự án</h4>
+                        <p>Vui lòng chọn một dự án để xem công việc</p>
+                    </div>
+                </td>
+            </tr>
+        `
+        return
+    }
+    
+    const projectTasks = tasks.filter(t => t.project_id === currentProjectId)
+    
+    if (projectTasks.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <h4>Không có công việc nào</h4>
+                        <p>Hãy thêm công việc đầu tiên cho dự án này</p>
+                    </div>
+                </td>
+            </tr>
+        `
+        return
+    }
+    
+    projectTasks.forEach(task => {
+        const row = document.createElement('tr')
+        
+        // Add row class based on priority and status
+        if (task.status === 'overdue') {
+            row.classList.add('table-row-overdue')
+        } else if (task.priority === 'urgent') {
+            row.classList.add('table-row-urgent')
+        } else if (task.priority === 'high') {
+            row.classList.add('table-row-high')
+        }
+        
+        const assignee = employees.find(e => e.id === task.assignee_id)
+        const assigneeName = assignee ? assignee.name : 'N/A'
+        
+        row.innerHTML = `
+            <td>${task.id}</td>
+            <td><strong>${task.name}</strong></td>
+            <td>${task.description || '-'}</td>
+            <td>${formatDateTime(task.deadline)}</td>
+            <td>${getPriorityBadge(task.priority)}</td>
+            <td>${getTaskStatusBadge(task.status)}</td>
+            <td>${assigneeName}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
+                        `<button class="btn btn-outline-primary btn-sm" onclick="editTask(${task.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>` : ''
+                    }
+                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
+                        `<button class="btn btn-outline-danger btn-sm" onclick="deleteTask(${task.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''
+                    }
+                    ${currentUser && (currentUser.role === 'manager' || currentUser.id === task.assignee_id) ? 
                         `<div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="fas fa-cog"></i>
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="changeStatus(${deadline.id}, 'pending')">Chờ thực hiện</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeStatus(${deadline.id}, 'in-progress')">Đang thực hiện</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeStatus(${deadline.id}, 'completed')">Hoàn thành</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')">Chờ thực hiện</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')">Đang thực hiện</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')">Hoàn thành</a></li>
                             </ul>
                         </div>` : ''
                     }
                 </div>
             </td>
-        `;
+        `
         
-        tbody.appendChild(row);
-    });
+        tbody.appendChild(row)
+    })
+}
+
+function selectProject(projectId) {
+    currentProjectId = projectId
+    const project = projects.find(p => p.id === projectId)
+    document.getElementById('currentProjectName').textContent = project ? project.name : 'Chọn dự án'
+    
+    // Load tasks for this project
+    loadTasks(projectId)
 }
 
 function updateDashboard() {
-    const total = deadlines.length;
-    const inProgress = deadlines.filter(d => d.status === 'in-progress').length;
-    const completed = deadlines.filter(d => d.status === 'completed').length;
-    const overdue = deadlines.filter(d => {
-        const deadlineDate = new Date(d.deadline);
-        const now = new Date();
-        return deadlineDate < now && d.status !== 'completed';
-    }).length;
+    const totalProjects = projects.length
+    const totalTasks = tasks.length
+    const activeProjects = projects.filter(p => p.status === 'active').length
+    const completedProjects = projects.filter(p => p.status === 'completed').length
     
-    document.getElementById('totalDeadlines').textContent = total;
-    document.getElementById('inProgress').textContent = inProgress;
-    document.getElementById('completed').textContent = completed;
-    document.getElementById('overdue').textContent = overdue;
+    document.getElementById('totalProjects').textContent = totalProjects
+    document.getElementById('totalTasks').textContent = totalTasks
+    document.getElementById('activeProjects').textContent = activeProjects
+    document.getElementById('completedProjects').textContent = completedProjects
+}
+
+function updateManagerFilter(managers) {
+    const managerSelect = document.getElementById('managerFilter')
+    managerSelect.innerHTML = '<option value="">Tất cả</option>'
+    
+    managers.forEach(manager => {
+        const option = document.createElement('option')
+        option.value = manager.id
+        option.textContent = manager.name
+        managerSelect.appendChild(option)
+    })
 }
 
 function updateAssigneeDropdowns() {
-    const assigneeSelects = document.querySelectorAll('#deadlineAssignee, #assigneeFilter');
+    const assigneeSelects = document.querySelectorAll('#taskAssignee')
     
     assigneeSelects.forEach(select => {
-        select.innerHTML = '<option value="">Chọn người thực hiện</option>';
-        users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.email;
-            option.textContent = user.name;
-            select.appendChild(option);
-        });
-    });
+        select.innerHTML = '<option value="">Chọn người thực hiện</option>'
+        employees.forEach(employee => {
+            const option = document.createElement('option')
+            option.value = employee.id
+            option.textContent = employee.name
+            select.appendChild(option)
+        })
+    })
 }
 
 // Filter Functions
-function applyFilters() {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const priorityFilter = document.getElementById('priorityFilter').value;
-    const assigneeFilter = document.getElementById('assigneeFilter').value;
+function applyProjectFilters() {
+    const statusFilter = document.getElementById('projectStatusFilter').value
+    const managerFilter = document.getElementById('managerFilter').value
     
-    filteredDeadlines = deadlines.filter(deadline => {
-        let matches = true;
+    filteredProjects = projects.filter(project => {
+        let matches = true
         
-        if (statusFilter && deadline.status !== statusFilter) {
-            matches = false;
+        if (statusFilter && project.status !== statusFilter) {
+            matches = false
         }
         
-        if (priorityFilter && deadline.priority !== priorityFilter) {
-            matches = false;
+        if (managerFilter && project.manager_id !== parseInt(managerFilter)) {
+            matches = false
         }
         
-        if (assigneeFilter && deadline.assignee !== assigneeFilter) {
-            matches = false;
-        }
-        
-        return matches;
-    });
+        return matches
+    })
     
-    renderDeadlinesTable();
+    renderProjectsTable()
 }
 
 // Utility Functions
 function formatDateTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('vi-VN');
+    const date = new Date(dateString)
+    return date.toLocaleString('vi-VN')
+}
+
+function getProjectStatusBadge(status) {
+    const badges = {
+        'active': '<span class="badge badge-active">Đang hoạt động</span>',
+        'paused': '<span class="badge badge-paused">Tạm dừng</span>',
+        'completed': '<span class="badge badge-completed">Hoàn thành</span>'
+    }
+    return badges[status] || ''
+}
+
+function getTaskStatusBadge(status) {
+    const badges = {
+        'pending': '<span class="badge badge-pending">Chờ thực hiện</span>',
+        'in-progress': '<span class="badge badge-in-progress">Đang thực hiện</span>',
+        'completed': '<span class="badge badge-completed">Hoàn thành</span>',
+        'overdue': '<span class="badge badge-overdue">Quá hạn</span>'
+    }
+    return badges[status] || ''
 }
 
 function getPriorityBadge(priority) {
@@ -518,135 +823,119 @@ function getPriorityBadge(priority) {
         'medium': '<span class="badge badge-priority-medium">Trung bình</span>',
         'high': '<span class="badge badge-priority-high">Cao</span>',
         'urgent': '<span class="badge badge-priority-urgent">Khẩn cấp</span>'
-    };
-    return badges[priority] || '';
-}
-
-function getStatusBadge(status) {
-    const badges = {
-        'pending': '<span class="badge badge-pending">Chờ thực hiện</span>',
-        'in-progress': '<span class="badge badge-in-progress">Đang thực hiện</span>',
-        'completed': '<span class="badge badge-completed">Hoàn thành</span>',
-        'overdue': '<span class="badge badge-overdue">Quá hạn</span>'
-    };
-    return badges[status] || '';
+    }
+    return badges[priority] || ''
 }
 
 function showNotification(message, type = 'info') {
-    const toast = document.getElementById('notificationToast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMessage = document.getElementById('toastMessage');
+    const toast = document.getElementById('notificationToast')
+    const toastTitle = document.getElementById('toastTitle')
+    const toastMessage = document.getElementById('toastMessage')
     
     // Set title and message
     toastTitle.textContent = type === 'error' ? 'Lỗi' : 
                            type === 'success' ? 'Thành công' : 
-                           type === 'warning' ? 'Cảnh báo' : 'Thông báo';
-    toastMessage.textContent = message;
+                           type === 'warning' ? 'Cảnh báo' : 'Thông báo'
+    toastMessage.textContent = message
     
     // Set toast class
     toast.className = `toast ${type === 'error' ? 'bg-danger text-white' : 
                               type === 'success' ? 'bg-success text-white' : 
-                              type === 'warning' ? 'bg-warning text-dark' : ''}`;
+                              type === 'warning' ? 'bg-warning text-dark' : ''}`
     
     // Show toast
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+    const bsToast = new bootstrap.Toast(toast)
+    bsToast.show()
 }
 
 // Modal Functions
 function showLoginModal() {
-    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-    modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('loginModal'))
+    modal.show()
 }
 
-function showRegisterModal() {
-    const modal = new bootstrap.Modal(document.getElementById('registerModal'));
-    modal.show();
-}
-
-function showAddDeadlineModal() {
+function showAddProjectModal() {
     if (!currentUser) {
-        showNotification('Vui lòng đăng nhập để thêm deadline', 'error');
-        return;
+        showNotification('Vui lòng đăng nhập để thêm dự án', 'error')
+        return
     }
     
     // Clear form
-    document.getElementById('deadlineForm').reset();
-    document.getElementById('deadlineId').value = '';
-    document.getElementById('statusField').style.display = 'none';
-    document.getElementById('deadlineModalTitle').textContent = 'Thêm Deadline';
+    document.getElementById('projectForm').reset()
+    document.getElementById('projectId').value = ''
+    document.getElementById('projectModalTitle').textContent = 'Thêm Dự án'
     
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('deadlineModal'));
-    modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('projectModal'))
+    modal.show()
 }
 
-// Export Functions
-function exportData() {
-    const data = {
-        deadlines: deadlines,
-        users: users,
-        exportDate: new Date().toISOString()
-    };
+function showAddTaskModal() {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để thêm công việc', 'error')
+        return
+    }
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `deadline-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (!currentProjectId) {
+        showNotification('Vui lòng chọn một dự án trước', 'error')
+        return
+    }
     
-    showNotification('Xuất dữ liệu thành công!', 'success');
+    // Clear form
+    document.getElementById('taskForm').reset()
+    document.getElementById('taskId').value = ''
+    document.getElementById('taskProjectId').value = currentProjectId
+    document.getElementById('taskStatusField').style.display = 'none'
+    document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'))
+    modal.show()
 }
 
 function refreshData() {
-    loadDeadlines();
-    showNotification('Đã làm mới dữ liệu', 'info');
+    loadDataFromSupabase()
+    showNotification('Đã làm mới dữ liệu', 'info')
 }
 
 // Event Listeners
 function setupEventListeners() {
     // Form submissions
     document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        login();
-    });
+        e.preventDefault()
+        login()
+    })
     
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        register();
-    });
+    document.getElementById('projectForm').addEventListener('submit', function(e) {
+        e.preventDefault()
+        saveProject()
+    })
     
-    document.getElementById('deadlineForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveDeadline();
-    });
+    document.getElementById('taskForm').addEventListener('submit', function(e) {
+        e.preventDefault()
+        saveTask()
+    })
     
-    // Auto-check overdue deadlines
-    setInterval(checkOverdueDeadlines, 60000); // Check every minute
+    // Auto-check overdue tasks
+    setInterval(checkOverdueTasks, 60000) // Check every minute
 }
 
-function checkOverdueDeadlines() {
-    const now = new Date();
-    let hasOverdue = false;
+function checkOverdueTasks() {
+    const now = new Date()
+    let hasOverdue = false
     
-    deadlines.forEach(deadline => {
-        const deadlineDate = new Date(deadline.deadline);
-        if (deadlineDate < now && deadline.status !== 'completed') {
-            deadline.status = 'overdue';
-            hasOverdue = true;
+    tasks.forEach(task => {
+        const deadlineDate = new Date(task.deadline)
+        if (deadlineDate < now && task.status !== 'completed') {
+            task.status = 'overdue'
+            hasOverdue = true
         }
-    });
+    })
     
     if (hasOverdue) {
-        saveDeadlines();
-        loadDeadlines();
-        showNotification('Có deadline quá hạn!', 'warning');
+        showNotification('Có công việc quá hạn!', 'warning')
     }
 }
 
 // Initialize overdue check on load
-checkOverdueDeadlines(); 
+checkOverdueTasks() 

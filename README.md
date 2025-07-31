@@ -1,138 +1,242 @@
-# 🚀 Deadline Management System
+# 🚀 Project Management System
 
-Hệ thống quản lý deadline hoàn chỉnh với phân quyền admin/employee, có thể deploy trên GitHub Pages miễn phí.
+Hệ thống quản lý dự án hoàn chỉnh với Supabase, hỗ trợ nhiều người dùng đồng thời và cập nhật realtime.
 
 ## ✨ Tính năng chính
 
 ### 🔐 Phân quyền người dùng
-- **Admin**: Quản lý toàn bộ hệ thống, thêm/sửa/xóa deadline, quản lý người dùng
-- **Employee**: Xem deadline được giao, cập nhật trạng thái, chỉnh sửa deadline của mình
+- **Manager (Quản lý)**: 
+  - Tạo và quản lý dự án
+  - Cập nhật trạng thái dự án (Đang hoạt động/Tạm dừng/Hoàn thành)
+  - Phân công công việc cho nhân viên
+  - Xem tất cả dự án và công việc
+- **Employee (Nhân viên)**: 
+  - Chỉ xem dự án đang hoạt động
+  - Chọn và thực hiện công việc được phân công
+  - Cập nhật trạng thái công việc
 
 ### 📊 Dashboard thống kê
-- Tổng số deadline
-- Deadline đang thực hiện
-- Deadline hoàn thành
-- Deadline quá hạn
+- Tổng số dự án
+- Tổng số công việc
+- Dự án đang hoạt động
+- Dự án hoàn thành
 
-### 🎯 Quản lý deadline
-- Thêm deadline mới với độ ưu tiên
-- Chỉnh sửa và xóa deadline
-- Cập nhật trạng thái (Chờ thực hiện → Đang thực hiện → Hoàn thành)
-- Tự động đánh dấu deadline quá hạn
+### 🎯 Quản lý dự án
+- Thêm dự án mới với trạng thái
+- Chỉnh sửa và xóa dự án (chỉ manager)
+- Cập nhật trạng thái dự án
+- Xem danh sách công việc trong từng dự án
 
-### 🔍 Lọc và tìm kiếm
-- Lọc theo trạng thái
-- Lọc theo độ ưu tiên
-- Lọc theo người thực hiện
+### 📋 Quản lý công việc
+- Thêm công việc vào dự án
+- Phân công cho nhân viên cụ thể
+- Cập nhật trạng thái công việc
+- Tự động đánh dấu công việc quá hạn
 
-### 📤 Xuất dữ liệu
-- Export toàn bộ dữ liệu ra file JSON
-- Backup và restore dữ liệu
+### 🔄 Realtime Updates
+- Cập nhật realtime khi có thay đổi
+- Thông báo khi dữ liệu được cập nhật
+- Đồng bộ hóa giữa nhiều người dùng
 
 ## 🛠️ Cài đặt và Deploy
 
-### Bước 1: Tạo repository GitHub
+### Bước 1: Tạo Supabase Project
 
-1. Tạo repository mới trên GitHub
-2. Đặt tên: `deadline-management-system`
-3. Chọn Public repository
+1. Truy cập [supabase.com](https://supabase.com)
+2. Tạo project mới
+3. Lưu lại **Project URL** và **anon public key**
 
-### Bước 2: Upload code
+### Bước 2: Tạo Database Schema
 
-1. Clone repository về máy:
-```bash
-git clone https://github.com/your-username/deadline-management-system.git
-cd deadline-management-system
+Chạy SQL sau trong Supabase SQL Editor:
+
+```sql
+-- Tạo bảng employees
+CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'employee',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tạo bảng projects
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'active',
+    manager_id INTEGER REFERENCES employees(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tạo bảng tasks
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    deadline TIMESTAMP NOT NULL,
+    priority VARCHAR(50) NOT NULL DEFAULT 'medium',
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    assignee_id INTEGER REFERENCES employees(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tạo RLS policies
+ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+
+-- Policy cho employees
+CREATE POLICY "Employees can view all employees" ON employees FOR SELECT USING (true);
+
+-- Policy cho projects
+CREATE POLICY "Managers can manage all projects" ON projects FOR ALL USING (
+    EXISTS (
+        SELECT 1 FROM employees 
+        WHERE employees.id = projects.manager_id 
+        AND employees.role = 'manager'
+    )
+);
+
+CREATE POLICY "Employees can view active projects" ON projects FOR SELECT USING (
+    status = 'active' OR 
+    EXISTS (
+        SELECT 1 FROM employees 
+        WHERE employees.id = projects.manager_id 
+        AND employees.role = 'manager'
+    )
+);
+
+-- Policy cho tasks
+CREATE POLICY "Managers can manage all tasks" ON tasks FOR ALL USING (
+    EXISTS (
+        SELECT 1 FROM employees 
+        WHERE employees.id = tasks.assignee_id 
+        AND employees.role = 'manager'
+    )
+);
+
+CREATE POLICY "Employees can manage assigned tasks" ON tasks FOR ALL USING (
+    assignee_id = auth.uid() OR
+    EXISTS (
+        SELECT 1 FROM employees 
+        WHERE employees.id = tasks.assignee_id 
+        AND employees.role = 'manager'
+    )
+);
 ```
 
-2. Copy các file đã tạo vào thư mục:
-   - `index.html`
-   - `styles.css`
-   - `script.js`
+### Bước 3: Tạo tài khoản người dùng
 
-3. Commit và push code:
-```bash
-git add .
-git commit -m "Initial commit: Deadline Management System"
-git push origin main
-```
+1. Vào **Authentication** > **Users**
+2. Tạo tài khoản cho manager và employees
+3. Vào **Table Editor** > **employees**
+4. Thêm thông tin người dùng với role tương ứng
 
-### Bước 3: Deploy trên GitHub Pages
+### Bước 4: Cập nhật cấu hình
 
-1. Vào repository trên GitHub
-2. Vào **Settings** > **Pages**
-3. Chọn **Source**: Deploy from a branch
-4. Chọn **Branch**: main
-5. Chọn **Folder**: / (root)
-6. Click **Save**
+1. Mở file `script.js`
+2. Thay thế `YOUR_SUPABASE_URL` và `YOUR_SUPABASE_ANON_KEY`
+3. Lưu file
 
-Sau vài phút, website sẽ có sẵn tại: `https://your-username.github.io/deadline-management-system`
+### Bước 5: Deploy trên GitHub Pages
+
+1. Tạo repository GitHub
+2. Upload các file: `index.html`, `styles.css`, `script.js`
+3. Vào Settings > Pages
+4. Chọn Source: Deploy from a branch
+5. Chọn Branch: main
 
 ## 👥 Sử dụng hệ thống
 
-### Đăng ký tài khoản đầu tiên
-
-1. Truy cập website
-2. Click **Đăng ký**
-3. Điền thông tin:
-   - **Họ tên**: Admin
-   - **Email**: admin@example.com
-   - **Mật khẩu**: admin123
-   - **Vai trò**: Quản lý
-4. Click **Đăng ký**
-
 ### Đăng nhập
 
-1. Click **Đăng nhập**
-2. Sử dụng tài khoản đã tạo:
-   - **Email**: admin@example.com
-   - **Mật khẩu**: admin123
-3. Click **Đăng nhập**
+1. Truy cập website
+2. Click **Đăng nhập**
+3. Sử dụng tài khoản đã tạo trong Supabase
+4. Click **Đăng nhập**
 
-### Thêm deadline mới
+### Quản lý (Manager)
 
-1. Click **Thêm Deadline**
+#### Thêm dự án mới
+1. Click **Thêm Dự án**
 2. Điền thông tin:
-   - **Tên công việc**: Tên deadline
-   - **Deadline**: Thời hạn hoàn thành
-   - **Độ ưu tiên**: Thấp/Trung bình/Cao/Khẩn cấp
-   - **Người thực hiện**: Chọn từ danh sách
-   - **Mô tả**: Chi tiết công việc
+   - **Tên dự án**: Tên dự án
+   - **Trạng thái**: Đang hoạt động/Tạm dừng/Hoàn thành
+   - **Mô tả**: Chi tiết dự án
 3. Click **Lưu**
 
-### Quản lý deadline
+#### Thêm công việc
+1. Chọn dự án từ danh sách
+2. Click **Thêm Công việc**
+3. Điền thông tin:
+   - **Tên công việc**: Tên công việc
+   - **Deadline**: Thời hạn hoàn thành
+   - **Độ ưu tiên**: Thấp/Trung bình/Cao/Khẩn cấp
+   - **Người thực hiện**: Chọn nhân viên
+   - **Mô tả**: Chi tiết công việc
+4. Click **Lưu**
 
-- **Chỉnh sửa**: Click nút edit (chỉ admin hoặc người được giao)
-- **Xóa**: Click nút delete (chỉ admin hoặc người tạo)
-- **Cập nhật trạng thái**: Click nút cài đặt → Chọn trạng thái
+#### Quản lý dự án
+- **Chỉnh sửa**: Click nút edit
+- **Xóa**: Click nút delete
+- **Cập nhật trạng thái**: Chỉnh sửa dự án
+
+### Nhân viên (Employee)
+
+#### Xem dự án
+- Chỉ thấy dự án đang hoạt động
+- Click vào dự án để xem công việc
+
+#### Thực hiện công việc
+- Chỉ thấy công việc được phân công
+- Cập nhật trạng thái: Chờ thực hiện → Đang thực hiện → Hoàn thành
 
 ## 🔧 Cấu trúc dữ liệu
 
-### Deadline Object
-```javascript
+### Employees Table
+```sql
 {
   id: 1,
-  title: "Tên deadline",
-  description: "Mô tả chi tiết",
-  deadline: "2024-12-31T23:59:59.000Z",
-  priority: "high", // low, medium, high, urgent
-  status: "pending", // pending, in-progress, completed, overdue
-  assignee: "user@example.com",
-  createdBy: "admin@example.com",
-  createdAt: "2024-01-01T00:00:00.000Z",
-  updatedAt: "2024-01-01T00:00:00.000Z"
+  name: "Tên nhân viên",
+  email: "employee@example.com",
+  role: "employee", // employee, manager
+  created_at: "2024-01-01T00:00:00.000Z",
+  updated_at: "2024-01-01T00:00:00.000Z"
 }
 ```
 
-### User Object
-```javascript
+### Projects Table
+```sql
 {
   id: 1,
-  name: "Tên người dùng",
-  email: "user@example.com",
-  password: "password",
-  role: "admin", // admin, employee
-  createdAt: "2024-01-01T00:00:00.000Z"
+  name: "Tên dự án",
+  description: "Mô tả dự án",
+  status: "active", // active, paused, completed
+  manager_id: 1,
+  created_at: "2024-01-01T00:00:00.000Z",
+  updated_at: "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Tasks Table
+```sql
+{
+  id: 1,
+  name: "Tên công việc",
+  description: "Mô tả công việc",
+  deadline: "2024-12-31T23:59:59.000Z",
+  priority: "high", // low, medium, high, urgent
+  status: "pending", // pending, in-progress, completed, overdue
+  project_id: 1,
+  assignee_id: 2,
+  created_at: "2024-01-01T00:00:00.000Z",
+  updated_at: "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -153,32 +257,32 @@ Sau vài phút, website sẽ có sẵn tại: `https://your-username.github.io/d
 
 ## 🔒 Bảo mật
 
-### Phân quyền
-- **Admin**: Toàn quyền quản lý
-- **Employee**: Chỉ quản lý deadline được giao
+### Row Level Security (RLS)
+- Chỉ manager có thể quản lý tất cả dự án
+- Employee chỉ xem dự án đang hoạt động
+- Employee chỉ quản lý công việc được phân công
 
-### Dữ liệu
-- Lưu trữ trong localStorage của trình duyệt
-- Không gửi dữ liệu lên server
-- Export/Import để backup
+### Authentication
+- Supabase Auth
+- Email/Password authentication
+- Session management
 
 ## 📱 Tính năng nâng cao
 
-### Tự động kiểm tra deadline quá hạn
+### Realtime Updates
+- Supabase Realtime subscriptions
+- Tự động cập nhật khi có thay đổi
+- Thông báo realtime
+
+### Tự động kiểm tra quá hạn
 - Kiểm tra mỗi phút
 - Tự động cập nhật trạng thái
-- Thông báo khi có deadline quá hạn
+- Thông báo khi có công việc quá hạn
 
 ### Thông báo
 - Toast notifications
 - Màu sắc theo loại thông báo
 - Tự động ẩn sau 5 giây
-
-### Lọc dữ liệu
-- Lọc theo trạng thái
-- Lọc theo độ ưu tiên
-- Lọc theo người thực hiện
-- Kết hợp nhiều bộ lọc
 
 ## 🚀 Tùy chỉnh
 
@@ -208,9 +312,9 @@ Chỉnh sửa file `index.html`:
 ## 📞 Hỗ trợ
 
 ### Lỗi thường gặp
-1. **Website không load**: Kiểm tra GitHub Pages đã được bật
-2. **Dữ liệu bị mất**: Export dữ liệu thường xuyên
-3. **Không đăng nhập được**: Kiểm tra email/password
+1. **Không kết nối được Supabase**: Kiểm tra URL và API key
+2. **Không đăng nhập được**: Kiểm tra tài khoản trong Supabase Auth
+3. **Không thấy dữ liệu**: Kiểm tra RLS policies
 
 ### Liên hệ
 - Tạo issue trên GitHub repository

@@ -1,8 +1,8 @@
 // Project Management System with Supabase
 
-// Supabase Configuration - Sử dụng config file
-const SUPABASE_URL = window.config ? window.config.SUPABASE_URL : 'YOUR_SUPABASE_URL'
-const SUPABASE_ANON_KEY = window.config ? window.config.SUPABASE_ANON_KEY : 'YOUR_SUPABASE_ANON_KEY'
+// Supabase Configuration - Thêm API keys trực tiếp vào đây
+const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'              // ← Thay bằng ANON KEY thực
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)

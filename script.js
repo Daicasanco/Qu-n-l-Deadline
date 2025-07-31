@@ -714,7 +714,7 @@ async function updateTask() {
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
     const rvChars = document.getElementById('taskRVChars').value
-    const payment = document.getElementById('taskPayment').value
+    const rate = document.getElementById('taskRate').value
     const notes = document.getElementById('taskNotes').value
     
     // Validate input
@@ -737,7 +737,7 @@ async function updateTask() {
                 dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
                 total_chars: totalChars ? parseInt(totalChars) : null,
                 rv_chars: rvChars ? parseInt(rvChars) : null,
-                payment: payment ? parseFloat(payment) : null,
+                rate: rate ? parseFloat(rate) : null,
                 notes: notes || null,
                 updated_at: new Date().toISOString()
             })

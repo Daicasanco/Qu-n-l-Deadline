@@ -965,6 +965,8 @@ function renderTasksTable() {
         } else if (currentUser && currentUser.role === 'employee') {
             if (isCurrentUserAssignee) {
                 actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
+            } else if (!task.assignee_id) {
+                actionButtons += `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-hand-pointer"></i> Nhận</button>`;
             }
             // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
         }

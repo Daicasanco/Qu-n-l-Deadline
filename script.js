@@ -939,6 +939,19 @@ function renderTasksTable() {
             payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`;
         }
         const notes = task.notes ? `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : '<span class="text-muted">-</span>'
+        // Nút thao tác
+        let actionButtons = '';
+        if (currentUser && currentUser.role === 'manager') {
+            actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
+            actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
+            actionButtons += `<div class="dropdown"><button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái"><i class="fas fa-cog"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')"><i class="fas fa-clock me-2"></i>Chờ thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')"><i class="fas fa-play me-2"></i>Đang thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')"><i class="fas fa-check-circle me-2"></i>Hoàn thành</a></li></ul></div>`;
+            actionButtons += `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao"><i class="fas fa-exchange-alt"></i></button>`;
+        } else if (currentUser && currentUser.role === 'employee') {
+            if (isCurrentUserAssignee) {
+                actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
+            }
+            // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
+        }
         row.innerHTML = `
             <td><span class="badge badge-id">${task.id}</span></td>
             <td><strong>${task.name}</strong></td>
@@ -950,14 +963,7 @@ function renderTasksTable() {
             <td>${payment}</td>
             <td><span class="${task.assignee_id ? 'text-success' : 'text-muted'}">${assigneeName}</span></td>
             <td>${notes}</td>
-            <td><div class="btn-group-actions">` +
-            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}` +
-            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>` : ''}` +
-            `${canClaim ? `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-check"></i></button>` : ''}` +
-            `${isCurrentUserAssignee ? `<button class="btn btn-action btn-unclaim" onclick="unclaimTask(${task.id})" title="Hủy nhận"><i class="fas fa-times"></i></button>` : ''}` +
-            `${isCurrentUserAssignee ? `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao"><i class="fas fa-exchange-alt"></i></button>` : ''}` +
-            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<div class="dropdown"><button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái"><i class="fas fa-cog"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')"><i class="fas fa-clock me-2"></i>Chờ thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')"><i class="fas fa-play me-2"></i>Đang thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')"><i class="fas fa-check-circle me-2"></i>Hoàn thành</a></li></ul></div>` : ''}` +
-            `</div></td>`
+            <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
     })
 }
@@ -1013,8 +1019,12 @@ function applyProjectFilters() {
     renderProjectsTable()
 }
 
-function applyTaskFilters() {
-    renderTasksTable();
+function setupTaskFilters() {
+    const statusFilter = document.getElementById('taskStatusFilter')
+    const assigneeFilter = document.getElementById('taskAssigneeFilter')
+    if (statusFilter) statusFilter.onchange = renderTasksTable
+    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
+    updateTaskAssigneeFilter();
 }
 
 // Utility Functions

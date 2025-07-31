@@ -973,63 +973,90 @@ function renderTasksTable() {
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
         const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
         
+        // Format data for display
+        const submissionLink = task.submission_link ? 
+            `<a href="${task.submission_link}" target="_blank" class="text-primary">
+                <i class="fas fa-external-link-alt me-1"></i>Xem
+            </a>` : 
+            '<span class="text-muted">-</span>'
+        
+        const dialogueChars = task.dialogue_chars ? 
+            `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : 
+            '<span class="text-muted">-</span>'
+        
+        const totalChars = task.total_chars ? 
+            `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : 
+            '<span class="text-muted">-</span>'
+        
+        const rvChars = task.rv_chars ? 
+            `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : 
+            '<span class="text-muted">-</span>'
+        
+        const payment = task.payment ? 
+            `<span class="badge badge-money">${task.payment.toLocaleString('vi-VN')}đ</span>` : 
+            '<span class="text-muted">-</span>'
+        
+        const notes = task.notes ? 
+            `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : 
+            '<span class="text-muted">-</span>'
+        
         row.innerHTML = `
-            <td>${task.id}</td>
+            <td><span class="badge badge-id">${task.id}</span></td>
             <td><strong>${task.name}</strong></td>
             <td>${getTaskStatusBadge(task.status)}</td>
-            <td>
-                ${task.submission_link ? 
-                    `<a href="${task.submission_link}" target="_blank" class="text-decoration-none">
-                        <i class="fas fa-link me-1"></i>Xem
-                    </a>` : '-'
-                }
-            </td>
-            <td>${task.dialogue_chars || '-'}</td>
-            <td>${task.total_chars || '-'}</td>
-            <td>${task.rv_chars || '-'}</td>
-            <td>${task.payment ? `${task.payment.toLocaleString('vi-VN')}đ` : '-'}</td>
+            <td>${submissionLink}</td>
+            <td>${dialogueChars}</td>
+            <td>${totalChars}</td>
+            <td>${rvChars}</td>
+            <td>${payment}</td>
             <td>
                 <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
                     ${assigneeName}
                 </span>
             </td>
-            <td>${task.notes || '-'}</td>
+            <td>${notes}</td>
             <td>
-                <div class="btn-group btn-group-sm">
+                <div class="btn-group-actions">
                     ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<button class="btn btn-outline-primary btn-sm" onclick="editTask(${task.id})">
+                        `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa">
                             <i class="fas fa-edit"></i>
                         </button>` : ''
                     }
                     ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<button class="btn btn-outline-danger btn-sm" onclick="deleteTask(${task.id})">
+                        `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa">
                             <i class="fas fa-trash"></i>
                         </button>` : ''
                     }
                     ${canClaim ? 
-                        `<button class="btn btn-success btn-sm" onclick="claimTask(${task.id})" title="Nhận công việc">
-                            <i class="fas fa-check"></i> Nhận
+                        `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc">
+                            <i class="fas fa-check"></i>
                         </button>` : ''
                     }
                     ${isCurrentUserAssignee ? 
-                        `<button class="btn btn-warning btn-sm" onclick="unclaimTask(${task.id})" title="Hủy nhận">
-                            <i class="fas fa-times"></i> Hủy
+                        `<button class="btn btn-action btn-unclaim" onclick="unclaimTask(${task.id})" title="Hủy nhận">
+                            <i class="fas fa-times"></i>
                         </button>` : ''
                     }
                     ${isCurrentUserAssignee ? 
-                        `<button class="btn btn-info btn-sm" onclick="showTransferModal(${task.id})" title="Chuyển giao">
-                            <i class="fas fa-exchange-alt"></i> Chuyển
+                        `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao">
+                            <i class="fas fa-exchange-alt"></i>
                         </button>` : ''
                     }
                     ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        `<div class="dropdown">
+                            <button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái">
                                 <i class="fas fa-cog"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')">Chờ thực hiện</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')">Đang thực hiện</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')">Hoàn thành</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')">
+                                    <i class="fas fa-clock me-2"></i>Chờ thực hiện
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')">
+                                    <i class="fas fa-play me-2"></i>Đang thực hiện
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')">
+                                    <i class="fas fa-check-circle me-2"></i>Hoàn thành
+                                </a></li>
                             </ul>
                         </div>` : ''
                     }

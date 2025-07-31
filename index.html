@@ -187,11 +187,14 @@
                                         <tr>
                                             <th>ID</th>
                                             <th>Tên công việc</th>
-                                            <th>Mô tả</th>
-                                            <th>Deadline</th>
-                                            <th>Độ ưu tiên</th>
                                             <th>Trạng thái</th>
+                                            <th>Link nộp</th>
+                                            <th>Số chữ thoại</th>
+                                            <th>Số chữ tổng</th>
+                                            <th>Số chữ RV</th>
+                                            <th>Thành tiền</th>
                                             <th>Người thực hiện</th>
+                                            <th>Ghi chú</th>
                                             <th>Thao tác</th>
                                         </tr>
                                     </thead>
@@ -307,6 +310,49 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label class="form-label">Link nộp:</label>
+                                    <input type="url" class="form-control" id="taskSubmissionLink" placeholder="https://...">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Người thực hiện:</label>
+                                    <select class="form-select" id="taskAssignee">
+                                        <option value="">Chọn người thực hiện (tùy chọn)</option>
+                                        <!-- Will be populated with employees -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Số chữ thoại:</label>
+                                    <input type="number" class="form-control" id="taskDialogueChars" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Số chữ tổng:</label>
+                                    <input type="number" class="form-control" id="taskTotalChars" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Số chữ RV:</label>
+                                    <input type="number" class="form-control" id="taskRVChars" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Thành tiền:</label>
+                                    <input type="number" class="form-control" id="taskPayment" min="0" step="1000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label class="form-label">Độ ưu tiên:</label>
                                     <select class="form-select" id="taskPriority" required>
                                         <option value="low">Thấp</option>
@@ -316,18 +362,14 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Người thực hiện:</label>
-                                    <select class="form-select" id="taskAssignee" required>
-                                        <!-- Will be populated with employees -->
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Mô tả:</label>
-                            <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+                            <textarea class="form-control" id="taskDescription" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú:</label>
+                            <textarea class="form-control" id="taskNotes" rows="2" placeholder="Ghi chú của reviewer..."></textarea>
                         </div>
                         <div class="mb-3" id="taskStatusField" style="display: none;">
                             <label class="form-label">Trạng thái:</label>

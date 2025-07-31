@@ -434,6 +434,14 @@ async function addTask() {
     const assigneeId = document.getElementById('taskAssignee').value
     const projectId = currentProjectId || document.getElementById('taskProjectId').value
     
+    // New fields
+    const submissionLink = document.getElementById('taskSubmissionLink').value
+    const dialogueChars = document.getElementById('taskDialogueChars').value
+    const totalChars = document.getElementById('taskTotalChars').value
+    const rvChars = document.getElementById('taskRVChars').value
+    const payment = document.getElementById('taskPayment').value
+    const notes = document.getElementById('taskNotes').value
+    
     // Validate input
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
@@ -451,6 +459,12 @@ async function addTask() {
                 status: 'pending',
                 project_id: parseInt(projectId),
                 assignee_id: assigneeId || null, // Có thể null nếu không assign
+                submission_link: submissionLink || null,
+                dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
+                total_chars: totalChars ? parseInt(totalChars) : null,
+                rv_chars: rvChars ? parseInt(rvChars) : null,
+                payment: payment ? parseFloat(payment) : null,
+                notes: notes || null,
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -650,6 +664,14 @@ async function editTask(id) {
     document.getElementById('taskPriority').value = task.priority
     document.getElementById('taskStatus').value = task.status
     
+    // Fill new fields
+    document.getElementById('taskSubmissionLink').value = task.submission_link || ''
+    document.getElementById('taskDialogueChars').value = task.dialogue_chars || ''
+    document.getElementById('taskTotalChars').value = task.total_chars || ''
+    document.getElementById('taskRVChars').value = task.rv_chars || ''
+    document.getElementById('taskPayment').value = task.payment || ''
+    document.getElementById('taskNotes').value = task.notes || ''
+    
     // Show status field for editing
     document.getElementById('taskStatusField').style.display = 'block'
     
@@ -688,6 +710,14 @@ async function updateTask() {
     const assigneeId = document.getElementById('taskAssignee').value
     const status = document.getElementById('taskStatus').value
     
+    // New fields
+    const submissionLink = document.getElementById('taskSubmissionLink').value
+    const dialogueChars = document.getElementById('taskDialogueChars').value
+    const totalChars = document.getElementById('taskTotalChars').value
+    const rvChars = document.getElementById('taskRVChars').value
+    const payment = document.getElementById('taskPayment').value
+    const notes = document.getElementById('taskNotes').value
+    
     // Validate input
     if (!name || !deadline) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
@@ -704,6 +734,12 @@ async function updateTask() {
                 priority: priority,
                 assignee_id: assigneeId || null, // Có thể null
                 status: status,
+                submission_link: submissionLink || null,
+                dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
+                total_chars: totalChars ? parseInt(totalChars) : null,
+                rv_chars: rvChars ? parseInt(rvChars) : null,
+                payment: payment ? parseFloat(payment) : null,
+                notes: notes || null,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
@@ -884,7 +920,7 @@ function renderTasksTable() {
     if (!currentProjectId) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center">
+                <td colspan="11" class="text-center">
                     <div class="empty-state">
                         <i class="fas fa-tasks"></i>
                         <h4>Chưa chọn dự án</h4>
@@ -901,7 +937,7 @@ function renderTasksTable() {
     if (projectTasks.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center">
+                <td colspan="11" class="text-center">
                     <div class="empty-state">
                         <i class="fas fa-tasks"></i>
                         <h4>Không có công việc nào</h4>
@@ -940,15 +976,24 @@ function renderTasksTable() {
         row.innerHTML = `
             <td>${task.id}</td>
             <td><strong>${task.name}</strong></td>
-            <td>${task.description || '-'}</td>
-            <td>${formatDateTime(task.deadline)}</td>
-            <td>${getPriorityBadge(task.priority)}</td>
             <td>${getTaskStatusBadge(task.status)}</td>
+            <td>
+                ${task.submission_link ? 
+                    `<a href="${task.submission_link}" target="_blank" class="text-decoration-none">
+                        <i class="fas fa-link me-1"></i>Xem
+                    </a>` : '-'
+                }
+            </td>
+            <td>${task.dialogue_chars || '-'}</td>
+            <td>${task.total_chars || '-'}</td>
+            <td>${task.rv_chars || '-'}</td>
+            <td>${task.payment ? `${task.payment.toLocaleString('vi-VN')}đ` : '-'}</td>
             <td>
                 <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
                     ${assigneeName}
                 </span>
             </td>
+            <td>${task.notes || '-'}</td>
             <td>
                 <div class="btn-group btn-group-sm">
                     ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 

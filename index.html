@@ -307,7 +307,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="batchCreateCheckbox" onchange="toggleBatchCreate()">
+                                    <label class="form-check-label" for="batchCreateCheckbox">Tạo hàng loạt</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="batchCountGroup" style="display:none;">
+                                <label class="form-label">Số lượng:</label>
+                                <input type="number" class="form-control" id="batchCount" min="2" value="2">
+                            </div>
+                            <div class="col-md-4" id="batchStartGroup" style="display:none;">
+                                <label class="form-label">Số bắt đầu:</label>
+                                <input type="number" class="form-control" id="batchStart" min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="row batch-hide">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Link nộp:</label>
@@ -324,7 +340,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row batch-hide">
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Số chữ thoại:</label>
@@ -344,7 +360,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row batch-hide">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Rate (VNĐ/1000 chữ):</label>
@@ -363,11 +379,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 batch-hide">
                             <label class="form-label">Mô tả:</label>
                             <textarea class="form-control" id="taskDescription" rows="2"></textarea>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 batch-hide">
                             <label class="form-label">Ghi chú:</label>
                             <textarea class="form-control" id="taskNotes" rows="2" placeholder="Ghi chú của reviewer..."></textarea>
                         </div>

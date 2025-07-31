@@ -428,58 +428,52 @@ async function deleteProject(id) {
 // Task Management
 async function addTask() {
     const name = document.getElementById('taskName').value
-    const description = document.getElementById('taskDescription').value
     const deadline = document.getElementById('taskDeadline').value
     const priority = document.getElementById('taskPriority').value
-    const assigneeId = document.getElementById('taskAssignee').value
     const projectId = currentProjectId || document.getElementById('taskProjectId').value
-    
-    // New fields
-    const submissionLink = document.getElementById('taskSubmissionLink').value
-    const dialogueChars = document.getElementById('taskDialogueChars').value
-    const totalChars = document.getElementById('taskTotalChars').value
-    const rvChars = document.getElementById('taskRVChars').value
-    const payment = document.getElementById('taskPayment').value
-    const notes = document.getElementById('taskNotes').value
-    
-    // Validate input
+    const isBatch = document.getElementById('batchCreateCheckbox').checked
+    const batchCount = parseInt(document.getElementById('batchCount').value) || 1
+    const batchStart = parseInt(document.getElementById('batchStart').value) || 1
+
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
         return
     }
-    
+
     try {
-        const { data, error } = await supabase
-            .from('tasks')
-            .insert([{
+        let insertData = []
+        if (isBatch && batchCount > 1) {
+            for (let i = 0; i < batchCount; i++) {
+                insertData.push({
+                    name: name + ' ' + (batchStart + i),
+                    deadline: new Date(deadline).toISOString(),
+                    priority: priority,
+                    status: 'pending',
+                    project_id: parseInt(projectId),
+                    created_at: new Date().toISOString()
+                })
+            }
+        } else {
+            // Single task (manager)
+            insertData.push({
                 name: name,
-                description: description,
                 deadline: new Date(deadline).toISOString(),
                 priority: priority,
                 status: 'pending',
                 project_id: parseInt(projectId),
-                assignee_id: assigneeId || null, // Có thể null nếu không assign
-                submission_link: submissionLink || null,
-                dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
-                total_chars: totalChars ? parseInt(totalChars) : null,
-                rv_chars: rvChars ? parseInt(rvChars) : null,
-                payment: payment ? parseFloat(payment) : null,
-                notes: notes || null,
                 created_at: new Date().toISOString()
-            }])
+            })
+        }
+        const { data, error } = await supabase
+            .from('tasks')
+            .insert(insertData)
             .select()
-        
         if (error) throw error
-        
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
-        
         showNotification('Thêm công việc thành công!', 'success')
-        
-        // Clear form
         document.getElementById('taskForm').reset()
-        
     } catch (error) {
         console.error('Error adding task:', error)
         showNotification('Lỗi thêm công việc', 'error')
@@ -669,7 +663,7 @@ async function editTask(id) {
     document.getElementById('taskDialogueChars').value = task.dialogue_chars || ''
     document.getElementById('taskTotalChars').value = task.total_chars || ''
     document.getElementById('taskRVChars').value = task.rv_chars || ''
-    document.getElementById('taskPayment').value = task.payment || ''
+    document.getElementById('taskRate').value = task.rate || ''
     document.getElementById('taskNotes').value = task.notes || ''
     
     // Show status field for editing
@@ -683,6 +677,11 @@ async function editTask(id) {
     
     // Set assignee value after updating dropdown
     document.getElementById('taskAssignee').value = task.assignee_id || ''
+    
+    // Disable name & deadline for employee
+    const isEmployee = currentUser.role === 'employee'
+    document.getElementById('taskName').readOnly = isEmployee
+    document.getElementById('taskDeadline').readOnly = isEmployee
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
@@ -1197,27 +1196,35 @@ function showAddProjectModal() {
     modal.show()
 }
 
+function toggleBatchCreate() {
+    const checked = document.getElementById('batchCreateCheckbox').checked
+    document.querySelectorAll('.batch-hide').forEach(el => {
+        el.style.display = checked ? 'none' : ''
+    })
+    document.getElementById('batchCountGroup').style.display = checked ? '' : 'none'
+    document.getElementById('batchStartGroup').style.display = checked ? '' : 'none'
+}
+
 function showAddTaskModal() {
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để thêm công việc', 'error')
         return
     }
-    
     if (!currentProjectId) {
         showNotification('Vui lòng chọn một dự án trước', 'error')
         return
     }
-    
-    // Clear form
     document.getElementById('taskForm').reset()
     document.getElementById('taskId').value = ''
     document.getElementById('taskProjectId').value = currentProjectId
     document.getElementById('taskStatusField').style.display = 'none'
     document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
-    
-    // Update assignee dropdown before showing modal
     updateAssigneeDropdowns()
-    
+    // Reset batch UI
+    document.getElementById('batchCreateCheckbox').checked = false
+    document.getElementById('batchCountGroup').style.display = 'none'
+    document.getElementById('batchStartGroup').style.display = 'none'
+    document.querySelectorAll('.batch-hide').forEach(el => { el.style.display = '' })
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()

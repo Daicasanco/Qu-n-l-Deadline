@@ -170,7 +170,7 @@ async function login() {
         
         if (error) throw error
         
-        // Get user profile
+        // Get user profile from employees table
         const { data: profile, error: profileError } = await supabase
             .from('employees')
             .select('*')
@@ -249,7 +249,7 @@ async function addProject() {
                 name: name,
                 description: description,
                 status: status,
-                manager_id: currentUser.id,
+                manager_id: currentUser.id, // UUID
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -401,7 +401,7 @@ async function addTask() {
                 priority: priority,
                 status: 'pending',
                 project_id: parseInt(projectId),
-                assignee_id: parseInt(assigneeId),
+                assignee_id: assigneeId, // UUID
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -488,7 +488,7 @@ async function updateTask() {
                 description: description,
                 deadline: new Date(deadline).toISOString(),
                 priority: priority,
-                assignee_id: parseInt(assigneeId),
+                assignee_id: assigneeId, // UUID
                 status: status,
                 updated_at: new Date().toISOString()
             })

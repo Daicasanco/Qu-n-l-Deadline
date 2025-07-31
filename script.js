@@ -41,20 +41,23 @@ function initializeApp() {
 // Supabase Data Management
 async function loadDataFromSupabase() {
     try {
-        // Load all employees (both managers and employees)
+        // Load ALL employees (both managers and employees)
         const { data: allEmployeesData, error: allEmployeesError } = await supabase
             .from('employees')
             .select('*')
         
         if (allEmployeesError) throw allEmployeesError
-        const allEmployees = allEmployeesData || []
+        window.allEmployees = allEmployeesData || [] // Store all employees globally
         
-        // Separate employees and managers for different purposes
-        employees = allEmployees.filter(e => e.role === 'employee')
-        const managers = allEmployees.filter(e => e.role === 'manager')
+        // Filter for employees (role 'employee') for assignee dropdowns
+        employees = window.allEmployees.filter(emp => emp.role === 'employee')
         
-        // Store all employees for the employees list view
-        window.allEmployees = allEmployees
+        // Filter for managers (role 'manager') for manager filter
+        const managers = window.allEmployees.filter(emp => emp.role === 'manager')
+        
+        console.log('Loaded allEmployees:', window.allEmployees)
+        console.log('Filtered employees:', employees)
+        console.log('Filtered managers:', managers)
         
         // Update manager filter dropdown
         updateManagerFilter(managers)
@@ -67,10 +70,18 @@ async function loadDataFromSupabase() {
         
         // Update UI
         updateDashboard()
+        updateUserInterface()
+        updateAssigneeDropdowns() // Ensure dropdowns are updated after data load
+        
+        // Setup realtime subscriptions
+        setupRealtimeSubscriptions()
+        
+        // Check for overdue tasks
+        checkOverdueTasks()
         
     } catch (error) {
-        console.error('Error loading data:', error)
-        showNotification('Lỗi tải dữ liệu', 'error')
+        console.error('Error loading data from Supabase:', error)
+        showNotification('Lỗi tải dữ liệu ban đầu', 'error')
     }
 }
 
@@ -441,13 +452,15 @@ async function claimTask(taskId) {
             return
         }
         
-        console.log('Current task before update:', currentTask)
-        
         if (currentTask.assignee_id) {
             showNotification('Công việc đã được nhận bởi người khác', 'error')
             return
         }
         
+        console.log('Current task before update:', currentTask)
+        
+        // Thực hiện update với điều kiện assignee_id IS NULL
+        console.log('Updating task with user ID:', currentUser.id)
         const { data, error } = await supabase
             .from('tasks')
             .update({
@@ -459,7 +472,10 @@ async function claimTask(taskId) {
             .is('assignee_id', null) // Chỉ update nếu chưa có người nhận
             .select()
         
-        if (error) throw error
+        if (error) {
+            console.error('Supabase error:', error)
+            throw error
+        }
         
         console.log('Update result:', data)
         
@@ -470,24 +486,20 @@ async function claimTask(taskId) {
             const updatedTask = data[0]
             console.log('Updated task:', updatedTask)
             
+            // Tìm và cập nhật task trong mảng local
             const taskIndex = tasks.findIndex(t => t.id === taskId)
             if (taskIndex !== -1) {
                 tasks[taskIndex] = updatedTask
                 console.log('Updated local task at index:', taskIndex)
+                console.log('Updated task data:', tasks[taskIndex])
             }
             
             // Re-render table ngay lập tức
             console.log('Re-rendering table...')
             renderTasksTable()
             
-            // Force reload tasks để đảm bảo UI được cập nhật
-            setTimeout(() => {
-                if (currentProjectId) {
-                    loadTasks(currentProjectId)
-                }
-            }, 100)
-            
         } else {
+            console.log('No rows updated - task may have been claimed by someone else')
             showNotification('Công việc đã được nhận bởi người khác', 'error')
         }
         
@@ -865,6 +877,11 @@ function renderTasksTable() {
     projectTasks.forEach(task => {
         const row = document.createElement('tr')
         
+        // Debug log for task data
+        console.log('Rendering task:', task)
+        console.log('Task assignee_id:', task.assignee_id)
+        console.log('Available allEmployees:', window.allEmployees)
+        
         // Add row class based on priority and status
         if (task.status === 'overdue') {
             row.classList.add('table-row-overdue')
@@ -874,8 +891,10 @@ function renderTasksTable() {
             row.classList.add('table-row-high')
         }
         
-        const assignee = employees.find(e => e.id === task.assignee_id)
+        const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
         const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
+        console.log('Found assignee:', assignee)
+        console.log('Assignee name:', assigneeName)
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
         const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
         
@@ -1217,13 +1236,11 @@ function showEmployeesList() {
         return
     }
     
-    // Populate employees table with ALL employees (managers + employees)
+    // Populate employees table with allEmployees
     const tbody = document.getElementById('employeesTableBody')
     tbody.innerHTML = ''
     
-    const allEmployees = window.allEmployees || []
-    
-    if (allEmployees.length === 0) {
+    if (window.allEmployees.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">
@@ -1238,22 +1255,20 @@ function showEmployeesList() {
         return
     }
     
-    allEmployees.forEach(employee => {
+    window.allEmployees.forEach(employee => { // Use window.allEmployees here
         const row = document.createElement('tr')
+        const roleBadge = employee.role === 'manager' 
+            ? `<span class="badge bg-primary">Quản lý</span>` 
+            : `<span class="badge bg-secondary">Nhân viên</span>`
         row.innerHTML = `
             <td>${employee.id}</td>
-            <td><strong>${employee.name}</strong></td>
+            <td>${employee.name}</td>
             <td>${employee.email}</td>
-            <td>
-                <span class="badge ${employee.role === 'manager' ? 'bg-primary' : 'bg-success'}">
-                    ${employee.role === 'manager' ? 'Quản lý' : 'Nhân viên'}
-                </span>
-            </td>
+            <td>${roleBadge}</td>
         `
         tbody.appendChild(row)
     })
     
-    // Show modal
     const modal = new bootstrap.Modal(document.getElementById('employeesModal'))
     modal.show()
 }

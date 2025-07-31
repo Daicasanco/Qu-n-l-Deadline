@@ -429,7 +429,19 @@ async function claimTask(taskId) {
     }
     
     try {
-        const { error } = await supabase
+        // Kiểm tra task hiện tại
+        const currentTask = tasks.find(t => t.id === taskId)
+        if (!currentTask) {
+            showNotification('Không tìm thấy công việc', 'error')
+            return
+        }
+        
+        if (currentTask.assignee_id) {
+            showNotification('Công việc đã được nhận bởi người khác', 'error')
+            return
+        }
+        
+        const { data, error } = await supabase
             .from('tasks')
             .update({
                 assignee_id: currentUser.id,
@@ -438,19 +450,29 @@ async function claimTask(taskId) {
             })
             .eq('id', taskId)
             .is('assignee_id', null) // Chỉ update nếu chưa có người nhận
+            .select()
         
         if (error) throw error
         
-        showNotification('Đã nhận công việc thành công!', 'success')
-        
-        // Reload tasks để cập nhật UI
-        if (currentProjectId) {
-            await loadTasks(currentProjectId)
+        if (data && data.length > 0) {
+            showNotification('Đã nhận công việc thành công!', 'success')
+            
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === taskId)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // Re-render table ngay lập tức
+            renderTasksTable()
+        } else {
+            showNotification('Công việc đã được nhận bởi người khác', 'error')
         }
         
     } catch (error) {
         console.error('Error claiming task:', error)
-        showNotification('Lỗi nhận công việc hoặc công việc đã được nhận', 'error')
+        showNotification('Lỗi nhận công việc', 'error')
     }
 }
 
@@ -462,7 +484,7 @@ async function transferTask(taskId, newAssigneeId) {
     }
     
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('tasks')
             .update({
                 assignee_id: newAssigneeId,
@@ -470,14 +492,24 @@ async function transferTask(taskId, newAssigneeId) {
             })
             .eq('id', taskId)
             .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được chuyển
+            .select()
         
         if (error) throw error
         
-        showNotification('Chuyển giao công việc thành công!', 'success')
-        
-        // Reload tasks để cập nhật UI
-        if (currentProjectId) {
-            await loadTasks(currentProjectId)
+        if (data && data.length > 0) {
+            showNotification('Chuyển giao công việc thành công!', 'success')
+            
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === taskId)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // Re-render table ngay lập tức
+            renderTasksTable()
+        } else {
+            showNotification('Không thể chuyển giao công việc', 'error')
         }
         
     } catch (error) {
@@ -494,7 +526,7 @@ async function unclaimTask(taskId) {
     }
     
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('tasks')
             .update({
                 assignee_id: null,
@@ -503,14 +535,24 @@ async function unclaimTask(taskId) {
             })
             .eq('id', taskId)
             .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được hủy
+            .select()
         
         if (error) throw error
         
-        showNotification('Đã hủy nhận công việc!', 'success')
-        
-        // Reload tasks để cập nhật UI
-        if (currentProjectId) {
-            await loadTasks(currentProjectId)
+        if (data && data.length > 0) {
+            showNotification('Đã hủy nhận công việc!', 'success')
+            
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === taskId)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // Re-render table ngay lập tức
+            renderTasksTable()
+        } else {
+            showNotification('Không thể hủy nhận công việc', 'error')
         }
         
     } catch (error) {
@@ -582,7 +624,7 @@ async function updateTask() {
     }
     
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('tasks')
             .update({
                 name: name,
@@ -594,19 +636,34 @@ async function updateTask() {
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
+            .select()
         
         if (error) throw error
         
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
-        modal.hide()
-        
-        showNotification('Cập nhật công việc thành công!', 'success')
-        
-        // Clear form and hide status field
-        document.getElementById('taskForm').reset()
-        document.getElementById('taskStatusField').style.display = 'none'
-        document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+        if (data && data.length > 0) {
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === id)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // Re-render table ngay lập tức
+            renderTasksTable()
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
+            modal.hide()
+            
+            showNotification('Cập nhật công việc thành công!', 'success')
+            
+            // Clear form and hide status field
+            document.getElementById('taskForm').reset()
+            document.getElementById('taskStatusField').style.display = 'none'
+            document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+        } else {
+            showNotification('Không thể cập nhật công việc', 'error')
+        }
         
     } catch (error) {
         console.error('Error updating task:', error)
@@ -653,21 +710,31 @@ async function changeTaskStatus(id, newStatus) {
     }
     
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('tasks')
             .update({
                 status: newStatus,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
+            .select()
         
         if (error) throw error
         
-        showNotification('Cập nhật trạng thái thành công!', 'success')
-        
-        // Reload tasks để cập nhật UI
-        if (currentProjectId) {
-            await loadTasks(currentProjectId)
+        if (data && data.length > 0) {
+            showNotification('Cập nhật trạng thái thành công!', 'success')
+            
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === id)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // Re-render table ngay lập tức
+            renderTasksTable()
+        } else {
+            showNotification('Không thể cập nhật trạng thái', 'error')
         }
         
     } catch (error) {

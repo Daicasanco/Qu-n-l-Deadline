@@ -41,23 +41,20 @@ function initializeApp() {
 // Supabase Data Management
 async function loadDataFromSupabase() {
     try {
-        // Load employees
-        const { data: employeesData, error: employeesError } = await supabase
+        // Load all employees (both managers and employees)
+        const { data: allEmployeesData, error: allEmployeesError } = await supabase
             .from('employees')
             .select('*')
-            .eq('role', 'employee')
         
-        if (employeesError) throw employeesError
-        employees = employeesData || []
+        if (allEmployeesError) throw allEmployeesError
+        const allEmployees = allEmployeesData || []
         
-        // Load managers
-        const { data: managersData, error: managersError } = await supabase
-            .from('employees')
-            .select('*')
-            .eq('role', 'manager')
+        // Separate employees and managers for different purposes
+        employees = allEmployees.filter(e => e.role === 'employee')
+        const managers = allEmployees.filter(e => e.role === 'manager')
         
-        if (managersError) throw managersError
-        const managers = managersData || []
+        // Store all employees for the employees list view
+        window.allEmployees = allEmployees
         
         // Update manager filter dropdown
         updateManagerFilter(managers)
@@ -446,6 +443,11 @@ async function claimTask(taskId) {
         
         showNotification('Đã nhận công việc thành công!', 'success')
         
+        // Reload tasks để cập nhật UI
+        if (currentProjectId) {
+            await loadTasks(currentProjectId)
+        }
+        
     } catch (error) {
         console.error('Error claiming task:', error)
         showNotification('Lỗi nhận công việc hoặc công việc đã được nhận', 'error')
@@ -472,6 +474,11 @@ async function transferTask(taskId, newAssigneeId) {
         if (error) throw error
         
         showNotification('Chuyển giao công việc thành công!', 'success')
+        
+        // Reload tasks để cập nhật UI
+        if (currentProjectId) {
+            await loadTasks(currentProjectId)
+        }
         
     } catch (error) {
         console.error('Error transferring task:', error)
@@ -501,6 +508,11 @@ async function unclaimTask(taskId) {
         
         showNotification('Đã hủy nhận công việc!', 'success')
         
+        // Reload tasks để cập nhật UI
+        if (currentProjectId) {
+            await loadTasks(currentProjectId)
+        }
+        
     } catch (error) {
         console.error('Error unclaiming task:', error)
         showNotification('Lỗi hủy nhận công việc', 'error')
@@ -523,7 +535,6 @@ async function editTask(id) {
     document.getElementById('taskDescription').value = task.description || ''
     document.getElementById('taskDeadline').value = task.deadline.slice(0, 16)
     document.getElementById('taskPriority').value = task.priority
-    document.getElementById('taskAssignee').value = task.assignee_id || ''
     document.getElementById('taskStatus').value = task.status
     
     // Show status field for editing
@@ -531,6 +542,12 @@ async function editTask(id) {
     
     // Update modal title
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
+    
+    // Update assignee dropdown before showing modal
+    updateAssigneeDropdowns()
+    
+    // Set assignee value after updating dropdown
+    document.getElementById('taskAssignee').value = task.assignee_id || ''
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
@@ -647,6 +664,11 @@ async function changeTaskStatus(id, newStatus) {
         if (error) throw error
         
         showNotification('Cập nhật trạng thái thành công!', 'success')
+        
+        // Reload tasks để cập nhật UI
+        if (currentProjectId) {
+            await loadTasks(currentProjectId)
+        }
         
     } catch (error) {
         console.error('Error updating task status:', error)
@@ -979,6 +1001,9 @@ function showAddTaskModal() {
     document.getElementById('taskStatusField').style.display = 'none'
     document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
     
+    // Update assignee dropdown before showing modal
+    updateAssigneeDropdowns()
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
@@ -1037,6 +1062,8 @@ async function handleTransferTask() {
         
         // Clear form
         document.getElementById('transferForm').reset()
+        
+        // UI sẽ được cập nhật tự động thông qua transferTask function
         
     } catch (error) {
         console.error('Error in handleTransferTask:', error)
@@ -1102,11 +1129,13 @@ function showEmployeesList() {
         return
     }
     
-    // Populate employees table
+    // Populate employees table with ALL employees (managers + employees)
     const tbody = document.getElementById('employeesTableBody')
     tbody.innerHTML = ''
     
-    if (employees.length === 0) {
+    const allEmployees = window.allEmployees || []
+    
+    if (allEmployees.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">
@@ -1121,7 +1150,7 @@ function showEmployeesList() {
         return
     }
     
-    employees.forEach(employee => {
+    allEmployees.forEach(employee => {
         const row = document.createElement('tr')
         row.innerHTML = `
             <td>${employee.id}</td>
@@ -1144,8 +1173,12 @@ function showEmployeesList() {
 function updateAssigneeDropdowns() {
     const assigneeSelects = document.querySelectorAll('#taskAssignee')
     
+    console.log('Updating assignee dropdowns, employees count:', employees.length)
+    console.log('Employees data:', employees)
+    
     assigneeSelects.forEach(select => {
         select.innerHTML = '<option value="">Không chỉ định (để nhân viên tự nhận)</option>'
+        // Chỉ hiển thị employees (không phải managers) trong dropdown assign task
         employees.forEach(employee => {
             const option = document.createElement('option')
             option.value = employee.id

@@ -671,6 +671,8 @@ async function editTask(id) {
     const deadlineEl = document.getElementById('taskDeadline');
     if (nameEl) nameEl.readOnly = isEmployee;
     if (deadlineEl) deadlineEl.readOnly = isEmployee;
+    const rateEl = document.getElementById('taskRate');
+    if (rateEl) rateEl.readOnly = isEmployee;
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
 }
@@ -978,9 +980,12 @@ function renderTasksTable() {
             `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : 
             '<span class="text-muted">-</span>'
         
-                         const rate = task.rate ? 
-                     `<span class="badge badge-gradient-blue">${task.rate.toLocaleString('vi-VN')}đ/1000chữ</span>` : 
-                     '<span class="text-muted">-</span>'
+        // Thành tiền = rate * rv_chars
+        let payment = '<span class="text-muted">-</span>';
+        if (typeof task.rate === 'number' && typeof task.rv_chars === 'number' && !isNaN(task.rate) && !isNaN(task.rv_chars)) {
+            const money = Math.round((task.rate * task.rv_chars) / 1000);
+            payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`;
+        }
         
         const notes = task.notes ? 
             `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : 
@@ -993,9 +998,9 @@ function renderTasksTable() {
             <td>${submissionLink}</td>
             <td>${dialogueChars}</td>
             <td>${totalChars}</td>
-                                                 <td>${rvChars}</td>
-                                     <td>${rate}</td>
-                                     <td>
+            <td>${rvChars}</td>
+            <td>${payment}</td>
+            <td>
                 <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
                     ${assigneeName}
                 </span>

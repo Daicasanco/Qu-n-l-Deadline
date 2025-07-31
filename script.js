@@ -427,19 +427,21 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
-    const name = document.getElementById('taskName').value
-    const deadline = document.getElementById('taskDeadline').value
-    const priority = document.getElementById('taskPriority').value
-    const projectId = currentProjectId || document.getElementById('taskProjectId').value
-    const isBatch = document.getElementById('batchCreateCheckbox').checked
-    const batchCount = parseInt(document.getElementById('batchCount').value) || 1
-    const batchStart = parseInt(document.getElementById('batchStart').value) || 1
+    const nameInput = document.getElementById('taskName');
+    const deadlineInput = document.getElementById('taskDeadline');
+    const priorityInput = document.getElementById('taskPriority');
+    const projectId = currentProjectId || (document.getElementById('taskProjectId') ? document.getElementById('taskProjectId').value : null);
+    const isBatch = document.getElementById('batchCreateCheckbox')?.checked;
+    const batchCount = parseInt(document.getElementById('batchCount')?.value) || 1;
+    const batchStart = parseInt(document.getElementById('batchStart')?.value) || 1;
+    const name = nameInput ? nameInput.value : '';
+    const deadline = deadlineInput ? deadlineInput.value : '';
+    const priority = priorityInput ? priorityInput.value : '';
 
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
         return
     }
-
     try {
         let insertData = []
         if (isBatch && batchCount > 1) {
@@ -454,7 +456,6 @@ async function addTask() {
                 })
             }
         } else {
-            // Single task (manager)
             insertData.push({
                 name: name,
                 deadline: new Date(deadline).toISOString(),
@@ -469,7 +470,6 @@ async function addTask() {
             .insert(insertData)
             .select()
         if (error) throw error
-        // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
         showNotification('Thêm công việc thành công!', 'success')
@@ -643,47 +643,34 @@ async function unclaimTask(taskId) {
 async function editTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
-    
-    // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
         return
     }
-    
-    // Fill form
+    // Fill form with null checks
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     document.getElementById('taskId').value = task.id
-    document.getElementById('taskName').value = task.name
-    document.getElementById('taskDescription').value = task.description || ''
-    document.getElementById('taskDeadline').value = task.deadline.slice(0, 16)
-    document.getElementById('taskPriority').value = task.priority
-    document.getElementById('taskStatus').value = task.status
-    
-    // Fill new fields
-    document.getElementById('taskSubmissionLink').value = task.submission_link || ''
-    document.getElementById('taskDialogueChars').value = task.dialogue_chars || ''
-    document.getElementById('taskTotalChars').value = task.total_chars || ''
-    document.getElementById('taskRVChars').value = task.rv_chars || ''
-    document.getElementById('taskRate').value = task.rate || ''
-    document.getElementById('taskNotes').value = task.notes || ''
-    
-    // Show status field for editing
+    setVal('taskName', task.name || '')
+    setVal('taskDescription', task.description || '')
+    setVal('taskDeadline', task.deadline ? task.deadline.slice(0, 16) : '')
+    setVal('taskPriority', task.priority || '')
+    setVal('taskStatus', task.status || '')
+    setVal('taskSubmissionLink', task.submission_link || '')
+    setVal('taskDialogueChars', task.dialogue_chars || '')
+    setVal('taskTotalChars', task.total_chars || '')
+    setVal('taskRVChars', task.rv_chars || '')
+    setVal('taskRate', task.rate || '')
+    setVal('taskNotes', task.notes || '')
     document.getElementById('taskStatusField').style.display = 'block'
-    
-    // Update modal title
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
-    
-    // Update assignee dropdown before showing modal
     updateAssigneeDropdowns()
-    
-    // Set assignee value after updating dropdown
-    document.getElementById('taskAssignee').value = task.assignee_id || ''
-    
-    // Disable name & deadline for employee
+    const assigneeEl = document.getElementById('taskAssignee');
+    if (assigneeEl) assigneeEl.value = task.assignee_id || '';
     const isEmployee = currentUser.role === 'employee'
-    document.getElementById('taskName').readOnly = isEmployee
-    document.getElementById('taskDeadline').readOnly = isEmployee
-    
-    // Show modal
+    const nameEl = document.getElementById('taskName');
+    const deadlineEl = document.getElementById('taskDeadline');
+    if (nameEl) nameEl.readOnly = isEmployee;
+    if (deadlineEl) deadlineEl.readOnly = isEmployee;
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
 }

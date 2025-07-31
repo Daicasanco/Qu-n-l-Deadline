@@ -188,12 +188,12 @@
                                             <th>ID</th>
                                             <th>Tên công việc</th>
                                             <th>Trạng thái</th>
-                                            <th>Link nộp</th>
-                                            <th>Số chữ thoại</th>
-                                            <th>Số chữ tổng</th>
-                                            <th>Số chữ RV</th>
-                                            <th>Thành tiền</th>
-                                            <th>Người thực hiện</th>
+                                                                                         <th>Link nộp</th>
+                                             <th>Số chữ thoại</th>
+                                             <th>Số chữ tổng</th>
+                                             <th>Số chữ RV</th>
+                                             <th>Rate</th>
+                                             <th>Người thực hiện</th>
                                             <th>Ghi chú</th>
                                             <th>Thao tác</th>
                                         </tr>
@@ -339,16 +339,16 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">Số chữ RV:</label>
-                                    <input type="number" class="form-control" id="taskRVChars" min="0">
+                                    <label class="form-label">Số chữ RV (tự động tính):</label>
+                                    <input type="number" class="form-control" id="taskRVChars" min="0" readonly>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Thành tiền:</label>
-                                    <input type="number" class="form-control" id="taskPayment" min="0" step="1000">
+                                    <label class="form-label">Rate (VNĐ/1000 chữ):</label>
+                                    <input type="number" class="form-control" id="taskRate" min="0" step="0.01">
                                 </div>
                             </div>
                             <div class="col-md-6">

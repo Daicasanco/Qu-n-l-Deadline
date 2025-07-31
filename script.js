@@ -992,9 +992,9 @@ function renderTasksTable() {
             `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : 
             '<span class="text-muted">-</span>'
         
-        const payment = task.payment ? 
-            `<span class="badge badge-money">${task.payment.toLocaleString('vi-VN')}đ</span>` : 
-            '<span class="text-muted">-</span>'
+                         const rate = task.rate ? 
+                     `<span class="badge badge-gradient-blue">${task.rate.toLocaleString('vi-VN')}đ/1000chữ</span>` : 
+                     '<span class="text-muted">-</span>'
         
         const notes = task.notes ? 
             `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : 
@@ -1007,9 +1007,9 @@ function renderTasksTable() {
             <td>${submissionLink}</td>
             <td>${dialogueChars}</td>
             <td>${totalChars}</td>
-            <td>${rvChars}</td>
-            <td>${payment}</td>
-            <td>
+                                                 <td>${rvChars}</td>
+                                     <td>${rate}</td>
+                                     <td>
                 <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
                     ${assigneeName}
                 </span>
@@ -1297,6 +1297,10 @@ function setupEventListeners() {
         login()
     })
     
+    // Auto-calculate RV chars when dialogue or total chars change
+    document.getElementById('taskDialogueChars').addEventListener('input', calculateRVChars)
+    document.getElementById('taskTotalChars').addEventListener('input', calculateRVChars)
+    
     document.getElementById('projectForm').addEventListener('submit', function(e) {
         e.preventDefault()
         saveProject()
@@ -1396,4 +1400,13 @@ function updateAssigneeDropdowns() {
             select.appendChild(option)
         })
     })
+}
+
+// Auto-calculate RV chars (total - dialogue)
+function calculateRVChars() {
+    const dialogueChars = parseInt(document.getElementById('taskDialogueChars').value) || 0
+    const totalChars = parseInt(document.getElementById('taskTotalChars').value) || 0
+    const rvChars = totalChars - dialogueChars
+    
+    document.getElementById('taskRVChars').value = rvChars >= 0 ? rvChars : 0
 } 

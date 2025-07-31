@@ -537,3 +537,75 @@ body {
         padding: 0.3rem 0.6rem;
     }
 } 
+
+/* --- CENTERED CONTENT & LAYOUT --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.card {
+    text-align: center;
+}
+
+.table-responsive {
+    text-align: center;
+}
+
+.table th,
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Center modal content */
+.modal-body {
+    text-align: center;
+}
+
+.modal-body .row {
+    justify-content: center;
+}
+
+.modal-body .col-md-6 {
+    text-align: left;
+}
+
+/* Center form elements */
+.form-control,
+.form-select {
+    text-align: center;
+}
+
+/* Center buttons */
+.btn-group-actions {
+    justify-content: center;
+}
+
+/* Center badges and status indicators */
+.badge {
+    display: inline-block;
+    text-align: center;
+}
+
+/* Center empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+} 

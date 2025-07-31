@@ -41,6 +41,7 @@ function showTasksView(projectId) {
     
     // Render tasks for this project
     renderTasksTable()
+    setupTaskFilters()
     
     // Update UI to show/hide buttons based on current view
     updateUserInterface()
@@ -904,93 +905,40 @@ function renderProjectsTable() {
 function renderTasksTable() {
     const tbody = document.getElementById('tasksTableBody')
     tbody.innerHTML = ''
-    
     if (!currentProjectId) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="text-center">
-                    <div class="empty-state">
-                        <i class="fas fa-tasks"></i>
-                        <h4>Chưa chọn dự án</h4>
-                        <p>Vui lòng chọn một dự án để xem công việc</p>
-                    </div>
-                </td>
-            </tr>
-        `
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Chưa chọn dự án</h4><p>Vui lòng chọn một dự án để xem công việc</p></div></td></tr>`
         return
     }
-    
-    const projectTasks = tasks.filter(t => t.project_id === currentProjectId)
-    
+    // Lọc theo trạng thái và người thực hiện
+    const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
+    const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
+    let projectTasks = tasks.filter(t => t.project_id === currentProjectId)
+    if (statusFilter) projectTasks = projectTasks.filter(t => t.status === statusFilter)
+    if (assigneeFilter) projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
     if (projectTasks.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="text-center">
-                    <div class="empty-state">
-                        <i class="fas fa-tasks"></i>
-                        <h4>Không có công việc nào</h4>
-                        <p>Hãy thêm công việc đầu tiên cho dự án này</p>
-                    </div>
-                </td>
-            </tr>
-        `
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
         return
     }
-    
     projectTasks.forEach(task => {
         const row = document.createElement('tr')
-        
-        // Debug log for task data
-        console.log('Rendering task:', task)
-        console.log('Task assignee_id:', task.assignee_id)
-        console.log('Available allEmployees:', window.allEmployees)
-        
-        // Add row class based on priority and status
-        if (task.status === 'overdue') {
-            row.classList.add('table-row-overdue')
-        } else if (task.priority === 'urgent') {
-            row.classList.add('table-row-urgent')
-        } else if (task.priority === 'high') {
-            row.classList.add('table-row-high')
-        }
-        
+        if (task.status === 'overdue') row.classList.add('table-row-overdue')
+        else if (task.priority === 'urgent') row.classList.add('table-row-urgent')
+        else if (task.priority === 'high') row.classList.add('table-row-high')
         const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
         const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
-        console.log('Found assignee:', assignee)
-        console.log('Assignee name:', assigneeName)
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
         const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
-        
-        // Format data for display
-        const submissionLink = task.submission_link ? 
-            `<a href="${task.submission_link}" target="_blank" class="text-primary">
-                <i class="fas fa-external-link-alt me-1"></i>Xem
-            </a>` : 
-            '<span class="text-muted">-</span>'
-        
-        const dialogueChars = task.dialogue_chars ? 
-            `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : 
-            '<span class="text-muted">-</span>'
-        
-        const totalChars = task.total_chars ? 
-            `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : 
-            '<span class="text-muted">-</span>'
-        
-        const rvChars = task.rv_chars ? 
-            `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : 
-            '<span class="text-muted">-</span>'
-        
+        const submissionLink = task.submission_link ? `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Xem</a>` : '<span class="text-muted">-</span>'
+        const dialogueChars = task.dialogue_chars ? `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
+        const totalChars = task.total_chars ? `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
+        const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         // Thành tiền = rate * rv_chars
         let payment = '<span class="text-muted">-</span>';
         if (typeof task.rate === 'number' && typeof task.rv_chars === 'number' && !isNaN(task.rate) && !isNaN(task.rv_chars)) {
             const money = Math.round((task.rate * task.rv_chars) / 1000);
             payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`;
         }
-        
-        const notes = task.notes ? 
-            `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : 
-            '<span class="text-muted">-</span>'
-        
+        const notes = task.notes ? `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : '<span class="text-muted">-</span>'
         row.innerHTML = `
             <td><span class="badge badge-id">${task.id}</span></td>
             <td><strong>${task.name}</strong></td>
@@ -1000,61 +948,16 @@ function renderTasksTable() {
             <td>${totalChars}</td>
             <td>${rvChars}</td>
             <td>${payment}</td>
-            <td>
-                <span class="${task.assignee_id ? 'text-success' : 'text-muted'}">
-                    ${assigneeName}
-                </span>
-            </td>
+            <td><span class="${task.assignee_id ? 'text-success' : 'text-muted'}">${assigneeName}</span></td>
             <td>${notes}</td>
-            <td>
-                <div class="btn-group-actions">
-                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa">
-                            <i class="fas fa-edit"></i>
-                        </button>` : ''
-                    }
-                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa">
-                            <i class="fas fa-trash"></i>
-                        </button>` : ''
-                    }
-                    ${canClaim ? 
-                        `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc">
-                            <i class="fas fa-check"></i>
-                        </button>` : ''
-                    }
-                    ${isCurrentUserAssignee ? 
-                        `<button class="btn btn-action btn-unclaim" onclick="unclaimTask(${task.id})" title="Hủy nhận">
-                            <i class="fas fa-times"></i>
-                        </button>` : ''
-                    }
-                    ${isCurrentUserAssignee ? 
-                        `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>` : ''
-                    }
-                    ${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? 
-                        `<div class="dropdown">
-                            <button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái">
-                                <i class="fas fa-cog"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')">
-                                    <i class="fas fa-clock me-2"></i>Chờ thực hiện
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')">
-                                    <i class="fas fa-play me-2"></i>Đang thực hiện
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')">
-                                    <i class="fas fa-check-circle me-2"></i>Hoàn thành
-                                </a></li>
-                            </ul>
-                        </div>` : ''
-                    }
-                </div>
-            </td>
-        `
-        
+            <td><div class="btn-group-actions">` +
+            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}` +
+            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>` : ''}` +
+            `${canClaim ? `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-check"></i></button>` : ''}` +
+            `${isCurrentUserAssignee ? `<button class="btn btn-action btn-unclaim" onclick="unclaimTask(${task.id})" title="Hủy nhận"><i class="fas fa-times"></i></button>` : ''}` +
+            `${isCurrentUserAssignee ? `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao"><i class="fas fa-exchange-alt"></i></button>` : ''}` +
+            `${currentUser && (currentUser.role === 'manager' || isCurrentUserAssignee) ? `<div class="dropdown"><button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái"><i class="fas fa-cog"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')"><i class="fas fa-clock me-2"></i>Chờ thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')"><i class="fas fa-play me-2"></i>Đang thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')"><i class="fas fa-check-circle me-2"></i>Hoàn thành</a></li></ul></div>` : ''}` +
+            `</div></td>`
         tbody.appendChild(row)
     })
 }
@@ -1409,3 +1312,28 @@ function calculateRVChars() {
     
     document.getElementById('taskRVChars').value = rvChars >= 0 ? rvChars : 0
 } 
+
+// Thêm hàm cập nhật dropdown nhân viên cho bộ lọc
+function updateTaskAssigneeFilter() {
+    const select = document.getElementById('taskAssigneeFilter')
+    if (!select) return
+    select.innerHTML = '<option value="">Tất cả</option>'
+    window.allEmployees.forEach(e => {
+        const option = document.createElement('option')
+        option.value = e.id
+        option.textContent = e.name
+        select.appendChild(option)
+    })
+}
+
+// Gắn event cho filter
+function setupTaskFilters() {
+    const statusFilter = document.getElementById('taskStatusFilter')
+    const assigneeFilter = document.getElementById('taskAssigneeFilter')
+    if (statusFilter) statusFilter.onchange = renderTasksTable
+    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
+    updateTaskAssigneeFilter()
+}
+
+// Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án
+// Ví dụ: trong showTasksView(projectId) hoặc loadDataFromSupabase() thêm setupTaskFilters() 

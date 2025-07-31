@@ -181,6 +181,26 @@
                             </h5>
                         </div>
                         <div class="card-body">
+                            <!-- Task Filters -->
+                            <div class="row mb-3" id="taskFiltersRow">
+                                <div class="col-md-4">
+                                    <label class="form-label">Lọc theo trạng thái:</label>
+                                    <select class="form-select" id="taskStatusFilter">
+                                        <option value="">Tất cả</option>
+                                        <option value="pending">Chờ thực hiện</option>
+                                        <option value="in-progress">Đang thực hiện</option>
+                                        <option value="completed">Hoàn thành</option>
+                                        <option value="overdue">Quá hạn</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Lọc theo người thực hiện:</label>
+                                    <select class="form-select" id="taskAssigneeFilter">
+                                        <option value="">Tất cả</option>
+                                        <!-- Nhân viên sẽ được render bằng JS -->
+                                    </select>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-hover" id="tasksTable">
                                     <thead class="table-dark">

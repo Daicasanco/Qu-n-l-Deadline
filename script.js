@@ -133,7 +133,8 @@ function setupRealtimeSubscriptions() {
         })
         .subscribe()
     
-    // Subscribe to task changes
+    // Subscribe to task changes - Tạm thời comment để tránh conflict
+    /*
     supabase
         .channel('tasks')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
@@ -144,6 +145,7 @@ function setupRealtimeSubscriptions() {
             showNotification('Dữ liệu công việc đã được cập nhật', 'info')
         })
         .subscribe()
+    */
 }
 
 // User Management
@@ -429,12 +431,17 @@ async function claimTask(taskId) {
     }
     
     try {
+        console.log('Claiming task:', taskId)
+        console.log('Current user:', currentUser)
+        
         // Kiểm tra task hiện tại
         const currentTask = tasks.find(t => t.id === taskId)
         if (!currentTask) {
             showNotification('Không tìm thấy công việc', 'error')
             return
         }
+        
+        console.log('Current task before update:', currentTask)
         
         if (currentTask.assignee_id) {
             showNotification('Công việc đã được nhận bởi người khác', 'error')
@@ -454,18 +461,32 @@ async function claimTask(taskId) {
         
         if (error) throw error
         
+        console.log('Update result:', data)
+        
         if (data && data.length > 0) {
             showNotification('Đã nhận công việc thành công!', 'success')
             
             // Cập nhật local data ngay lập tức
             const updatedTask = data[0]
+            console.log('Updated task:', updatedTask)
+            
             const taskIndex = tasks.findIndex(t => t.id === taskId)
             if (taskIndex !== -1) {
                 tasks[taskIndex] = updatedTask
+                console.log('Updated local task at index:', taskIndex)
             }
             
             // Re-render table ngay lập tức
+            console.log('Re-rendering table...')
             renderTasksTable()
+            
+            // Force reload tasks để đảm bảo UI được cập nhật
+            setTimeout(() => {
+                if (currentProjectId) {
+                    loadTasks(currentProjectId)
+                }
+            }, 100)
+            
         } else {
             showNotification('Công việc đã được nhận bởi người khác', 'error')
         }

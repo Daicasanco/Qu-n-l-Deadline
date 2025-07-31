@@ -1013,6 +1013,10 @@ function applyProjectFilters() {
     renderProjectsTable()
 }
 
+function applyTaskFilters() {
+    renderTasksTable();
+}
+
 // Utility Functions
 function formatDateTime(dateString) {
     const date = new Date(dateString)
@@ -1330,11 +1334,7 @@ function updateTaskAssigneeFilter() {
 
 // Gắn event cho filter
 function setupTaskFilters() {
-    const statusFilter = document.getElementById('taskStatusFilter')
-    const assigneeFilter = document.getElementById('taskAssigneeFilter')
-    if (statusFilter) statusFilter.onchange = renderTasksTable
-    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
-    updateTaskAssigneeFilter()
+    updateTaskAssigneeFilter();
 }
 
 // Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án

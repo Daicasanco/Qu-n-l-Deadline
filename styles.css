@@ -518,88 +518,131 @@ body {
     color: #222 !important;
 }
 
+/* --- BUTTONS --- */
+.btn, .btn-primary, .btn-success, .btn-info, .btn-secondary {
+    border: none;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: background 0.2s, color 0.2s;
+}
+.btn-primary, .btn-action {
+    background: linear-gradient(90deg, #36d1c4 0%, #5b86e5 100%);
+    color: #fff !important;
+}
+.btn-primary:hover, .btn-action:hover {
+    background: linear-gradient(90deg, #5b86e5 0%, #36d1c4 100%);
+    color: #fff !important;
+}
+.btn-success {
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    color: #222 !important;
+}
+.btn-info {
+    background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+    color: #222 !important;
+}
+.btn-secondary {
+    background: linear-gradient(90deg, #bdc3c7 0%, #2c3e50 100%);
+    color: #fff !important;
+}
+
+/* --- TABLE HEADER --- */
+.table-dark th {
+    background: linear-gradient(90deg, #232526 0%, #414345 100%);
+    color: #f8f9fa !important;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+/* --- BADGES --- */
+.badge-gradient-blue {
+    background: linear-gradient(90deg, #36d1c4 0%, #5b86e5 100%);
+    color: #222;
+    font-weight: 600;
+}
+.badge-gradient-yellow {
+    background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+    color: #222;
+    font-weight: 600;
+}
+.badge-gradient-green {
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    color: #222;
+    font-weight: 600;
+}
+.badge-gradient-red {
+    background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%);
+    color: #fff;
+    font-weight: 600;
+}
+.badge-gradient-gray {
+    background: linear-gradient(90deg, #bdc3c7 0%, #2c3e50 100%);
+    color: #fff;
+    font-weight: 600;
+}
+.badge-money {
+    background: linear-gradient(90deg, #20bdff 0%, #5433ff 100%);
+    color: #fff;
+    font-weight: 600;
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+}
+.badge-id {
+    background-color: #6c757d;
+    color: #fff;
+    font-weight: 600;
+}
+.badge-notes {
+    background: linear-gradient(90deg, #ffeaea 0%, #ffe3e3 100%);
+    color: #e53935 !important;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    padding: 0.3em 0.8em;
+    font-size: 1em;
+    box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+}
+
+/* --- DROPDOWN --- */
+.dropdown-menu, .dropdown-item {
+    color: #222 !important;
+    background: #f8f9fa;
+    font-weight: 500;
+}
+.dropdown-menu .dropdown-item:hover {
+    background: #e3f2fd;
+    color: #1976d2 !important;
+}
+
 /* --- TABLE CELL ALIGN --- */
-.table td, .table th {
-    vertical-align: middle !important;
-    text-align: center;
-}
-
-/* --- RESPONSIVE BADGE --- */
-@media (max-width: 768px) {
-    .badge, .badge-gradient-blue, .badge-gradient-yellow, .badge-gradient-green, .badge-gradient-red, .badge-gradient-gray, .badge-money, .badge-note {
-        font-size: 0.75rem;
-        padding: 0.3rem 0.6rem;
-    }
-} 
-
-/* --- CENTERED CONTENT & LAYOUT --- */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-}
-
-.card {
-    text-align: center;
-}
-
-.table-responsive {
-    text-align: center;
-}
-
-.table th,
-.table td {
+.table th, .table td {
     text-align: center;
     vertical-align: middle;
 }
 
-/* Center modal content */
-.modal-body {
-    text-align: center;
-}
-
-.modal-body .row {
-    justify-content: center;
-}
-
-.modal-body .col-md-6 {
-    text-align: left;
-}
-
-/* Center form elements */
-.form-control,
-.form-select {
-    text-align: center;
-}
-
-/* Center buttons */
+/* --- CUSTOM SPACING --- */
 .btn-group-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
     justify-content: center;
 }
 
-/* Center badges and status indicators */
-.badge {
-    display: inline-block;
-    text-align: center;
-}
-
-/* Center empty state */
+/* --- EMPTY STATE --- */
 .empty-state {
     text-align: center;
     padding: 2rem;
 }
-
 .empty-state i {
     font-size: 3rem;
     color: #6c757d;
     margin-bottom: 1rem;
 }
-
 .empty-state h4 {
     color: #495057;
     margin-bottom: 0.5rem;
 }
-
 .empty-state p {
     color: #6c757d;
 } 

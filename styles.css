@@ -774,4 +774,16 @@ body {
 .form-check-input:disabled + .form-check-label {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* --- READONLY FORM ELEMENTS (NON-INTERACTABLE) --- */
+.form-control[readonly] {
+    background-color: #e9ecef;
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 } 

@@ -971,8 +971,6 @@ function renderTasksTable() {
         if (currentUser && currentUser.role === 'manager') {
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
-            actionButtons += `<div class="dropdown"><button class="btn btn-action btn-status dropdown-toggle" data-bs-toggle="dropdown" title="Thay đổi trạng thái"><i class="fas fa-cog"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'pending')"><i class="fas fa-clock me-2"></i>Chờ thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'in-progress')"><i class="fas fa-play me-2"></i>Đang thực hiện</a></li><li><a class="dropdown-item" href="#" onclick="changeTaskStatus(${task.id}, 'completed')"><i class="fas fa-check-circle me-2"></i>Hoàn thành</a></li></ul></div>`;
-            actionButtons += `<button class="btn btn-action btn-transfer" onclick="showTransferModal(${task.id})" title="Chuyển giao"><i class="fas fa-exchange-alt"></i></button>`;
         } else if (currentUser && currentUser.role === 'employee') {
             if (isCurrentUserAssignee) {
                 actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;

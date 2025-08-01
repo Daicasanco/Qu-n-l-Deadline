@@ -670,8 +670,14 @@ async function editTask(id) {
     const isEmployee = currentUser.role === 'employee'
     const nameEl = document.getElementById('taskName');
     const deadlineEl = document.getElementById('taskDeadline');
+    const priorityEl = document.getElementById('taskPriority');
+    const priorityNote = document.getElementById('priorityNote');
+    
     if (nameEl) nameEl.readOnly = isEmployee;
     if (deadlineEl) deadlineEl.readOnly = isEmployee;
+    if (priorityEl) priorityEl.disabled = isEmployee;
+    if (priorityNote) priorityNote.style.display = isEmployee ? 'inline' : 'none';
+    
     const rateEl = document.getElementById('taskRate');
     if (rateEl) rateEl.readOnly = isEmployee;
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
@@ -906,7 +912,7 @@ function renderTasksTable() {
     const tbody = document.getElementById('tasksTableBody')
     tbody.innerHTML = ''
     if (!currentProjectId) {
-        tbody.innerHTML = `<tr><td colspan="11" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Chưa chọn dự án</h4><p>Vui lòng chọn một dự án để xem công việc</p></div></td></tr>`
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Chưa chọn dự án</h4><p>Vui lòng chọn một dự án để xem công việc</p></div></td></tr>`
         return
     }
     // Lọc theo trạng thái và người thực hiện
@@ -932,7 +938,7 @@ function renderTasksTable() {
     }
     
     if (projectTasks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
         return
     }
     projectTasks.forEach(task => {
@@ -996,6 +1002,7 @@ function renderTasksTable() {
             <td>${countdown}</td>
             <td><strong>${task.name}</strong></td>
             <td>${getTaskStatusBadge(task.status)}</td>
+            <td>${getPriorityBadge(task.priority)}</td>
             <td>${submissionLink}</td>
             <td>${dialogueChars}</td>
             <td>${totalChars}</td>
@@ -1170,6 +1177,15 @@ function showAddTaskModal() {
     document.getElementById('taskStatusField').style.display = 'none'
     document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
     updateAssigneeDropdowns()
+    
+    // Handle priority field restriction for employees
+    const isEmployee = currentUser.role === 'employee'
+    const priorityEl = document.getElementById('taskPriority');
+    const priorityNote = document.getElementById('priorityNote');
+    
+    if (priorityEl) priorityEl.disabled = isEmployee;
+    if (priorityNote) priorityNote.style.display = isEmployee ? 'inline' : 'none';
+    
     // Reset batch UI
     document.getElementById('batchCreateCheckbox').checked = false
     document.getElementById('batchCountGroup').style.display = 'none'

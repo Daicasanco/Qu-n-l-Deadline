@@ -69,21 +69,74 @@ body {
 .badge-priority-low {
     background-color: #28a745;
     color: white;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-priority-low:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
 }
 
 .badge-priority-medium {
     background-color: #ffc107;
     color: var(--dark-color);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-priority-medium:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
 }
 
 .badge-priority-high {
     background-color: #fd7e14;
     color: white;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-priority-high:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(253, 126, 20, 0.4);
 }
 
 .badge-priority-urgent {
     background-color: #dc3545;
     color: white;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    animation: urgentPulse 2s infinite;
+    transition: all 0.3s ease;
+}
+
+.badge-priority-urgent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}
+
+@keyframes urgentPulse {
+    0% {
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.6);
+    }
+    100% {
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
 }
 
 /* Table Styles */
@@ -178,6 +231,16 @@ body {
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-control:disabled, .form-select:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-select:disabled {
+    background-image: none;
 }
 
 /* Toast Notifications */

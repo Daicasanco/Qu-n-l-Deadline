@@ -1043,9 +1043,8 @@ function renderTasksTable() {
 }
 
 function selectProject(projectId) {
-    // Set current project and render tasks
-    currentProjectId = projectId
-    renderTasksTable()
+    // Switch to tasks view and render tasks
+    showTasksView(projectId)
 }
 
 function updateDashboard() {

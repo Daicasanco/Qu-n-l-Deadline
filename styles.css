@@ -663,3 +663,18 @@ body {
 .task-row-overdue-strong {
     background-color: rgba(220, 53, 69, 0.25) !important;
 } 
+
+/* Đảm bảo tô nền toàn bộ dòng, không bị ghi đè bởi Bootstrap */
+.table tbody tr.task-row-completed-early {
+    background-color: rgba(40, 167, 69, 0.12) !important;
+}
+.table tbody tr.task-row-deadline-soon {
+    animation: blinkRed 1s linear infinite;
+}
+@keyframes blinkRed {
+    0%, 100% { background-color: rgba(220, 53, 69, 0.10); }
+    50% { background-color: rgba(220, 53, 69, 0.30); }
+}
+.table tbody tr.task-row-overdue-strong {
+    background-color: rgba(220, 53, 69, 0.25) !important;
+} 

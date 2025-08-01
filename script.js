@@ -937,9 +937,26 @@ function renderTasksTable() {
     }
     projectTasks.forEach(task => {
         const row = document.createElement('tr')
-        if (task.status === 'overdue') row.classList.add('table-row-overdue')
-        else if (task.priority === 'urgent') row.classList.add('table-row-urgent')
-        else if (task.priority === 'high') row.classList.add('table-row-high')
+        // Xác định trạng thái deadline
+        let deadline = new Date(task.deadline);
+        let now = new Date();
+        const isCompleted = task.status === 'completed';
+        const isOverdue = deadline < now && !isCompleted;
+        const timeLeft = deadline - now;
+        // Xóa các class cũ
+        row.className = '';
+        // Nếu hoàn thành trước deadline
+        if (isCompleted && deadline > now) {
+            row.classList.add('task-row-completed-early');
+        } else if (isOverdue) {
+            row.classList.add('task-row-overdue-strong');
+        } else if (!isCompleted && timeLeft > 0 && timeLeft < 10 * 60 * 60 * 1000) {
+            row.classList.add('task-row-deadline-soon');
+        } else if (task.priority === 'urgent') {
+            row.classList.add('table-row-urgent');
+        } else if (task.priority === 'high') {
+            row.classList.add('table-row-high');
+        }
         const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
         const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
@@ -971,12 +988,10 @@ function renderTasksTable() {
             // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
         }
         // Countdown deadline
-        const deadline = new Date(task.deadline);
-        const now = new Date();
         let countdown = '';
         if (isNaN(deadline.getTime())) {
             countdown = '<span class="text-muted">-</span>';
-        } else if (deadline < now && task.status !== 'completed') {
+        } else if (deadline < now && !isCompleted) {
             countdown = '<span class="badge bg-danger">Quá hạn</span>';
         } else {
             countdown = `<span class="countdown-timer" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`;

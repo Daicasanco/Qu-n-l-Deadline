@@ -646,3 +646,20 @@ body {
 .empty-state p {
     color: #6c757d;
 } 
+
+/* Task row: hoàn thành trước deadline */
+.task-row-completed-early {
+    background-color: rgba(40, 167, 69, 0.12) !important; /* xanh lá nhạt */
+}
+/* Task row: deadline còn dưới 10h, nhấp nháy đỏ */
+.task-row-deadline-soon {
+    animation: blinkRed 1s linear infinite;
+}
+@keyframes blinkRed {
+    0%, 100% { background-color: rgba(220, 53, 69, 0.10); }
+    50% { background-color: rgba(220, 53, 69, 0.30); }
+}
+/* Task row: quá hạn */
+.task-row-overdue-strong {
+    background-color: rgba(220, 53, 69, 0.25) !important;
+} 

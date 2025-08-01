@@ -1523,7 +1523,7 @@ async function loadAllTimeLeaderboard() {
             }
             
             employeeStats[employeeId].totalTasks++
-            employeeStats[employeeId].totalChars += (task.dialogue_chars || 0) + (task.total_chars || 0) + (task.rv_chars || 0)
+            employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
         // Convert to array and sort by total tasks, then by total chars
@@ -1582,7 +1582,7 @@ async function loadMonthlyLeaderboard() {
             }
             
             employeeStats[employeeId].totalTasks++
-            employeeStats[employeeId].totalChars += (task.dialogue_chars || 0) + (task.total_chars || 0) + (task.rv_chars || 0)
+            employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
         // Convert to array and sort by total tasks, then by total chars

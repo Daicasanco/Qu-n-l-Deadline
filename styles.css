@@ -677,3 +677,27 @@ body {
 .table-hover > tbody > tr.task-row-overdue-strong:hover {
     background-color: rgba(220, 53, 69, 0.25) !important;
 } 
+
+.table-striped > tbody > tr.task-row-completed-early,
+.table-striped > tbody > tr.task-row-completed-early:nth-of-type(odd),
+.table-striped > tbody > tr.task-row-completed-early:nth-of-type(even),
+.table-striped > tbody > tr.task-row-deadline-soon,
+.table-striped > tbody > tr.task-row-deadline-soon:nth-of-type(odd),
+.table-striped > tbody > tr.task-row-deadline-soon:nth-of-type(even),
+.table-striped > tbody > tr.task-row-overdue-strong,
+.table-striped > tbody > tr.task-row-overdue-strong:nth-of-type(odd),
+.table-striped > tbody > tr.task-row-overdue-strong:nth-of-type(even),
+.table-hover > tbody > tr.task-row-completed-early:hover,
+.table-hover > tbody > tr.task-row-deadline-soon:hover,
+.table-hover > tbody > tr.task-row-overdue-strong:hover {
+    background-color: unset !important;
+}
+.table tbody tr.task-row-completed-early {
+    background-color: rgba(40, 167, 69, 0.12) !important;
+}
+.table tbody tr.task-row-deadline-soon {
+    animation: blinkRed 1s linear infinite;
+}
+.table tbody tr.task-row-overdue-strong {
+    background-color: rgba(220, 53, 69, 0.25) !important;
+} 

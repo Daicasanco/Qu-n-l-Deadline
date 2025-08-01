@@ -15,38 +15,6 @@ let employees = []
 let filteredProjects = []
 let currentProjectId = null
 
-// View Management Functions
-function showProjectsView() {
-    document.getElementById('projectsView').style.display = ''
-    document.getElementById('tasksView').style.display = 'none'
-    currentProjectId = null
-    updateDashboard()
-    
-    // Update UI to show/hide buttons based on current view
-    updateUserInterface()
-}
-
-function showTasksView(projectId) {
-    document.getElementById('projectsView').style.display = 'none'
-    document.getElementById('tasksView').style.display = ''
-    
-    // Set current project
-    currentProjectId = projectId
-    
-    // Update project name in header
-    const project = projects.find(p => p.id === projectId)
-    if (project) {
-        document.getElementById('currentProjectName').textContent = project.name
-    }
-    
-    // Render tasks for this project
-    renderTasksTable()
-    setupTaskFilters()
-    
-    // Update UI to show/hide buttons based on current view
-    updateUserInterface()
-}
-
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp()
@@ -109,18 +77,32 @@ async function loadDataFromSupabase() {
         updateUserInterface()
         updateAssigneeDropdowns() // Ensure dropdowns are updated after data load
         
-        // Ensure we start with projects view
-        showProjectsView()
-        
-        // Setup realtime subscriptions
-        setupRealtimeSubscriptions()
-        
-        // Check for overdue tasks
-        checkOverdueTasks()
+        // Initialize project selection
+        initializeProjectSelection()
         
     } catch (error) {
-        console.error('Error loading data from Supabase:', error)
-        showNotification('Lỗi tải dữ liệu ban đầu', 'error')
+        console.error('Error loading data:', error)
+        showNotification('Lỗi khi tải dữ liệu', 'error')
+    }
+}
+
+// Initialize project selection dropdown
+function initializeProjectSelection() {
+    const projectSelect = document.getElementById('projectSelect')
+    if (projectSelect) {
+        projectSelect.innerHTML = '<option value="">Chọn dự án...</option>'
+        projects.forEach(project => {
+            const option = document.createElement('option')
+            option.value = project.id
+            option.textContent = project.name
+            projectSelect.appendChild(option)
+        })
+        
+        // Add change event listener
+        projectSelect.addEventListener('change', function() {
+            currentProjectId = this.value
+            renderTasksTable()
+        })
     }
 }
 
@@ -259,35 +241,108 @@ function logout() {
 }
 
 function updateUserInterface() {
-    const currentUserSpan = document.getElementById('currentUser')
+    if (!currentUser) {
+        // Show login modal if no user is logged in
+        showLoginModal()
+        return
+    }
+    
+    // Update user display
+    const currentUserEl = document.getElementById('currentUser')
+    if (currentUserEl) {
+        currentUserEl.textContent = currentUser.name
+    }
+    
+    // Show/hide buttons based on user role
     const addProjectBtn = document.getElementById('addProjectBtn')
     const addTaskBtn = document.getElementById('addTaskBtn')
     const viewEmployeesBtn = document.getElementById('viewEmployeesBtn')
     
-    if (currentUser) {
-        currentUserSpan.textContent = currentUser.name
+    if (addProjectBtn) {
         addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
-        
-        // Chỉ hiện nút "Thêm Công việc" khi ở trong tasks view và là manager
-        const isInTasksView = document.getElementById('tasksView').style.display !== 'none'
-        addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
-        
-        viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
-        
-        // Show/hide announcement edit button for managers
-        const editAnnouncementBtn = document.getElementById('editAnnouncementBtn')
-        if (editAnnouncementBtn) {
-            editAnnouncementBtn.style.display = currentUser.role === 'manager' ? 'block' : 'none'
-        }
-        
-        // Update assignee dropdowns
-        updateAssigneeDropdowns()
-    } else {
-        currentUserSpan.textContent = 'Guest'
-        addProjectBtn.style.display = 'none'
-        addTaskBtn.style.display = 'none'
-        viewEmployeesBtn.style.display = 'none'
     }
+    
+    if (addTaskBtn) {
+        addTaskBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+    }
+    
+    if (viewEmployeesBtn) {
+        viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+    }
+    
+    // Show/hide announcement edit button for managers
+    const editAnnouncementBtn = document.getElementById('editAnnouncementBtn')
+    if (editAnnouncementBtn) {
+        editAnnouncementBtn.style.display = currentUser.role === 'manager' ? 'block' : 'none'
+    }
+    
+    // Update assignee dropdowns
+    updateAssigneeDropdowns()
+}
+
+// Function to view employees list
+function viewEmployees() {
+    // Create a modal to show employees list
+    const modalHtml = `
+        <div class="modal fade" id="employeesModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-users me-2"></i>
+                            Danh sách nhân viên
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên</th>
+                                        <th>Email</th>
+                                        <th>Vai trò</th>
+                                        <th>Ngày tạo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeesTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('employeesModal')
+    if (existingModal) {
+        existingModal.remove()
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml)
+    
+    // Populate employees table
+    const tbody = document.getElementById('employeesTableBody')
+    if (tbody && window.allEmployees) {
+        tbody.innerHTML = window.allEmployees.map(emp => `
+            <tr>
+                <td>${emp.id}</td>
+                <td><strong>${emp.name}</strong></td>
+                <td>${emp.email}</td>
+                <td>${emp.role === 'manager' ? '<span class="badge bg-primary">Quản lý</span>' : '<span class="badge bg-secondary">Nhân viên</span>'}</td>
+                <td>${formatDateTime(emp.created_at)}</td>
+            </tr>
+        `).join('')
+    }
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('employeesModal'))
+    modal.show()
 }
 
 // Project Management
@@ -925,11 +980,15 @@ function renderProjectsTable() {
 
 function renderTasksTable() {
     const tbody = document.getElementById('tasksTableBody')
+    if (!tbody) return
+    
     tbody.innerHTML = ''
+    
     if (!currentProjectId) {
-        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Chưa chọn dự án</h4><p>Vui lòng chọn một dự án để xem công việc</p></div></td></tr>`
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Chưa chọn dự án</h4><p>Vui lòng chọn một dự án để xem công việc</p></div></td></tr>`
         return
     }
+    
     // Lọc theo trạng thái và người thực hiện
     const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
     const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
@@ -953,40 +1012,38 @@ function renderTasksTable() {
     }
     
     if (projectTasks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
         return
     }
+    
     projectTasks.forEach(task => {
         const row = document.createElement('tr')
+        
         // Xác định trạng thái deadline
         let deadline = new Date(task.deadline);
         let now = new Date();
         const isCompleted = task.status === 'completed';
         const isOverdue = deadline < now && !isCompleted;
         const timeLeft = deadline - now;
+        
         // Xóa các class cũ
         row.className = '';
+        
         // Chỉ giữ lại class priority nếu cần
         if (task.priority === 'urgent') {
             row.classList.add('table-row-urgent');
         } else if (task.priority === 'high') {
             row.classList.add('table-row-high');
         }
+        
         const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
         const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
         const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
+        
         const submissionLink = task.submission_link ? `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Xem</a>` : '<span class="text-muted">-</span>'
         const dialogueChars = task.dialogue_chars ? `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
-        const totalChars = task.total_chars ? `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
-        const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
-        // Thành tiền = rate * rv_chars
-        let payment = '<span class="text-muted">-</span>';
-        if (typeof task.rate === 'number' && typeof task.rv_chars === 'number' && !isNaN(task.rate) && !isNaN(task.rv_chars)) {
-            const money = Math.round((task.rate * task.rv_chars) / 1000);
-            payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`;
-        }
-        const notes = task.notes ? `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : '<span class="text-muted">-</span>'
+        
         // Nút thao tác
         let actionButtons = '';
         if (currentUser && currentUser.role === 'manager') {
@@ -998,8 +1055,8 @@ function renderTasksTable() {
             } else if (!task.assignee_id) {
                 actionButtons += `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-hand-pointer"></i> Nhận</button>`;
             }
-            // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
         }
+        
         // Countdown deadline
         let countdown = '';
         if (isNaN(deadline.getTime())) {
@@ -1013,6 +1070,7 @@ function renderTasksTable() {
         } else {
             countdown = `<span class="countdown-timer" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`;
         }
+        
         row.innerHTML = `
             <td>${countdown}</td>
             <td><strong>${task.name}</strong></td>
@@ -1020,74 +1078,89 @@ function renderTasksTable() {
             <td>${getPriorityBadge(task.priority)}</td>
             <td>${submissionLink}</td>
             <td>${dialogueChars}</td>
-            <td>${totalChars}</td>
-            <td>${rvChars}</td>
-            <td>${payment}</td>
-            <td><span class="${task.assignee_id ? 'text-success' : 'text-muted'}">${assigneeName}</span></td>
-            <td>${notes}</td>
-            <td><div class="btn-group-actions">${actionButtons}</div></td>`
+            <td>${assigneeName}</td>
+            <td>${task.rate ? `${task.rate}đ/1000chữ` : '<span class="text-muted">-</span>'}</td>
+            <td>${actionButtons}</td>
+        `
         tbody.appendChild(row)
     })
     updateAllCountdowns();
 }
 
 function selectProject(projectId) {
-    // Switch to tasks view
-    showTasksView(projectId)
+    // Set current project and render tasks
+    currentProjectId = projectId
+    renderTasksTable()
 }
 
 function updateDashboard() {
-    const totalProjects = projects.length
-    const totalTasks = tasks.length
-    const activeProjects = projects.filter(p => p.status === 'active').length
-    const completedProjects = projects.filter(p => p.status === 'completed').length
+    // Update project count
+    const totalProjectsEl = document.getElementById('totalProjects')
+    if (totalProjectsEl) {
+        totalProjectsEl.textContent = projects.length
+    }
     
-    document.getElementById('totalProjects').textContent = totalProjects
-    document.getElementById('totalTasks').textContent = totalTasks
-    document.getElementById('activeProjects').textContent = activeProjects
-    document.getElementById('completedProjects').textContent = completedProjects
+    // Update task count
+    const totalTasksEl = document.getElementById('totalTasks')
+    if (totalTasksEl) {
+        totalTasksEl.textContent = tasks.length
+    }
+    
+    // Update active projects count
+    const activeProjectsEl = document.getElementById('activeProjects')
+    if (activeProjectsEl) {
+        const activeProjects = projects.filter(p => p.status === 'active')
+        activeProjectsEl.textContent = activeProjects.length
+    }
+    
+    // Update completed projects count
+    const completedProjectsEl = document.getElementById('completedProjects')
+    if (completedProjectsEl) {
+        const completedProjects = projects.filter(p => p.status === 'completed')
+        completedProjectsEl.textContent = completedProjects.length
+    }
+    
+    // Render projects table if it exists
+    const projectsTableBody = document.getElementById('projectsTableBody')
+    if (projectsTableBody) {
+        renderProjectsTable()
+    }
+    
+    // Render tasks table
+    renderTasksTable()
 }
 
 function updateManagerFilter(managers) {
-    const managerSelect = document.getElementById('managerFilter')
-    managerSelect.innerHTML = '<option value="">Tất cả</option>'
-    
-    managers.forEach(manager => {
-        const option = document.createElement('option')
-        option.value = manager.id
-        option.textContent = manager.name
-        managerSelect.appendChild(option)
-    })
+    const managerFilter = document.getElementById('managerFilter')
+    if (managerFilter) {
+        managerFilter.innerHTML = '<option value="">Tất cả</option>'
+        managers.forEach(manager => {
+            const option = document.createElement('option')
+            option.value = manager.id
+            option.textContent = manager.name
+            managerFilter.appendChild(option)
+        })
+    }
 }
 
-// Filter Functions
-function applyProjectFilters() {
-    const statusFilter = document.getElementById('projectStatusFilter').value
-    const managerFilter = document.getElementById('managerFilter').value
-    
-    filteredProjects = projects.filter(project => {
-        let matches = true
-        
-        if (statusFilter && project.status !== statusFilter) {
-            matches = false
-        }
-        
-        if (managerFilter && project.manager_id !== parseInt(managerFilter)) {
-            matches = false
-        }
-        
-        return matches
-    })
-    
-    renderProjectsTable()
-}
+// Remove applyProjectFilters function as it's no longer needed
+// function applyProjectFilters() { ... }
 
 function setupTaskFilters() {
+    // Update assignee filter dropdown
+    updateTaskAssigneeFilter()
+    
+    // Set up event listeners for filters
     const statusFilter = document.getElementById('taskStatusFilter')
     const assigneeFilter = document.getElementById('taskAssigneeFilter')
-    if (statusFilter) statusFilter.onchange = renderTasksTable
-    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
-    updateTaskAssigneeFilter();
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', renderTasksTable)
+    }
+    
+    if (assigneeFilter) {
+        assigneeFilter.addEventListener('change', renderTasksTable)
+    }
 }
 
 // Utility Functions
@@ -1342,49 +1415,7 @@ function checkOverdueTasks() {
 // Initialize overdue check on load
 checkOverdueTasks() 
 
-// Employee Management Functions
-function showEmployeesList() {
-    if (!currentUser || currentUser.role !== 'manager') {
-        showNotification('Chỉ quản lý mới có thể xem danh sách nhân viên', 'error')
-        return
-    }
-    
-    // Populate employees table with allEmployees
-    const tbody = document.getElementById('employeesTableBody')
-    tbody.innerHTML = ''
-    
-    if (window.allEmployees.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" class="text-center">
-                    <div class="empty-state">
-                        <i class="fas fa-users"></i>
-                        <h4>Không có nhân viên nào</h4>
-                        <p>Chưa có nhân viên trong hệ thống</p>
-                    </div>
-                </td>
-            </tr>
-        `
-        return
-    }
-    
-    window.allEmployees.forEach(employee => { // Use window.allEmployees here
-        const row = document.createElement('tr')
-        const roleBadge = employee.role === 'manager' 
-            ? `<span class="badge bg-primary">Quản lý</span>` 
-            : `<span class="badge bg-secondary">Nhân viên</span>`
-        row.innerHTML = `
-            <td>${employee.id}</td>
-            <td>${employee.name}</td>
-            <td>${employee.email}</td>
-            <td>${roleBadge}</td>
-        `
-        tbody.appendChild(row)
-    })
-    
-    const modal = new bootstrap.Modal(document.getElementById('employeesModal'))
-    modal.show()
-}
+// Employee Management Functions - Removed showEmployeesList as it's replaced by viewEmployees
 
 function updateAssigneeDropdowns() {
     const assigneeSelects = document.querySelectorAll('#taskAssignee')
@@ -1428,10 +1459,7 @@ function updateTaskAssigneeFilter() {
     }
 }
 
-// Gắn event cho filter
-function setupTaskFilters() {
-    updateTaskAssigneeFilter();
-}
+
 
 // Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án
 // Ví dụ: trong showTasksView(projectId) hoặc loadDataFromSupabase() thêm setupTaskFilters() 

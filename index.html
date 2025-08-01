@@ -34,18 +34,18 @@
 
     <!-- Main Content -->
     <div class="container-fluid mt-4">
-        <div class="row">
+        <div class="row g-4">
             <!-- Left Sidebar - Leaderboard -->
             <div class="col-lg-2 col-md-3 mb-4">
                 <div class="leaderboard-sidebar">
                     <!-- All-time Leaderboard -->
-                    <div class="card leaderboard-card mb-3">
+                    <div class="card leaderboard-card mb-4">
                         <div class="card-header leaderboard-header">
                             <h6 class="mb-0">
                                 <i class="fas fa-trophy me-2"></i>
                                 Bảng xếp hạng toàn thời gian
                             </h6>
-                            <small class="text-muted">TOP 5</small>
+                            <small class="text-white-50">TOP 5</small>
                         </div>
                         <div class="card-body p-0">
                             <div id="allTimeLeaderboard" class="leaderboard-list">
@@ -61,7 +61,7 @@
                                 <i class="fas fa-calendar-alt me-2"></i>
                                 Bảng xếp hạng tháng
                             </h6>
-                            <small class="text-muted">TOP 10</small>
+                            <small class="text-white-50">TOP 10</small>
                         </div>
                         <div class="card-body p-0">
                             <div id="monthlyLeaderboard" class="leaderboard-list">
@@ -75,213 +75,90 @@
             <!-- Main Content Area -->
             <div class="col-lg-8 col-md-6">
                 <!-- Dashboard -->
-                <div id="dashboard" class="row">
-            <div class="col-md-3">
-                <div class="card text-center mb-3">
-                    <div class="card-body">
-                        <i class="fas fa-project-diagram fa-2x text-primary mb-2"></i>
-                        <h5 class="card-title">Tổng Dự án</h5>
-                        <h3 id="totalProjects">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center mb-3">
-                    <div class="card-body">
-                        <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
-                        <h5 class="card-title">Tổng Công việc</h5>
-                        <h3 id="totalTasks">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center mb-3">
-                    <div class="card-body">
-                        <i class="fas fa-play-circle fa-2x text-success mb-2"></i>
-                        <h5 class="card-title">Đang hoạt động</h5>
-                        <h3 id="activeProjects">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center mb-3">
-                    <div class="card-body">
-                        <i class="fas fa-check-circle fa-2x text-info mb-2"></i>
-                        <h5 class="card-title">Hoàn thành</h5>
-                        <h3 id="completedProjects">0</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="mb-3">
-            <button class="btn btn-primary" id="addProjectBtn" onclick="showAddProjectModal()" style="display: none;">
-                <i class="fas fa-plus"></i> Thêm Dự án
-            </button>
-            <button class="btn btn-success" id="addTaskBtn" onclick="showAddTaskModal()" style="display: none;">
-                <i class="fas fa-plus"></i> Thêm Công việc
-            </button>
-            <button class="btn btn-info" id="viewEmployeesBtn" onclick="showEmployeesList()" style="display: none;">
-                <i class="fas fa-users"></i> Xem Nhân viên
-            </button>
-            <button class="btn btn-secondary" onclick="refreshData()">
-                <i class="fas fa-sync-alt"></i> Làm mới
-            </button>
-        </div>
-
-        <!-- Project Filters -->
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Trạng thái dự án:</label>
-                                <select class="form-select" id="projectStatusFilter">
-                                    <option value="">Tất cả</option>
-                                    <option value="active">Đang hoạt động</option>
-                                    <option value="paused">Tạm dừng</option>
-                                    <option value="completed">Hoàn thành</option>
-                                </select>
+                <div id="dashboard" class="row g-4">
+                    <!-- Project Selection -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-project-diagram me-2"></i>
+                                    Quản lý dự án
+                                </h5>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Người quản lý:</label>
-                                <select class="form-select" id="managerFilter">
-                                    <option value="">Tất cả</option>
-                                </select>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Chọn dự án:</label>
+                                        <select class="form-select" id="projectSelect">
+                                            <option value="">Chọn dự án...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 d-flex align-items-end">
+                                        <button class="btn btn-success me-2" onclick="showAddProjectModal()">
+                                            <i class="fas fa-plus me-1"></i>
+                                            Thêm dự án
+                                        </button>
+                                        <button class="btn btn-info" onclick="viewEmployees()">
+                                            <i class="fas fa-users me-1"></i>
+                                            Xem nhân viên
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">&nbsp;</label>
-                                <button class="btn btn-secondary w-100" onclick="applyProjectFilters()">
-                                    <i class="fas fa-filter me-1"></i>Lọc
+                        </div>
+                    </div>
+
+                    <!-- Tasks Section -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-tasks me-2"></i>
+                                    Danh sách công việc
+                                </h5>
+                                <button class="btn btn-light btn-sm" onclick="showAddTaskModal()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm công việc
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Projects View -->
-        <div id="projectsView">
-            <!-- Projects Table -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-project-diagram me-2"></i>
-                                Danh sách Dự án
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="projectsTable">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Tên dự án</th>
-                                            <th>Mô tả</th>
-                                            <th>Trạng thái</th>
-                                            <th>Người quản lý</th>
-                                            <th>Ngày tạo</th>
-                                            <th>Số công việc</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="projectsTableBody">
-                                        <!-- Data will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tasks View -->
-        <div id="tasksView" style="display: none;">
-            <!-- Back Button -->
-            <div class="mb-3">
-                <button class="btn btn-secondary" onclick="showProjectsView()">
-                    <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách dự án
-                </button>
-            </div>
-
-            <!-- Project Info -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-tasks me-2"></i>
-                                Công việc trong dự án: <span id="currentProjectName">Dự án</span>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Task Filters -->
-                            <div class="row mb-3" id="taskFiltersRow">
-                                <div class="col-md-4">
-                                    <label class="form-label">Lọc theo trạng thái:</label>
-                                    <select class="form-select" id="taskStatusFilter" onchange="renderTasksTable()">
-                                        <option value="">Tất cả</option>
-                                        <option value="pending">Chờ thực hiện</option>
-                                        <option value="in-progress">Đang thực hiện</option>
-                                        <option value="completed">Hoàn thành</option>
-                                        <option value="overdue">Quá hạn</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Lọc theo người thực hiện:</label>
-                                    <select class="form-select" id="taskAssigneeFilter" onchange="renderTasksTable()">
-                                        <option value="">Tất cả</option>
-                                        <!-- Nhân viên sẽ được render bằng JS -->
-                                    </select>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Deadline</th>
+                                                <th>Tên công việc</th>
+                                                <th>Trạng thái</th>
+                                                <th>Mức ưu tiên</th>
+                                                <th>Link nộp</th>
+                                                <th>Số chữ thoại</th>
+                                                <th>Người thực hiện</th>
+                                                <th>Rate</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tasksTableBody">
+                                            <!-- Tasks will be populated here -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="tasksTable">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Deadline</th>
-                                            <th>Tên công việc</th>
-                                            <th>Trạng thái</th>
-                                            <th>Mức ưu tiên</th>
-                                            <th>Link nộp</th>
-                                             <th>Số chữ thoại</th>
-                                             <th>Số chữ tổng</th>
-                                             <th>Số chữ RV</th>
-                                             <th>Thành tiền</th>
-                                             <th>Người thực hiện</th>
-                                            <th>Ghi chú</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tasksTableBody">
-                                        <!-- Tasks will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
             </div>
 
             <!-- Right Sidebar - Notifications -->
             <div class="col-lg-2 col-md-3 mb-4">
                 <div class="notifications-sidebar">
                     <!-- System Announcements -->
-                    <div class="card notification-card mb-3">
-                        <div class="card-header notification-header">
+                    <div class="card notification-card mb-4">
+                        <div class="card-header notification-header d-flex justify-content-between align-items-center">
                             <h6 class="mb-0">
                                 <i class="fas fa-bullhorn me-2"></i>
                                 Thông báo hệ thống
                             </h6>
-                            <button class="btn btn-sm btn-outline-primary" id="editAnnouncementBtn" onclick="editAnnouncement()" style="display: none;">
+                            <button class="btn btn-sm" id="editAnnouncementBtn" onclick="editAnnouncement()" style="display: none;">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -290,17 +167,23 @@
                                 <p class="text-muted mb-0">Chưa có thông báo nào</p>
                             </div>
                             <div id="announcementEditForm" class="announcement-edit-form" style="display: none;">
-                                <textarea class="form-control mb-2" id="announcementText" rows="3" placeholder="Nhập thông báo mới..."></textarea>
+                                <textarea class="form-control mb-3" id="announcementText" rows="3" placeholder="Nhập thông báo mới..."></textarea>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-primary" onclick="saveAnnouncement()">Lưu</button>
-                                    <button class="btn btn-sm btn-secondary" onclick="cancelEditAnnouncement()">Hủy</button>
+                                    <button class="btn btn-primary btn-sm" onclick="saveAnnouncement()">
+                                        <i class="fas fa-save me-1"></i>
+                                        Lưu
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="cancelEditAnnouncement()">
+                                        <i class="fas fa-times me-1"></i>
+                                        Hủy
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Recent Notifications -->
-                    <div class="card notification-card mb-3">
+                    <div class="card notification-card mb-4">
                         <div class="card-header notification-header">
                             <h6 class="mb-0">
                                 <i class="fas fa-bell me-2"></i>

@@ -672,14 +672,19 @@ async function editTask(id) {
     const deadlineEl = document.getElementById('taskDeadline');
     const priorityEl = document.getElementById('taskPriority');
     const priorityNote = document.getElementById('priorityNote');
+    const rateEl = document.getElementById('taskRate');
+    const batchCheckboxEl = document.getElementById('batchCreateCheckbox');
+    const batchCountEl = document.getElementById('batchCount');
+    const batchStartEl = document.getElementById('batchStart');
     
     if (nameEl) nameEl.readOnly = isEmployee;
     if (deadlineEl) deadlineEl.readOnly = isEmployee;
     if (priorityEl) priorityEl.disabled = isEmployee;
     if (priorityNote) priorityNote.style.display = isEmployee ? 'inline' : 'none';
-    
-    const rateEl = document.getElementById('taskRate');
     if (rateEl) rateEl.readOnly = isEmployee;
+    if (batchCheckboxEl) batchCheckboxEl.disabled = isEmployee;
+    if (batchCountEl) batchCountEl.readOnly = isEmployee;
+    if (batchStartEl) batchStartEl.readOnly = isEmployee;
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
 }
@@ -1178,13 +1183,25 @@ function showAddTaskModal() {
     document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
     updateAssigneeDropdowns()
     
-    // Handle priority field restriction for employees
+    // Handle field restrictions for employees
     const isEmployee = currentUser.role === 'employee'
     const priorityEl = document.getElementById('taskPriority');
     const priorityNote = document.getElementById('priorityNote');
+    const nameEl = document.getElementById('taskName');
+    const deadlineEl = document.getElementById('taskDeadline');
+    const rateEl = document.getElementById('taskRate');
+    const batchCheckboxEl = document.getElementById('batchCreateCheckbox');
+    const batchCountEl = document.getElementById('batchCount');
+    const batchStartEl = document.getElementById('batchStart');
     
     if (priorityEl) priorityEl.disabled = isEmployee;
     if (priorityNote) priorityNote.style.display = isEmployee ? 'inline' : 'none';
+    if (nameEl) nameEl.readOnly = isEmployee;
+    if (deadlineEl) deadlineEl.readOnly = isEmployee;
+    if (rateEl) rateEl.readOnly = isEmployee;
+    if (batchCheckboxEl) batchCheckboxEl.disabled = isEmployee;
+    if (batchCountEl) batchCountEl.readOnly = isEmployee;
+    if (batchStartEl) batchStartEl.readOnly = isEmployee;
     
     // Reset batch UI
     document.getElementById('batchCreateCheckbox').checked = false

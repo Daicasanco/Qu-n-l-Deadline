@@ -970,8 +970,19 @@ function renderTasksTable() {
             }
             // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
         }
+        // Countdown deadline
+        const deadline = new Date(task.deadline);
+        const now = new Date();
+        let countdown = '';
+        if (isNaN(deadline.getTime())) {
+            countdown = '<span class="text-muted">-</span>';
+        } else if (deadline < now && task.status !== 'completed') {
+            countdown = '<span class="badge bg-danger">Quá hạn</span>';
+        } else {
+            countdown = `<span class="countdown-timer" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`;
+        }
         row.innerHTML = `
-            <td><span class="badge badge-id">${task.id}</span></td>
+            <td>${countdown}</td>
             <td><strong>${task.name}</strong></td>
             <td>${getTaskStatusBadge(task.status)}</td>
             <td>${submissionLink}</td>
@@ -984,6 +995,7 @@ function renderTasksTable() {
             <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
     })
+    updateAllCountdowns();
 }
 
 function selectProject(projectId) {
@@ -1367,3 +1379,36 @@ function setupTaskFilters() {
 
 // Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án
 // Ví dụ: trong showTasksView(projectId) hoặc loadDataFromSupabase() thêm setupTaskFilters() 
+
+function updateAllCountdowns() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    timers.forEach(timer => {
+        const deadlineStr = timer.getAttribute('data-deadline');
+        const deadline = new Date(deadlineStr);
+        const now = new Date();
+        let diff = deadline - now;
+        if (isNaN(deadline.getTime())) {
+            timer.textContent = '-';
+            return;
+        }
+        if (diff <= 0) {
+            timer.innerHTML = '<span class="badge bg-danger">Quá hạn</span>';
+            return;
+        }
+        // Tính số ngày, giờ, phút, giây còn lại
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        diff -= days * (1000 * 60 * 60 * 24);
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        diff -= hours * (1000 * 60 * 60);
+        const minutes = Math.floor(diff / (1000 * 60));
+        diff -= minutes * (1000 * 60);
+        const seconds = Math.floor(diff / 1000);
+        let str = '';
+        if (days > 0) str += days + 'd ';
+        if (hours > 0 || days > 0) str += hours + 'h ';
+        str += minutes + 'm ' + seconds + 's';
+        timer.innerHTML = `<span class="badge bg-primary">${str}</span>`;
+    });
+}
+// Tự động cập nhật countdown mỗi giây
+setInterval(updateAllCountdowns, 1000); 

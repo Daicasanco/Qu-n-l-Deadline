@@ -11,9 +11,21 @@
     --dark-color: #212529;
 }
 
+/* --- GLOBAL FONT AND TYPOGRAPHY IMPROVEMENTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 body {
-    background-color: #f5f5f5;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #2d3748;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: #1a202c;
 }
 
 /* Navigation */
@@ -24,14 +36,15 @@ body {
 
 /* Dashboard Cards */
 .card {
-    border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .card-body {
@@ -141,19 +154,20 @@ body {
 
 /* Table Styles */
 .table {
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .table thead th {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 18px 15px;
     background-color: var(--dark-color);
     color: white;
-    border: none;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
 }
 
 .table tbody tr {
@@ -164,17 +178,26 @@ body {
     background-color: rgba(13, 110, 253, 0.05);
 }
 
+.table tbody td {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 15px;
+    border: none;
+    vertical-align: middle;
+}
+
 /* Button Styles */
 .btn {
-    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
     font-weight: 500;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.3px;
 }
 
 .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .btn-primary {
@@ -223,14 +246,17 @@ body {
 
 /* Form Styles */
 .form-control, .form-select {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    transition: border-color 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
 }
 
 .form-control:disabled, .form-select:disabled {
@@ -241,6 +267,15 @@ body {
 
 .form-select:disabled {
     background-image: none;
+}
+
+.form-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
 }
 
 /* Toast Notifications */
@@ -794,7 +829,7 @@ body {
     top: 20px;
     height: calc(100vh - 40px);
     overflow-y: auto;
-    padding-right: 10px;
+    padding: 0 15px;
 }
 
 .leaderboard-card {
@@ -1234,7 +1269,8 @@ body {
 
 .deadline-urgent {
     background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-    animation: urgentPulse 1s ease-in-out infinite;
+    animation: urgentPulse 1.2s ease-in-out infinite;
+    border-left: 4px solid #ff4757;
 }
 
 @keyframes urgentPulse {
@@ -1254,16 +1290,26 @@ body {
     .notifications-sidebar {
         position: static;
         height: auto;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+        padding: 0 10px;
     }
     
     .leaderboard-card,
     .notification-card {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 }
 
 @media (max-width: 768px) {
+    .container-fluid {
+        padding: 0 15px;
+    }
+    
+    #dashboard {
+        padding: 20px;
+        margin: 15px 0;
+    }
+    
     .leaderboard-sidebar,
     .notifications-sidebar {
         padding: 0;
@@ -1271,18 +1317,30 @@ body {
     
     .leaderboard-card,
     .notification-card {
-        border-radius: 10px;
+        border-radius: 15px;
     }
     
     .leaderboard-header,
     .notification-header {
-        padding: 12px 15px;
+        padding: 15px 20px;
     }
     
     .leaderboard-item,
     .notification-item,
     .deadline-item {
-        padding: 10px 12px;
+        padding: 15px 18px;
+    }
+    
+    .leaderboard-rank {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .leaderboard-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
     }
 } 
 
@@ -1290,7 +1348,7 @@ body {
 @keyframes slideInLeft {
     from {
         opacity: 0;
-        transform: translateX(-30px);
+        transform: translateX(-40px);
     }
     to {
         opacity: 1;
@@ -1301,7 +1359,7 @@ body {
 @keyframes slideInRight {
     from {
         opacity: 0;
-        transform: translateX(30px);
+        transform: translateX(40px);
     }
     to {
         opacity: 1;
@@ -1310,22 +1368,32 @@ body {
 }
 
 .leaderboard-sidebar {
-    animation: slideInLeft 0.6s ease-out;
+    animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .notifications-sidebar {
-    animation: slideInRight 0.6s ease-out;
+    animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- HOVER EFFECTS FOR BUTTONS --- */
 .notification-header .btn {
-    transition: all 0.3s ease;
-    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(10px);
 }
 
 .notification-header .btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* --- LOADING ANIMATION --- */
@@ -1344,11 +1412,14 @@ body {
     content: 'Đang tải...';
     display: block;
     text-align: center;
-    padding: 20px;
-    color: rgba(255, 255, 255, 0.7);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    padding: 25px;
+    color: rgba(255, 255, 255, 0.8);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     background-size: 200px 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 8px;
-    margin: 10px;
+    animation: shimmer 1.8s infinite;
+    border-radius: 12px;
+    margin: 15px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
 } 

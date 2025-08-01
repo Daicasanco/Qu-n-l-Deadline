@@ -945,14 +945,8 @@ function renderTasksTable() {
         const timeLeft = deadline - now;
         // Xóa các class cũ
         row.className = '';
-        // Nếu hoàn thành trước deadline
-        if (isCompleted && deadline > now) {
-            row.classList.add('task-row-completed-early');
-        } else if (isOverdue) {
-            row.classList.add('task-row-overdue-strong');
-        } else if (!isCompleted && timeLeft > 0 && timeLeft < 10 * 60 * 60 * 1000) {
-            row.classList.add('task-row-deadline-soon');
-        } else if (task.priority === 'urgent') {
+        // Chỉ giữ lại class priority nếu cần
+        if (task.priority === 'urgent') {
             row.classList.add('table-row-urgent');
         } else if (task.priority === 'high') {
             row.classList.add('table-row-high');
@@ -991,8 +985,12 @@ function renderTasksTable() {
         let countdown = '';
         if (isNaN(deadline.getTime())) {
             countdown = '<span class="text-muted">-</span>';
-        } else if (deadline < now && !isCompleted) {
+        } else if (isCompleted) {
+            countdown = '<span class="badge bg-success">Hoàn thành</span>';
+        } else if (deadline < now) {
             countdown = '<span class="badge bg-danger">Quá hạn</span>';
+        } else if (timeLeft < 10 * 60 * 60 * 1000) {
+            countdown = `<span class="countdown-timer bg-danger text-white" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`;
         } else {
             countdown = `<span class="countdown-timer" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`;
         }
@@ -1422,7 +1420,14 @@ function updateAllCountdowns() {
         if (days > 0) str += days + 'd ';
         if (hours > 0 || days > 0) str += hours + 'h ';
         str += minutes + 'm ' + seconds + 's';
-        timer.innerHTML = `<span class="badge bg-primary">${str}</span>`;
+        
+        // Kiểm tra nếu còn dưới 10h thì giữ nền đỏ
+        const totalHours = days * 24 + hours;
+        if (totalHours < 10) {
+            timer.innerHTML = `<span class="badge bg-danger text-white">${str}</span>`;
+        } else {
+            timer.innerHTML = `<span class="badge bg-primary">${str}</span>`;
+        }
     });
 }
 // Tự động cập nhật countdown mỗi giây

@@ -100,6 +100,10 @@ async function loadDataFromSupabase() {
         // Load tasks
         await loadTasks()
         
+        // Load leaderboards and notifications
+        await loadLeaderboards()
+        await loadNotifications()
+        
         // Update UI
         updateDashboard()
         updateUserInterface()
@@ -269,6 +273,12 @@ function updateUserInterface() {
         addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
         
         viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        
+        // Show/hide announcement edit button for managers
+        const editAnnouncementBtn = document.getElementById('editAnnouncementBtn')
+        if (editAnnouncementBtn) {
+            editAnnouncementBtn.style.display = currentUser.role === 'manager' ? 'block' : 'none'
+        }
         
         // Update assignee dropdowns
         updateAssigneeDropdowns()
@@ -1274,8 +1284,10 @@ async function handleTransferTask() {
     }
 }
 
-function refreshData() {
-    loadDataFromSupabase()
+async function refreshData() {
+    await loadDataFromSupabase()
+    await loadLeaderboards()
+    await loadNotifications()
     showNotification('Đã làm mới dữ liệu', 'info')
 }
 
@@ -1462,4 +1474,424 @@ function updateAllCountdowns() {
     });
 }
 // Tự động cập nhật countdown mỗi giây
-setInterval(updateAllCountdowns, 1000); 
+setInterval(updateAllCountdowns, 1000);
+
+// --- LEADERBOARD FUNCTIONS ---
+async function loadLeaderboards() {
+    try {
+        // Load all-time leaderboard (TOP 5)
+        await loadAllTimeLeaderboard()
+        
+        // Load monthly leaderboard (TOP 10)
+        await loadMonthlyLeaderboard()
+    } catch (error) {
+        console.error('Error loading leaderboards:', error)
+    }
+}
+
+async function loadAllTimeLeaderboard() {
+    try {
+        // Get all completed tasks with employee data
+        const { data: completedTasks, error } = await supabase
+            .from('tasks')
+            .select(`
+                *,
+                employees!tasks_assignee_id_fkey (
+                    id,
+                    name,
+                    email
+                )
+            `)
+            .eq('status', 'completed')
+            .not('assignee_id', 'is', null)
+
+        if (error) throw error
+
+        // Calculate statistics for each employee
+        const employeeStats = {}
+        
+        completedTasks.forEach(task => {
+            const employeeId = task.assignee_id
+            if (!employeeStats[employeeId]) {
+                employeeStats[employeeId] = {
+                    id: employeeId,
+                    name: task.employees.name,
+                    email: task.employees.email,
+                    totalTasks: 0,
+                    totalChars: 0
+                }
+            }
+            
+            employeeStats[employeeId].totalTasks++
+            employeeStats[employeeId].totalChars += (task.dialogue_chars || 0) + (task.total_chars || 0) + (task.rv_chars || 0)
+        })
+
+        // Convert to array and sort by total tasks, then by total chars
+        const leaderboardData = Object.values(employeeStats)
+            .sort((a, b) => {
+                if (b.totalTasks !== a.totalTasks) {
+                    return b.totalTasks - a.totalTasks
+                }
+                return b.totalChars - a.totalChars
+            })
+            .slice(0, 5) // TOP 5
+
+        renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
+    } catch (error) {
+        console.error('Error loading all-time leaderboard:', error)
+    }
+}
+
+async function loadMonthlyLeaderboard() {
+    try {
+        const currentDate = new Date()
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+
+        // Get completed tasks for current month
+        const { data: completedTasks, error } = await supabase
+            .from('tasks')
+            .select(`
+                *,
+                employees!tasks_assignee_id_fkey (
+                    id,
+                    name,
+                    email
+                )
+            `)
+            .eq('status', 'completed')
+            .not('assignee_id', 'is', null)
+            .gte('updated_at', startOfMonth.toISOString())
+            .lte('updated_at', endOfMonth.toISOString())
+
+        if (error) throw error
+
+        // Calculate statistics for each employee
+        const employeeStats = {}
+        
+        completedTasks.forEach(task => {
+            const employeeId = task.assignee_id
+            if (!employeeStats[employeeId]) {
+                employeeStats[employeeId] = {
+                    id: employeeId,
+                    name: task.employees.name,
+                    email: task.employees.email,
+                    totalTasks: 0,
+                    totalChars: 0
+                }
+            }
+            
+            employeeStats[employeeId].totalTasks++
+            employeeStats[employeeId].totalChars += (task.dialogue_chars || 0) + (task.total_chars || 0) + (task.rv_chars || 0)
+        })
+
+        // Convert to array and sort by total tasks, then by total chars
+        const leaderboardData = Object.values(employeeStats)
+            .sort((a, b) => {
+                if (b.totalTasks !== a.totalTasks) {
+                    return b.totalTasks - a.totalTasks
+                }
+                return b.totalChars - a.totalChars
+            })
+            .slice(0, 10) // TOP 10
+
+        renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
+    } catch (error) {
+        console.error('Error loading monthly leaderboard:', error)
+    }
+}
+
+function renderLeaderboard(containerId, data, type) {
+    const container = document.getElementById(containerId)
+    if (!container) return
+
+    if (data.length === 0) {
+        container.innerHTML = `
+            <div class="leaderboard-item">
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-trophy fa-2x mb-2"></i>
+                    <p class="mb-0">Chưa có dữ liệu</p>
+                </div>
+            </div>
+        `
+        return
+    }
+
+    container.innerHTML = data.map((employee, index) => {
+        const rank = index + 1
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'
+        const initials = employee.name.split(' ').map(n => n[0]).join('').toUpperCase()
+        
+        return `
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank ${rankClass}">
+                    ${rank}
+                </div>
+                <div class="leaderboard-avatar">
+                    ${initials}
+                </div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">${employee.name}</div>
+                    <div class="leaderboard-stats">
+                        <div class="leaderboard-stat">
+                            <i class="fas fa-tasks"></i>
+                            <span>${employee.totalTasks}</span>
+                        </div>
+                        <div class="leaderboard-stat">
+                            <i class="fas fa-font"></i>
+                            <span>${employee.totalChars.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `
+    }).join('')
+}
+
+// --- NOTIFICATION FUNCTIONS ---
+async function loadNotifications() {
+    try {
+        // Load system announcement
+        await loadSystemAnnouncement()
+        
+        // Load recent notifications
+        await loadRecentNotifications()
+        
+        // Load upcoming deadlines
+        await loadUpcomingDeadlines()
+    } catch (error) {
+        console.error('Error loading notifications:', error)
+    }
+}
+
+async function loadSystemAnnouncement() {
+    try {
+        const { data, error } = await supabase
+            .from('system_announcements')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+
+        if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows returned
+
+        const announcementEl = document.getElementById('systemAnnouncement')
+        if (data) {
+            announcementEl.innerHTML = `
+                <p class="mb-0">${data.content}</p>
+                <small class="text-muted">Cập nhật: ${formatDateTime(data.updated_at)}</small>
+            `
+        } else {
+            announcementEl.innerHTML = '<p class="text-muted mb-0">Chưa có thông báo nào</p>'
+        }
+    } catch (error) {
+        console.error('Error loading system announcement:', error)
+    }
+}
+
+async function loadRecentNotifications() {
+    try {
+        // Get recent task activities
+        const { data: recentTasks, error } = await supabase
+            .from('tasks')
+            .select(`
+                *,
+                employees!tasks_assignee_id_fkey (
+                    name
+                )
+            `)
+            .order('updated_at', { ascending: false })
+            .limit(5)
+
+        if (error) throw error
+
+        const container = document.getElementById('recentNotifications')
+        
+        if (recentTasks.length === 0) {
+            container.innerHTML = `
+                <div class="notification-item">
+                    <div class="text-center text-muted py-2">
+                        <p class="mb-0">Chưa có hoạt động</p>
+                    </div>
+                </div>
+            `
+            return
+        }
+
+        container.innerHTML = recentTasks.map(task => {
+            const action = getTaskActionText(task)
+            const time = formatTimeAgo(task.updated_at)
+            
+            return `
+                <div class="notification-item">
+                    <div class="notification-title">${task.name}</div>
+                    <div class="notification-time">
+                        ${action} - ${time}
+                    </div>
+                </div>
+            `
+        }).join('')
+    } catch (error) {
+        console.error('Error loading recent notifications:', error)
+    }
+}
+
+async function loadUpcomingDeadlines() {
+    try {
+        const now = new Date()
+        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+
+        const { data: upcomingTasks, error } = await supabase
+            .from('tasks')
+            .select(`
+                *,
+                employees!tasks_assignee_id_fkey (
+                    name
+                )
+            `)
+            .in('status', ['pending', 'in-progress'])
+            .lte('deadline', tomorrow.toISOString())
+            .order('deadline', { ascending: true })
+            .limit(5)
+
+        if (error) throw error
+
+        const container = document.getElementById('upcomingDeadlines')
+        
+        if (upcomingTasks.length === 0) {
+            container.innerHTML = `
+                <div class="deadline-item">
+                    <div class="text-center text-muted py-2">
+                        <p class="mb-0">Không có deadline sắp đến</p>
+                    </div>
+                </div>
+            `
+            return
+        }
+
+        container.innerHTML = upcomingTasks.map(task => {
+            const timeLeft = calculateTimeLeft(task.deadline)
+            const isUrgent = new Date(task.deadline) - now < 10 * 60 * 60 * 1000 // Less than 10 hours
+            const urgentClass = isUrgent ? 'deadline-urgent' : ''
+            
+            return `
+                <div class="deadline-item ${urgentClass}">
+                    <div class="deadline-task">${task.name}</div>
+                    <div class="deadline-time">
+                        <i class="fas fa-clock"></i>
+                        ${timeLeft}
+                    </div>
+                </div>
+            `
+        }).join('')
+    } catch (error) {
+        console.error('Error loading upcoming deadlines:', error)
+    }
+}
+
+function getTaskActionText(task) {
+    const status = task.status
+    const assignee = task.assignee_id ? task.employees?.name : null
+    
+    switch (status) {
+        case 'completed':
+            return assignee ? `${assignee} đã hoàn thành` : 'Đã hoàn thành'
+        case 'in-progress':
+            return assignee ? `${assignee} đang thực hiện` : 'Đang thực hiện'
+        case 'pending':
+            return assignee ? `${assignee} đã nhận` : 'Chờ thực hiện'
+        default:
+            return 'Cập nhật trạng thái'
+    }
+}
+
+function formatTimeAgo(dateString) {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffMins < 1) return 'Vừa xong'
+    if (diffMins < 60) return `${diffMins} phút trước`
+    if (diffHours < 24) return `${diffHours} giờ trước`
+    if (diffDays < 7) return `${diffDays} ngày trước`
+    return formatDateTime(dateString)
+}
+
+function calculateTimeLeft(deadline) {
+    const now = new Date()
+    const deadlineDate = new Date(deadline)
+    const diffMs = deadlineDate - now
+
+    if (diffMs <= 0) return 'Quá hạn'
+
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+
+    if (diffHours > 24) {
+        const diffDays = Math.floor(diffHours / 24)
+        return `${diffDays} ngày ${diffHours % 24}h`
+    }
+    if (diffHours > 0) {
+        return `${diffHours}h ${diffMins}m`
+    }
+    return `${diffMins}m`
+}
+
+// --- ANNOUNCEMENT MANAGEMENT ---
+function editAnnouncement() {
+    const contentEl = document.getElementById('systemAnnouncement')
+    const editFormEl = document.getElementById('announcementEditForm')
+    const textareaEl = document.getElementById('announcementText')
+    
+    // Get current announcement text
+    const currentText = contentEl.querySelector('p')?.textContent || ''
+    textareaEl.value = currentText
+    
+    // Show edit form, hide content
+    contentEl.style.display = 'none'
+    editFormEl.style.display = 'block'
+}
+
+function cancelEditAnnouncement() {
+    const contentEl = document.getElementById('systemAnnouncement')
+    const editFormEl = document.getElementById('announcementEditForm')
+    
+    // Hide edit form, show content
+    contentEl.style.display = 'block'
+    editFormEl.style.display = 'none'
+}
+
+async function saveAnnouncement() {
+    try {
+        const textareaEl = document.getElementById('announcementText')
+        const content = textareaEl.value.trim()
+        
+        if (!content) {
+            showNotification('Vui lòng nhập nội dung thông báo', 'warning')
+            return
+        }
+
+        // Save to database
+        const { error } = await supabase
+            .from('system_announcements')
+            .upsert({
+                content: content,
+                created_by: currentUser.id,
+                updated_at: new Date().toISOString()
+            })
+
+        if (error) throw error
+
+        // Update UI
+        cancelEditAnnouncement()
+        await loadSystemAnnouncement()
+        
+        showNotification('Thông báo đã được cập nhật', 'success')
+    } catch (error) {
+        console.error('Error saving announcement:', error)
+        showNotification('Lỗi khi lưu thông báo', 'error')
+    }
+} 

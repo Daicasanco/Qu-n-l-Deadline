@@ -1526,13 +1526,13 @@ async function loadAllTimeLeaderboard() {
             employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
-        // Convert to array and sort by total tasks, then by total chars
+        // Convert to array and sort by total chars, then by total tasks
         const leaderboardData = Object.values(employeeStats)
             .sort((a, b) => {
-                if (b.totalTasks !== a.totalTasks) {
-                    return b.totalTasks - a.totalTasks
+                if (b.totalChars !== a.totalChars) {
+                    return b.totalChars - a.totalChars
                 }
-                return b.totalChars - a.totalChars
+                return b.totalTasks - a.totalTasks
             })
             .slice(0, 5) // TOP 5
 
@@ -1585,13 +1585,13 @@ async function loadMonthlyLeaderboard() {
             employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
-        // Convert to array and sort by total tasks, then by total chars
+        // Convert to array and sort by total chars, then by total tasks
         const leaderboardData = Object.values(employeeStats)
             .sort((a, b) => {
-                if (b.totalTasks !== a.totalTasks) {
-                    return b.totalTasks - a.totalTasks
+                if (b.totalChars !== a.totalChars) {
+                    return b.totalChars - a.totalChars
                 }
-                return b.totalChars - a.totalChars
+                return b.totalTasks - a.totalTasks
             })
             .slice(0, 10) // TOP 10
 

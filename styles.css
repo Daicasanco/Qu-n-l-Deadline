@@ -1849,3 +1849,71 @@ body {
         font-size: 12px;
     }
 } 
+
+/* Rainbow Text Animations for Top 3 */
+.rainbow-text-1 {
+    animation: rainbow1 2s linear infinite;
+    font-weight: 800 !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important;
+}
+
+.rainbow-text-2 {
+    animation: rainbow2 2.5s linear infinite;
+    font-weight: 700 !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+.rainbow-text-3 {
+    animation: rainbow3 3s linear infinite;
+    font-weight: 600 !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4) !important;
+}
+
+@keyframes rainbow1 {
+    0% { color: #ff0000; }
+    14% { color: #ff8000; }
+    28% { color: #ffff00; }
+    42% { color: #80ff00; }
+    57% { color: #00ff00; }
+    71% { color: #00ff80; }
+    85% { color: #0080ff; }
+    100% { color: #ff0000; }
+}
+
+@keyframes rainbow2 {
+    0% { color: #ff8000; }
+    14% { color: #ffff00; }
+    28% { color: #80ff00; }
+    42% { color: #00ff00; }
+    57% { color: #00ff80; }
+    71% { color: #0080ff; }
+    85% { color: #ff0080; }
+    100% { color: #ff8000; }
+}
+
+@keyframes rainbow3 {
+    0% { color: #ffff00; }
+    14% { color: #80ff00; }
+    28% { color: #00ff00; }
+    42% { color: #00ff80; }
+    57% { color: #0080ff; }
+    71% { color: #ff0080; }
+    85% { color: #ff4000; }
+    100% { color: #ffff00; }
+}
+
+/* Enhanced hover effects for rainbow text */
+.leaderboard-item:hover .rainbow-text-1 {
+    animation: rainbow1 1s linear infinite;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1) !important;
+}
+
+.leaderboard-item:hover .rainbow-text-2 {
+    animation: rainbow2 1.5s linear infinite;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8) !important;
+}
+
+.leaderboard-item:hover .rainbow-text-3 {
+    animation: rainbow3 2s linear infinite;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6) !important;
+} 

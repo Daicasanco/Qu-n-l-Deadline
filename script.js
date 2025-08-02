@@ -1623,20 +1623,11 @@ function renderLeaderboard(containerId, data, type) {
         const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'
         const initials = employee.name.split(' ').map(n => n[0]).join('').toUpperCase()
         
-        // Tính toán hiệu suất
-        const avgCharsPerTask = employee.totalTasks > 0 ? Math.round(employee.totalChars / employee.totalTasks) : 0
-        const performanceClass = avgCharsPerTask > 5000 ? 'high-performer' : avgCharsPerTask > 3000 ? 'medium-performer' : 'low-performer'
-        
-        // Thêm badge cho top performers
-        const performanceBadge = rank <= 3 ? `
-            <div class="performance-badge ${performanceClass}">
-                <i class="fas fa-star"></i>
-                ${rank === 1 ? 'Xuất sắc' : rank === 2 ? 'Tốt' : 'Khá'}
-            </div>
-        ` : ''
+        // Thêm class rainbow cho top 3
+        const rainbowClass = rank <= 3 ? `rainbow-text-${rank}` : ''
         
         return `
-            <div class="leaderboard-item ${performanceClass}">
+            <div class="leaderboard-item">
                 <div class="leaderboard-rank ${rankClass}">
                     ${rank}
                 </div>
@@ -1644,9 +1635,8 @@ function renderLeaderboard(containerId, data, type) {
                     ${initials}
                 </div>
                 <div class="leaderboard-info">
-                    <div class="leaderboard-name">
+                    <div class="leaderboard-name ${rainbowClass}">
                         ${employee.name}
-                        ${performanceBadge}
                     </div>
                     <div class="leaderboard-stats">
                         <div class="leaderboard-stat">
@@ -1656,10 +1646,6 @@ function renderLeaderboard(containerId, data, type) {
                         <div class="leaderboard-stat">
                             <i class="fas fa-font"></i>
                             <span>${employee.totalChars.toLocaleString()} chữ</span>
-                        </div>
-                        <div class="leaderboard-stat">
-                            <i class="fas fa-chart-line"></i>
-                            <span>${avgCharsPerTask.toLocaleString()}/việc</span>
                         </div>
                     </div>
                 </div>

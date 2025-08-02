@@ -437,16 +437,14 @@
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
-                        <div class="card-body">
-                            <div id="systemAnnouncement" class="announcement-content">
-                                <p class="text-muted mb-0">Chưa có thông báo nào</p>
-                            </div>
-                            <div id="announcementEditForm" class="announcement-edit-form" style="display: none;">
-                                <textarea class="form-control mb-2" id="announcementText" rows="3" placeholder="Nhập thông báo mới..."></textarea>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-primary" onclick="saveAnnouncement()">Lưu</button>
-                                    <button class="btn btn-sm btn-secondary" onclick="cancelEditAnnouncement()">Hủy</button>
-                                </div>
+                        <div id="systemAnnouncement" class="announcement-content">
+                            <p class="text-muted mb-0">Chưa có thông báo nào</p>
+                        </div>
+                        <div id="announcementEditForm" class="announcement-edit-form" style="display: none;">
+                            <textarea class="form-control mb-2" id="announcementText" rows="3" placeholder="Nhập thông báo mới..."></textarea>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-primary" onclick="saveAnnouncement()">Lưu</button>
+                                <button class="btn btn-sm btn-secondary" onclick="cancelEditAnnouncement()">Hủy</button>
                             </div>
                         </div>
                     </div>

@@ -194,6 +194,26 @@ function refreshTaskCounts() {
     renderProjectsTable()
 }
 
+// Function to test employee visibility
+function testEmployeeVisibility() {
+    console.log('=== Testing Employee Visibility ===')
+    console.log('Current user:', currentUser)
+    console.log('Current user role:', currentUser?.role)
+    console.log('Total projects loaded:', projects.length)
+    console.log('Projects by status:')
+    const statusCounts = {}
+    projects.forEach(project => {
+        statusCounts[project.status] = (statusCounts[project.status] || 0) + 1
+    })
+    console.log(statusCounts)
+    console.log('Total tasks loaded:', tasks.length)
+    console.log('Leaderboard containers exist:', {
+        allTime: !!document.getElementById('allTimeLeaderboard'),
+        monthly: !!document.getElementById('monthlyLeaderboard')
+    })
+    console.log('=== End Test ===')
+}
+
 // Realtime Subscriptions
 function setupRealtimeSubscriptions() {
     // Subscribe to project changes
@@ -308,6 +328,9 @@ function updateUserInterface() {
         
         // Load leaderboards for all users (both employees and managers)
         loadLeaderboards()
+        
+        // Test employee visibility for debugging
+        testEmployeeVisibility()
     } else {
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
@@ -1522,11 +1545,13 @@ setInterval(updateAllCountdowns, 1000);
 // --- LEADERBOARD FUNCTIONS ---
 async function loadLeaderboards() {
     try {
+        console.log('Loading leaderboards...')
         // Load all-time leaderboard (TOP 5)
         await loadAllTimeLeaderboard()
         
         // Load monthly leaderboard (TOP 10)
         await loadMonthlyLeaderboard()
+        console.log('Leaderboards loaded successfully')
     } catch (error) {
         console.error('Error loading leaderboards:', error)
     }
@@ -1534,6 +1559,14 @@ async function loadLeaderboards() {
 
 async function loadAllTimeLeaderboard() {
     try {
+        // Get all employees first
+        const { data: allEmployees, error: employeesError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('role', 'employee')
+
+        if (employeesError) throw employeesError
+
         // Get all completed tasks with employee data
         const { data: completedTasks, error } = await supabase
             .from('tasks')
@@ -1550,23 +1583,27 @@ async function loadAllTimeLeaderboard() {
 
         if (error) throw error
 
-        // Calculate statistics for each employee
+        // Initialize statistics for all employees
         const employeeStats = {}
         
+        // Initialize all employees with 0 stats
+        allEmployees.forEach(employee => {
+            employeeStats[employee.id] = {
+                id: employee.id,
+                name: employee.name,
+                email: employee.email,
+                totalTasks: 0,
+                totalChars: 0
+            }
+        })
+        
+        // Calculate statistics for each employee
         completedTasks.forEach(task => {
             const employeeId = task.assignee_id
-            if (!employeeStats[employeeId]) {
-                employeeStats[employeeId] = {
-                    id: employeeId,
-                    name: task.employees.name,
-                    email: task.employees.email,
-                    totalTasks: 0,
-                    totalChars: 0
-                }
+            if (employeeStats[employeeId]) {
+                employeeStats[employeeId].totalTasks++
+                employeeStats[employeeId].totalChars += (task.rv_chars || 0)
             }
-            
-            employeeStats[employeeId].totalTasks++
-            employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
         // Convert to array and sort by total chars, then by total tasks
@@ -1579,6 +1616,7 @@ async function loadAllTimeLeaderboard() {
             })
             .slice(0, 5) // TOP 5
 
+        console.log('All-time leaderboard data:', leaderboardData)
         renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
     } catch (error) {
         console.error('Error loading all-time leaderboard:', error)
@@ -1590,6 +1628,14 @@ async function loadMonthlyLeaderboard() {
         const currentDate = new Date()
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+
+        // Get all employees first
+        const { data: allEmployees, error: employeesError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('role', 'employee')
+
+        if (employeesError) throw employeesError
 
         // Get completed tasks for current month
         const { data: completedTasks, error } = await supabase
@@ -1609,23 +1655,27 @@ async function loadMonthlyLeaderboard() {
 
         if (error) throw error
 
-        // Calculate statistics for each employee
+        // Initialize statistics for all employees
         const employeeStats = {}
         
+        // Initialize all employees with 0 stats
+        allEmployees.forEach(employee => {
+            employeeStats[employee.id] = {
+                id: employee.id,
+                name: employee.name,
+                email: employee.email,
+                totalTasks: 0,
+                totalChars: 0
+            }
+        })
+        
+        // Calculate statistics for each employee
         completedTasks.forEach(task => {
             const employeeId = task.assignee_id
-            if (!employeeStats[employeeId]) {
-                employeeStats[employeeId] = {
-                    id: employeeId,
-                    name: task.employees.name,
-                    email: task.employees.email,
-                    totalTasks: 0,
-                    totalChars: 0
-                }
+            if (employeeStats[employeeId]) {
+                employeeStats[employeeId].totalTasks++
+                employeeStats[employeeId].totalChars += (task.rv_chars || 0)
             }
-            
-            employeeStats[employeeId].totalTasks++
-            employeeStats[employeeId].totalChars += (task.rv_chars || 0)
         })
 
         // Convert to array and sort by total chars, then by total tasks
@@ -1638,6 +1688,7 @@ async function loadMonthlyLeaderboard() {
             })
             .slice(0, 10) // TOP 10
 
+        console.log('Monthly leaderboard data:', leaderboardData)
         renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
     } catch (error) {
         console.error('Error loading monthly leaderboard:', error)

@@ -131,7 +131,7 @@ async function loadProjects() {
     try {
         let query = supabase.from('projects').select('*')
         
-        // Employees can see all projects (active, completed, paused) but cannot interact with completed/paused ones
+        // Employees can only see completed projects and cannot interact with them
         // Managers can see all projects and have full rights on their own projects
         
         const { data, error } = await query
@@ -389,7 +389,7 @@ function canOperateOnProject(project) {
         return currentUser.id === project.manager_id
     }
     
-    // Employees cannot operate on any projects
+    // Employees cannot operate on any projects (including completed ones)
     return false
 }
 
@@ -515,6 +515,15 @@ async function addTask() {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
         return
     }
+    
+    // Kiểm tra xem dự án có đã hoàn thành không (cho nhân viên)
+    if (currentUser && currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === parseInt(projectId))
+        if (project && project.status === 'completed') {
+            showNotification('Không thể thêm công việc vào dự án đã hoàn thành', 'error')
+            return
+        }
+    }
     try {
         let insertData = []
         if (isBatch && batchCount > 1) {
@@ -574,6 +583,15 @@ async function claimTask(taskId) {
         if (currentTask.assignee_id) {
             showNotification('Công việc đã được nhận bởi người khác', 'error')
             return
+        }
+        
+        // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+        if (currentUser.role === 'employee') {
+            const project = projects.find(p => p.id === currentTask.project_id)
+            if (project && project.status === 'completed') {
+                showNotification('Không thể nhận công việc trong dự án đã hoàn thành', 'error')
+                return
+            }
         }
         
         console.log('Current task before update:', currentTask)
@@ -716,6 +734,16 @@ async function unclaimTask(taskId) {
 async function editTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
+    
+    // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể chỉnh sửa công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
         return
@@ -796,6 +824,18 @@ async function updateTask() {
         return
     }
     
+    // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+    if (currentUser && currentUser.role === 'employee') {
+        const task = tasks.find(t => t.id === id)
+        if (task) {
+            const project = projects.find(p => p.id === task.project_id)
+            if (project && project.status === 'completed') {
+                showNotification('Không thể cập nhật công việc trong dự án đã hoàn thành', 'error')
+                return
+            }
+        }
+    }
+    
     try {
         const { data, error } = await supabase
             .from('tasks')
@@ -854,6 +894,15 @@ async function deleteTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
+    // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể xóa công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
     // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền xóa công việc này', 'error')
@@ -881,6 +930,15 @@ async function deleteTask(id) {
 async function changeTaskStatus(id, newStatus) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
+    
+    // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể thay đổi trạng thái công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
     
     // Check permissions - Manager hoặc người đang làm task
     if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
@@ -1055,14 +1113,22 @@ function renderTasksTable() {
         const notes = task.notes ? `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : '<span class="text-muted">-</span>'
         // Nút thao tác
         let actionButtons = '';
+        
+        // Kiểm tra xem dự án hiện tại có đã hoàn thành không
+        const currentProject = projects.find(p => p.id === currentProjectId);
+        const isCompletedProject = currentProject && currentProject.status === 'completed';
+        
         if (currentUser && currentUser.role === 'manager') {
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
         } else if (currentUser && currentUser.role === 'employee') {
-            if (isCurrentUserAssignee) {
-                actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
-            } else if (!task.assignee_id) {
-                actionButtons += `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-hand-pointer"></i> Nhận</button>`;
+            // Nhân viên không thể thao tác với công việc trong dự án đã hoàn thành
+            if (!isCompletedProject) {
+                if (isCurrentUserAssignee) {
+                    actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
+                } else if (!task.assignee_id) {
+                    actionButtons += `<button class="btn btn-action btn-claim" onclick="claimTask(${task.id})" title="Nhận công việc"><i class="fas fa-hand-pointer"></i> Nhận</button>`;
+                }
             }
             // Không hiển thị nút xóa, unclaim, chuyển trạng thái, chuyển giao cho nhân viên
         }
@@ -1251,6 +1317,15 @@ function showAddTaskModal() {
     if (!currentProjectId) {
         showNotification('Vui lòng chọn một dự án trước', 'error')
         return
+    }
+    
+    // Kiểm tra xem dự án có đã hoàn thành không (cho nhân viên)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === currentProjectId)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể thêm công việc vào dự án đã hoàn thành', 'error')
+            return
+        }
     }
     document.getElementById('taskForm').reset()
     document.getElementById('taskId').value = ''

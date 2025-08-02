@@ -43,6 +43,9 @@ function showTasksView(projectId) {
     renderTasksTable()
     setupTaskFilters()
     
+    // Initialize beta task functionality
+    initializeBetaTasks()
+    
     // Update UI to show/hide buttons based on current view
     updateUserInterface()
 }
@@ -534,6 +537,7 @@ async function addTask() {
                     priority: priority,
                     status: 'pending',
                     project_id: parseInt(projectId),
+                    task_type: currentTaskType, // Set task type based on current tab
                     created_at: new Date().toISOString()
                 })
             }
@@ -544,6 +548,7 @@ async function addTask() {
                 priority: priority,
                 status: 'pending',
                 project_id: parseInt(projectId),
+                task_type: currentTaskType, // Set task type based on current tab
                 created_at: new Date().toISOString()
             })
         }
@@ -552,6 +557,14 @@ async function addTask() {
             .insert(insertData)
             .select()
         if (error) throw error
+        
+        // Re-render appropriate table
+        if (currentTaskType === 'beta') {
+            renderBetaTasksTable()
+        } else {
+            renderTasksTable()
+        }
+        
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
         showNotification('Thêm công việc thành công!', 'success')
@@ -631,9 +644,13 @@ async function claimTask(taskId) {
                 console.log('Updated task data:', tasks[taskIndex])
             }
             
-            // Re-render table ngay lập tức
+            // Re-render appropriate table
             console.log('Re-rendering table...')
-            renderTasksTable()
+            if (currentTaskType === 'beta') {
+                renderBetaTasksTable()
+            } else {
+                renderTasksTable()
+            }
             
         } else {
             console.log('No rows updated - task may have been claimed by someone else')
@@ -719,8 +736,12 @@ async function unclaimTask(taskId) {
                 tasks[taskIndex] = updatedTask
             }
             
-            // Re-render table ngay lập tức
-            renderTasksTable()
+            // Re-render appropriate table
+            if (currentTaskType === 'beta') {
+                renderBetaTasksTable()
+            } else {
+                renderTasksTable()
+            }
         } else {
             showNotification('Không thể hủy nhận công việc', 'error')
         }
@@ -760,6 +781,7 @@ async function editTask(id) {
     setVal('taskDialogueChars', task.dialogue_chars || '')
     setVal('taskTotalChars', task.total_chars || '')
     setVal('taskRVChars', task.rv_chars || '')
+    setVal('taskBetaChars', task.beta_chars || '')
     setVal('taskRate', task.rate || '')
     setVal('taskNotes', task.notes || '')
     document.getElementById('taskStatusField').style.display = 'block'
@@ -794,7 +816,11 @@ async function saveTask() {
     
     if (id) {
         // Update existing task
-        await updateTask()
+        if (currentTaskType === 'beta') {
+            await updateBetaTask()
+        } else {
+            await updateTask()
+        }
     } else {
         // Add new task
         await addTask()
@@ -815,6 +841,7 @@ async function updateTask() {
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
     const rvChars = document.getElementById('taskRVChars').value
+    const betaChars = document.getElementById('taskBetaChars').value
     const rate = document.getElementById('taskRate').value
     const notes = document.getElementById('taskNotes').value
     
@@ -850,6 +877,7 @@ async function updateTask() {
                 dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
                 total_chars: totalChars ? parseInt(totalChars) : null,
                 rv_chars: rvChars ? parseInt(rvChars) : null,
+                beta_chars: betaChars ? parseInt(betaChars) : null,
                 rate: rate ? parseFloat(rate) : null,
                 notes: notes || null,
                 updated_at: new Date().toISOString()
@@ -868,7 +896,11 @@ async function updateTask() {
             }
             
             // Re-render table ngay lập tức
-            renderTasksTable()
+            if (currentTaskType === 'beta') {
+                renderBetaTasksTable()
+            } else {
+                renderTasksTable()
+            }
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
@@ -917,6 +949,16 @@ async function deleteTask(id) {
                 .eq('id', id)
             
             if (error) throw error
+            
+            // Remove from local data
+            tasks = tasks.filter(t => t.id !== id)
+            
+            // Re-render appropriate table
+            if (currentTaskType === 'beta') {
+                renderBetaTasksTable()
+            } else {
+                renderTasksTable()
+            }
             
             showNotification('Xóa công việc thành công!', 'success')
             
@@ -968,8 +1010,12 @@ async function changeTaskStatus(id, newStatus) {
                 tasks[taskIndex] = updatedTask
             }
             
-            // Re-render table ngay lập tức
-            renderTasksTable()
+            // Re-render appropriate table
+            if (currentTaskType === 'beta') {
+                renderBetaTasksTable()
+            } else {
+                renderTasksTable()
+            }
         } else {
             showNotification('Không thể cập nhật trạng thái', 'error')
         }
@@ -1064,7 +1110,7 @@ function renderTasksTable() {
     console.log('Current project ID:', currentProjectId)
     console.log('Total tasks:', tasks.length)
     
-    let projectTasks = tasks.filter(t => t.project_id === currentProjectId)
+    let projectTasks = tasks.filter(t => t.project_id === currentProjectId && t.task_type === 'rv')
     console.log('Tasks in current project:', projectTasks.length)
     
     if (statusFilter) {
@@ -1110,7 +1156,15 @@ function renderTasksTable() {
             const money = Math.round((task.rate * task.rv_chars) / 1000);
             payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`;
         }
-        const notes = task.notes ? `<span class="badge badge-notes" title="${task.notes}">${task.notes.length > 20 ? task.notes.substring(0, 20) + '...' : task.notes}</span>` : '<span class="text-muted">-</span>'
+        // Format notes with link if extensive
+        let notesDisplay = '<span class="text-muted">-</span>'
+        if (task.notes && task.notes.trim()) {
+            if (task.notes.length > 100) {
+                notesDisplay = `<a href="task-notes.html?taskId=${task.id}" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú</a>`
+            } else {
+                notesDisplay = `<span title="${task.notes}">${task.notes.substring(0, 50)}${task.notes.length > 50 ? '...' : ''}</span>`
+            }
+        }
         // Nút thao tác
         let actionButtons = '';
         
@@ -1156,7 +1210,7 @@ function renderTasksTable() {
             <td>${rvChars}</td>
             <td>${payment}</td>
             <td><span class="${task.assignee_id ? 'text-success' : 'text-muted'}">${assigneeName}</span></td>
-            <td>${notes}</td>
+            <td>${notesDisplay}</td>
             <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
     })
@@ -1359,6 +1413,28 @@ function showAddTaskModal() {
     document.getElementById('batchCountGroup').style.display = 'none'
     document.getElementById('batchStartGroup').style.display = 'none'
     document.querySelectorAll('.batch-hide').forEach(el => { el.style.display = '' })
+    
+    // Show/hide fields based on task type
+    const isBetaTask = currentTaskType === 'beta'
+    const rvCharsField = document.getElementById('taskRVChars')
+    const betaCharsField = document.getElementById('taskBetaChars')
+    const dialogueCharsField = document.getElementById('taskDialogueChars')
+    const totalCharsField = document.getElementById('taskTotalChars')
+    
+    if (isBetaTask) {
+        // For beta tasks, show beta chars field and hide RV calculation fields
+        if (rvCharsField) rvCharsField.parentElement.style.display = 'none'
+        if (betaCharsField) betaCharsField.parentElement.style.display = ''
+        if (dialogueCharsField) dialogueCharsField.parentElement.style.display = 'none'
+        if (totalCharsField) totalCharsField.parentElement.style.display = 'none'
+    } else {
+        // For RV tasks, show RV calculation fields and hide beta chars field
+        if (rvCharsField) rvCharsField.parentElement.style.display = ''
+        if (betaCharsField) betaCharsField.parentElement.style.display = 'none'
+        if (dialogueCharsField) dialogueCharsField.parentElement.style.display = ''
+        if (totalCharsField) totalCharsField.parentElement.style.display = ''
+    }
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
@@ -2109,4 +2185,406 @@ async function saveAnnouncement() {
         console.error('Error saving announcement:', error)
         showNotification('Lỗi khi lưu thông báo', 'error')
     }
+} 
+
+// --- BETA TASK MANAGEMENT ---
+
+// Global variable to track current task type
+let currentTaskType = 'rv'
+
+// Switch between RV and Beta task types
+function switchTaskType(taskType) {
+    currentTaskType = taskType
+    
+    // Update active tab
+    document.querySelectorAll('#taskTypeTabs .nav-link').forEach(tab => {
+        tab.classList.remove('active')
+    })
+    document.querySelector(`#${taskType}-tab`).classList.add('active')
+    
+    // Update tab content
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('show', 'active')
+    })
+    document.querySelector(`#${taskType}-tasks`).classList.add('show', 'active')
+    
+    // Render appropriate table
+    if (taskType === 'rv') {
+        renderTasksTable()
+    } else {
+        renderBetaTasksTable()
+    }
+}
+
+// Render beta tasks table
+function renderBetaTasksTable() {
+    if (!currentProjectId) return
+    
+    const filteredTasks = tasks.filter(task => 
+        task.project_id === currentProjectId && 
+        task.task_type === 'beta'
+    )
+    
+    // Apply filters
+    const statusFilter = document.getElementById('betaTaskStatusFilter').value
+    const assigneeFilter = document.getElementById('betaTaskAssigneeFilter').value
+    
+    let filteredBetaTasks = filteredTasks
+    
+    if (statusFilter) {
+        filteredBetaTasks = filteredBetaTasks.filter(task => task.status === statusFilter)
+    }
+    
+    if (assigneeFilter) {
+        filteredBetaTasks = filteredBetaTasks.filter(task => task.assignee_id === assigneeFilter)
+    }
+    
+    const tbody = document.getElementById('betaTasksTableBody')
+    if (!tbody) return
+    
+    if (filteredBetaTasks.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Chưa có công việc beta nào</p>
+                </td>
+            </tr>
+        `
+        return
+    }
+    
+    tbody.innerHTML = filteredBetaTasks.map(task => {
+        const assignee = employees.find(emp => emp.id === task.assignee_id)
+        const isCurrentUserAssignee = currentUser && task.assignee_id === currentUser.id
+        const isCurrentUserManager = currentUser && currentUser.role === 'manager'
+        
+        // Calculate time left
+        const timeLeft = calculateTimeLeft(task.deadline)
+        const isOverdue = new Date(task.deadline) < new Date()
+        
+        // Format RV chars (from parent task)
+        const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
+        
+        // Format Beta chars
+        const betaChars = task.beta_chars ? `<span class="badge badge-gradient-blue">${task.beta_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
+        
+        // Calculate payment (rate * beta_chars)
+        let payment = '<span class="text-muted">-</span>'
+        if (typeof task.rate === 'number' && typeof task.beta_chars === 'number' && !isNaN(task.rate) && !isNaN(task.beta_chars)) {
+            const money = Math.round((task.rate * task.beta_chars) / 1000)
+            payment = `<span class="badge badge-gradient-green">${money.toLocaleString()}k</span>`
+        }
+        
+        // Format RV link
+        const rvLink = task.rv_link ? `<a href="${task.rv_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem</a>` : '<span class="text-muted">-</span>'
+        
+        // Format notes with link if extensive
+        let notesDisplay = '<span class="text-muted">-</span>'
+        if (task.notes && task.notes.trim()) {
+            if (task.notes.length > 100) {
+                notesDisplay = `<a href="task-notes.html?taskId=${task.id}" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú</a>`
+            } else {
+                notesDisplay = `<span title="${task.notes}">${task.notes.substring(0, 50)}${task.notes.length > 50 ? '...' : ''}</span>`
+            }
+        }
+        
+        // Action buttons
+        let actionButtons = ''
+        
+        // Check if project is completed (for employees)
+        const currentProject = projects.find(p => p.id === currentProjectId)
+        const isCompletedProject = currentProject && currentProject.status === 'completed'
+        
+        if (currentUser && currentUser.role === 'manager') {
+            // Manager can edit any task
+            actionButtons += `<button class="btn btn-action btn-edit" onclick="editBetaTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`
+            actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteBetaTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`
+        } else if (currentUser && currentUser.role === 'employee') {
+            // Employee can only interact with tasks in active projects
+            if (!isCompletedProject) {
+                if (isCurrentUserAssignee) {
+                    actionButtons += `<button class="btn btn-action btn-edit" onclick="editBetaTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`
+                } else if (!task.assignee_id) {
+                    actionButtons += `<button class="btn btn-action btn-claim" onclick="claimBetaTask(${task.id})" title="Nhận công việc"><i class="fas fa-hand-pointer"></i> Nhận</button>`
+                }
+            }
+        }
+        
+        return `
+            <tr class="${isOverdue ? 'table-danger' : ''}">
+                <td>
+                    <div class="d-flex flex-column">
+                        <small class="text-muted">${formatDateTime(task.deadline)}</small>
+                        <span class="badge ${isOverdue ? 'bg-danger' : 'bg-info'}">${timeLeft}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="fw-bold">${task.name}</div>
+                    <small class="text-muted">${task.description || ''}</small>
+                </td>
+                <td>${getTaskStatusBadge(task.status)}</td>
+                <td>${getPriorityBadge(task.priority)}</td>
+                <td>${rvLink}</td>
+                <td>${rvChars}</td>
+                <td>${betaChars}</td>
+                <td>${payment}</td>
+                <td>
+                    ${assignee ? assignee.name : '<span class="text-muted">Chưa phân công</span>'}
+                </td>
+                <td>${notesDisplay}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        ${actionButtons}
+                    </div>
+                </td>
+            </tr>
+        `
+    }).join('')
+}
+
+// Edit beta task
+async function editBetaTask(id) {
+    const task = tasks.find(t => t.id === id)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể chỉnh sửa công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
+    // Set form values
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    
+    setVal('taskName', task.name)
+    setVal('taskDescription', task.description || '')
+    setVal('taskDeadline', task.deadline ? task.deadline.slice(0, 16) : '')
+    setVal('taskPriority', task.priority)
+    setVal('taskStatus', task.status)
+    setVal('taskAssignee', task.assignee_id || '')
+    setVal('taskBetaChars', task.beta_chars || '')
+    setVal('taskNotes', task.notes || '')
+    
+    // Store current task ID for update
+    window.currentEditingTaskId = id
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('addTaskModal'))
+    modal.show()
+}
+
+// Claim beta task
+async function claimBetaTask(taskId) {
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để nhận công việc', 'warning')
+        return
+    }
+    
+    const currentTask = tasks.find(t => t.id === taskId)
+    if (!currentTask) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check if task is already assigned
+    if (currentTask.assignee_id) {
+        showNotification('Công việc này đã được phân công', 'warning')
+        return
+    }
+    
+    // Check if project is completed (for employees)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === currentTask.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể nhận công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({ 
+                assignee_id: currentUser.id,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', taskId)
+        
+        if (error) throw error
+        
+        // Update local data
+        const taskIndex = tasks.findIndex(t => t.id === taskId)
+        if (taskIndex !== -1) {
+            tasks[taskIndex].assignee_id = currentUser.id
+            tasks[taskIndex].updated_at = new Date().toISOString()
+        }
+        
+        // Re-render tables
+        renderBetaTasksTable()
+        renderProjectsTable()
+        
+        showNotification('Đã nhận công việc thành công', 'success')
+    } catch (error) {
+        console.error('Error claiming beta task:', error)
+        showNotification('Lỗi khi nhận công việc', 'error')
+    }
+}
+
+// Delete beta task
+async function deleteBetaTask(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa công việc này?')) return
+    
+    const task = tasks.find(t => t.id === id)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể xóa công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', id)
+        
+        if (error) throw error
+        
+        // Remove from local data
+        tasks = tasks.filter(t => t.id !== id)
+        
+        // Re-render tables
+        renderBetaTasksTable()
+        renderProjectsTable()
+        
+        showNotification('Đã xóa công việc thành công', 'success')
+    } catch (error) {
+        console.error('Error deleting beta task:', error)
+        showNotification('Lỗi khi xóa công việc', 'error')
+    }
+}
+
+// Update beta task
+async function updateBetaTask() {
+    const taskId = window.currentEditingTaskId
+    if (!taskId) {
+        showNotification('Không tìm thấy ID công việc', 'error')
+        return
+    }
+    
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions
+    if (currentUser && currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể cập nhật công việc trong dự án đã hoàn thành', 'error')
+            return
+        }
+    }
+    
+    // Get form values
+    const name = document.getElementById('taskName').value.trim()
+    const description = document.getElementById('taskDescription').value.trim()
+    const deadline = document.getElementById('taskDeadline').value
+    const priority = document.getElementById('taskPriority').value
+    const status = document.getElementById('taskStatus').value
+    const assigneeId = document.getElementById('taskAssignee').value || null
+    const betaChars = document.getElementById('taskBetaChars').value
+    const notes = document.getElementById('taskNotes').value.trim()
+    
+    if (!name || !deadline) {
+        showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'warning')
+        return
+    }
+    
+    try {
+        const updateData = {
+            name: name,
+            description: description,
+            deadline: deadline,
+            priority: priority,
+            status: status,
+            assignee_id: assigneeId,
+            beta_chars: betaChars ? parseInt(betaChars) : null,
+            notes: notes,
+            updated_at: new Date().toISOString()
+        }
+        
+        const { error } = await supabase
+            .from('tasks')
+            .update(updateData)
+            .eq('id', taskId)
+        
+        if (error) throw error
+        
+        // Update local data
+        const taskIndex = tasks.findIndex(t => t.id === taskId)
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = { ...tasks[taskIndex], ...updateData }
+        }
+        
+        // Re-render tables
+        renderBetaTasksTable()
+        renderProjectsTable()
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'))
+        modal.hide()
+        
+        // Clear form
+        document.getElementById('addTaskForm').reset()
+        window.currentEditingTaskId = null
+        
+        showNotification('Đã cập nhật công việc thành công', 'success')
+    } catch (error) {
+        console.error('Error updating beta task:', error)
+        showNotification('Lỗi khi cập nhật công việc', 'error')
+    }
+}
+
+// Setup beta task filters
+function setupBetaTaskFilters() {
+    const assigneeFilter = document.getElementById('betaTaskAssigneeFilter')
+    if (assigneeFilter) {
+        assigneeFilter.innerHTML = '<option value="">Tất cả</option>' + 
+            employees.map(emp => `<option value="${emp.id}">${emp.name}</option>`).join('')
+    }
+}
+
+// Initialize beta task functionality
+function initializeBetaTasks() {
+    // Add event listener for beta task form submission
+    const addTaskForm = document.getElementById('addTaskForm')
+    if (addTaskForm) {
+        addTaskForm.addEventListener('submit', function(e) {
+            e.preventDefault()
+            if (currentTaskType === 'beta') {
+                updateBetaTask()
+            } else {
+                updateTask()
+            }
+        })
+    }
+    
+    // Setup filters
+    setupBetaTaskFilters()
 } 

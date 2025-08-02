@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Management System</title>
+    <title>Garden Moon</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
@@ -14,13 +14,13 @@
         <div class="container">
             <a class="navbar-brand" href="#">
                 <i class="fas fa-project-diagram me-2"></i>
-                Project Management
+                Bảng DL Garden Moon
             </a>
             <div class="navbar-nav ms-auto">
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user me-1"></i>
-                        <span id="currentUser">Guest</span>
+                        <span id="currentUser">Khách</span>
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#" onclick="showLoginModal()">Đăng nhập</a></li>
@@ -221,48 +221,114 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <!-- Task Filters -->
-                            <div class="row mb-3" id="taskFiltersRow">
-                                <div class="col-md-4">
-                                    <label class="form-label">Lọc theo trạng thái:</label>
-                                    <select class="form-select" id="taskStatusFilter" onchange="renderTasksTable()">
-                                        <option value="">Tất cả</option>
-                                        <option value="pending">Chờ thực hiện</option>
-                                        <option value="in-progress">Đang thực hiện</option>
-                                        <option value="completed">Hoàn thành</option>
-                                        <option value="overdue">Quá hạn</option>
-                                    </select>
+                            <!-- Task Type Tabs -->
+                            <ul class="nav nav-tabs mb-3" id="taskTypeTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="rv-tab" data-bs-toggle="tab" data-bs-target="#rv-tasks" type="button" role="tab" aria-controls="rv-tasks" aria-selected="true" onclick="switchTaskType('rv')">
+                                        <i class="fas fa-eye me-2"></i>Review Tasks
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="beta-tab" data-bs-toggle="tab" data-bs-target="#beta-tasks" type="button" role="tab" aria-controls="beta-tasks" aria-selected="false" onclick="switchTaskType('beta')">
+                                        <i class="fas fa-code me-2"></i>Beta Tasks
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="taskTypeTabContent">
+                                <!-- RV Tasks Tab -->
+                                <div class="tab-pane fade show active" id="rv-tasks" role="tabpanel" aria-labelledby="rv-tab">
+                                    <!-- Task Filters -->
+                                    <div class="row mb-3" id="taskFiltersRow">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Lọc theo trạng thái:</label>
+                                            <select class="form-select" id="taskStatusFilter" onchange="renderTasksTable()">
+                                                <option value="">Tất cả</option>
+                                                <option value="pending">Chờ thực hiện</option>
+                                                <option value="in-progress">Đang thực hiện</option>
+                                                <option value="completed">Hoàn thành</option>
+                                                <option value="overdue">Quá hạn</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Lọc theo người thực hiện:</label>
+                                            <select class="form-select" id="taskAssigneeFilter" onchange="renderTasksTable()">
+                                                <option value="">Tất cả</option>
+                                                <!-- Nhân viên sẽ được render bằng JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="tasksTable">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Deadline</th>
+                                                    <th>Tên công việc</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Mức ưu tiên</th>
+                                                    <th>Link nộp</th>
+                                                    <th>Số chữ thoại</th>
+                                                    <th>Số chữ tổng</th>
+                                                    <th>Số chữ RV</th>
+                                                    <th>Thành tiền</th>
+                                                    <th>Người thực hiện</th>
+                                                    <th>Ghi chú</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tasksTableBody">
+                                                <!-- Tasks will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Lọc theo người thực hiện:</label>
-                                    <select class="form-select" id="taskAssigneeFilter" onchange="renderTasksTable()">
-                                        <option value="">Tất cả</option>
-                                        <!-- Nhân viên sẽ được render bằng JS -->
-                                    </select>
+
+                                <!-- Beta Tasks Tab -->
+                                <div class="tab-pane fade" id="beta-tasks" role="tabpanel" aria-labelledby="beta-tab">
+                                    <!-- Beta Task Filters -->
+                                    <div class="row mb-3" id="betaTaskFiltersRow">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Lọc theo trạng thái:</label>
+                                            <select class="form-select" id="betaTaskStatusFilter" onchange="renderBetaTasksTable()">
+                                                <option value="">Tất cả</option>
+                                                <option value="pending">Chờ thực hiện</option>
+                                                <option value="in-progress">Đang thực hiện</option>
+                                                <option value="completed">Hoàn thành</option>
+                                                <option value="overdue">Quá hạn</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Lọc theo người thực hiện:</label>
+                                            <select class="form-select" id="betaTaskAssigneeFilter" onchange="renderBetaTasksTable()">
+                                                <option value="">Tất cả</option>
+                                                <!-- Nhân viên sẽ được render bằng JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="betaTasksTable">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Deadline</th>
+                                                    <th>Tên công việc</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Mức ưu tiên</th>
+                                                    <th>Link RV</th>
+                                                    <th>Số chữ RV</th>
+                                                    <th>Số chữ Beta</th>
+                                                    <th>Thành tiền</th>
+                                                    <th>Người thực hiện</th>
+                                                    <th>Ghi chú</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="betaTasksTableBody">
+                                                <!-- Beta tasks will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="tasksTable">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Deadline</th>
-                                            <th>Tên công việc</th>
-                                            <th>Trạng thái</th>
-                                            <th>Mức ưu tiên</th>
-                                            <th>Link nộp</th>
-                                             <th>Số chữ thoại</th>
-                                             <th>Số chữ tổng</th>
-                                             <th>Số chữ RV</th>
-                                             <th>Thành tiền</th>
-                                             <th>Người thực hiện</th>
-                                            <th>Ghi chú</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tasksTableBody">
-                                        <!-- Tasks will be loaded here -->
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
@@ -480,6 +546,12 @@
                                 <div class="mb-3">
                                     <label class="form-label">Số chữ RV (tự động tính):</label>
                                     <input type="number" class="form-control" id="taskRVChars" min="0" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Số chữ Beta:</label>
+                                    <input type="number" class="form-control" id="taskBetaChars" min="0">
                                 </div>
                             </div>
                         </div>

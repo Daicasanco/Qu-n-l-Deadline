@@ -1923,3 +1923,28 @@ body {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.6) !important;
     transform: scale(1.02);
 } 
+
+/* Field Permission Styles */
+.field-disabled {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.field-enabled {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    cursor: text !important;
+    opacity: 1;
+}
+
+.field-disabled:focus {
+    box-shadow: none !important;
+    border-color: #dee2e6 !important;
+}
+
+.field-enabled:focus {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+} 

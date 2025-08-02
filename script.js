@@ -396,6 +396,30 @@ function canOperateOnProject(project) {
     return false
 }
 
+// Function to check what fields user can edit based on task type and role
+function getEditableFields(taskType, userRole) {
+    const editableFields = {
+        rv: {
+            manager: ['name', 'description', 'deadline', 'priority', 'submission_link', 'dialogue_chars', 'total_chars', 'rv_chars', 'rate', 'notes', 'assignee_id'],
+            employee: ['submission_link', 'dialogue_chars', 'total_chars', 'notes']
+        },
+        beta: {
+            manager: ['name', 'description', 'deadline', 'priority', 'beta_link', 'beta_chars', 'beta_notes', 'assignee_id'],
+            employee: ['beta_link', 'beta_chars', 'beta_notes']
+        }
+    }
+    
+    return editableFields[taskType]?.[userRole] || []
+}
+
+// Function to check if field is editable for current user and task type
+function isFieldEditable(fieldName) {
+    if (!currentUser || !currentTaskType) return false
+    
+    const editableFields = getEditableFields(currentTaskType, currentUser.role)
+    return editableFields.includes(fieldName)
+}
+
 async function editProject(id) {
     const project = projects.find(p => p.id === id)
     if (!project) return
@@ -840,6 +864,10 @@ async function editTask(id) {
     if (batchCheckboxEl) batchCheckboxEl.disabled = isEmployee;
     if (batchCountEl) batchCountEl.readOnly = isEmployee;
     if (batchStartEl) batchStartEl.readOnly = isEmployee;
+    
+    // Set field permissions based on task type
+    setFieldPermissions(task.task_type || 'rv')
+    
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
 }
@@ -1466,6 +1494,9 @@ function showAddTaskModal() {
         if (totalCharsField) totalCharsField.parentElement.style.display = 'none'
         if (submissionLinkField) submissionLinkField.parentElement.style.display = 'none'
         if (betaLinkField) betaLinkField.parentElement.style.display = ''
+        
+        // Set field permissions for beta tasks
+        setFieldPermissions('beta')
     } else {
         // For RV tasks, show RV calculation fields and hide beta chars field
         if (rvCharsField) rvCharsField.parentElement.style.display = ''
@@ -1474,7 +1505,53 @@ function showAddTaskModal() {
         if (totalCharsField) totalCharsField.parentElement.style.display = ''
         if (submissionLinkField) submissionLinkField.parentElement.style.display = ''
         if (betaLinkField) betaLinkField.parentElement.style.display = 'none'
+        
+        // Set field permissions for RV tasks
+        setFieldPermissions('rv')
     }
+    
+    // Setup event listeners for auto-calculation
+    document.getElementById('taskDialogueChars').addEventListener('input', calculateRVChars)
+    document.getElementById('taskTotalChars').addEventListener('input', calculateRVChars)
+}
+
+// Function to set field permissions based on task type and user role
+function setFieldPermissions(taskType) {
+    if (!currentUser) return
+    
+    const fields = {
+        'taskName': 'name',
+        'taskDescription': 'description', 
+        'taskDeadline': 'deadline',
+        'taskPriority': 'priority',
+        'taskSubmissionLink': 'submission_link',
+        'taskDialogueChars': 'dialogue_chars',
+        'taskTotalChars': 'total_chars',
+        'taskRVChars': 'rv_chars',
+        'taskRate': 'rate',
+        'taskNotes': 'notes',
+        'taskAssignee': 'assignee_id',
+        'taskBetaLink': 'beta_link',
+        'taskBetaChars': 'beta_chars'
+    }
+    
+    Object.entries(fields).forEach(([fieldId, fieldName]) => {
+        const field = document.getElementById(fieldId)
+        if (field) {
+            const isEditable = isFieldEditable(fieldName)
+            field.disabled = !isEditable
+            field.readOnly = !isEditable
+            
+            // Add visual indication
+            if (isEditable) {
+                field.classList.remove('field-disabled')
+                field.classList.add('field-enabled')
+            } else {
+                field.classList.remove('field-enabled')
+                field.classList.add('field-disabled')
+            }
+        }
+    })
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
@@ -2416,6 +2493,9 @@ async function editBetaTask(id) {
     
     // Store current task ID for update
     window.currentEditingTaskId = id
+    
+    // Set field permissions for beta tasks
+    setFieldPermissions('beta')
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))

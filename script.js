@@ -1608,9 +1608,10 @@ function renderLeaderboard(containerId, data, type) {
     if (data.length === 0) {
         container.innerHTML = `
             <div class="leaderboard-item">
-                <div class="text-center text-muted py-3">
-                    <i class="fas fa-trophy fa-2x mb-2"></i>
-                    <p class="mb-0">Chưa có dữ liệu</p>
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-trophy fa-3x mb-3" style="color: rgba(255,255,255,0.6);"></i>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.8); font-weight: 600;">Chưa có dữ liệu</p>
+                    <small style="color: rgba(255,255,255,0.6);">Hãy bắt đầu hoàn thành công việc!</small>
                 </div>
             </div>
         `
@@ -1622,8 +1623,20 @@ function renderLeaderboard(containerId, data, type) {
         const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'
         const initials = employee.name.split(' ').map(n => n[0]).join('').toUpperCase()
         
+        // Tính toán hiệu suất
+        const avgCharsPerTask = employee.totalTasks > 0 ? Math.round(employee.totalChars / employee.totalTasks) : 0
+        const performanceClass = avgCharsPerTask > 5000 ? 'high-performer' : avgCharsPerTask > 3000 ? 'medium-performer' : 'low-performer'
+        
+        // Thêm badge cho top performers
+        const performanceBadge = rank <= 3 ? `
+            <div class="performance-badge ${performanceClass}">
+                <i class="fas fa-star"></i>
+                ${rank === 1 ? 'Xuất sắc' : rank === 2 ? 'Tốt' : 'Khá'}
+            </div>
+        ` : ''
+        
         return `
-            <div class="leaderboard-item">
+            <div class="leaderboard-item ${performanceClass}">
                 <div class="leaderboard-rank ${rankClass}">
                     ${rank}
                 </div>
@@ -1631,15 +1644,22 @@ function renderLeaderboard(containerId, data, type) {
                     ${initials}
                 </div>
                 <div class="leaderboard-info">
-                    <div class="leaderboard-name">${employee.name}</div>
+                    <div class="leaderboard-name">
+                        ${employee.name}
+                        ${performanceBadge}
+                    </div>
                     <div class="leaderboard-stats">
                         <div class="leaderboard-stat">
                             <i class="fas fa-tasks"></i>
-                            <span>${employee.totalTasks}</span>
+                            <span>${employee.totalTasks} công việc</span>
                         </div>
                         <div class="leaderboard-stat">
                             <i class="fas fa-font"></i>
-                            <span>${employee.totalChars.toLocaleString()}</span>
+                            <span>${employee.totalChars.toLocaleString()} chữ</span>
+                        </div>
+                        <div class="leaderboard-stat">
+                            <i class="fas fa-chart-line"></i>
+                            <span>${avgCharsPerTask.toLocaleString()}/việc</span>
                         </div>
                     </div>
                 </div>
@@ -1710,8 +1730,10 @@ async function loadRecentNotifications() {
         if (recentTasks.length === 0) {
             container.innerHTML = `
                 <div class="notification-item">
-                    <div class="text-center text-muted py-2">
-                        <p class="mb-0">Chưa có hoạt động</p>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-bell-slash fa-2x mb-3" style="color: rgba(255,255,255,0.6);"></i>
+                        <p class="mb-0" style="color: rgba(255,255,255,0.8); font-weight: 600;">Chưa có hoạt động</p>
+                        <small style="color: rgba(255,255,255,0.6);">Sẽ hiển thị khi có cập nhật</small>
                     </div>
                 </div>
             `
@@ -1721,11 +1743,19 @@ async function loadRecentNotifications() {
         container.innerHTML = recentTasks.map(task => {
             const action = getTaskActionText(task)
             const time = formatTimeAgo(task.updated_at)
+            const statusIcon = getStatusIcon(task.status)
+            const statusColor = getStatusColor(task.status)
             
             return `
                 <div class="notification-item">
-                    <div class="notification-title">${task.name}</div>
+                    <div class="notification-header-row">
+                        <div class="notification-icon" style="color: ${statusColor};">
+                            ${statusIcon}
+                        </div>
+                        <div class="notification-title">${task.name}</div>
+                    </div>
                     <div class="notification-time">
+                        <i class="fas fa-clock"></i>
                         ${action} - ${time}
                     </div>
                 </div>
@@ -1761,8 +1791,10 @@ async function loadUpcomingDeadlines() {
         if (upcomingTasks.length === 0) {
             container.innerHTML = `
                 <div class="deadline-item">
-                    <div class="text-center text-muted py-2">
-                        <p class="mb-0">Không có deadline sắp đến</p>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-check fa-2x mb-3" style="color: rgba(255,255,255,0.6);"></i>
+                        <p class="mb-0" style="color: rgba(255,255,255,0.8); font-weight: 600;">Không có deadline sắp đến</p>
+                        <small style="color: rgba(255,255,255,0.6);">Tất cả đều đúng hạn!</small>
                     </div>
                 </div>
             `
@@ -1802,6 +1834,34 @@ function getTaskActionText(task) {
             return assignee ? `${assignee} đã nhận` : 'Chờ thực hiện'
         default:
             return 'Cập nhật trạng thái'
+    }
+}
+
+function getStatusIcon(status) {
+    switch (status) {
+        case 'completed':
+            return '<i class="fas fa-check-circle"></i>'
+        case 'in-progress':
+            return '<i class="fas fa-play-circle"></i>'
+        case 'overdue':
+            return '<i class="fas fa-exclamation-triangle"></i>'
+        case 'pending':
+        default:
+            return '<i class="fas fa-clock"></i>'
+    }
+}
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'completed':
+            return '#28a745'
+        case 'in-progress':
+            return '#17a2b8'
+        case 'overdue':
+            return '#dc3545'
+        case 'pending':
+        default:
+            return '#ffc107'
     }
 }
 

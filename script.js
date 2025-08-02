@@ -419,7 +419,7 @@ function getEditableFields(taskType, userRole) {
             employee: ['submission_link', 'dialogue_chars', 'total_chars', 'notes']
         },
         beta: {
-            manager: ['name', 'description', 'deadline', 'priority', 'beta_link', 'beta_chars', 'beta_notes', 'assignee_id'],
+            manager: ['name', 'description', 'deadline', 'priority', 'beta_link', 'beta_chars', 'beta_notes', 'beta_rate', 'assignee_id'],
             employee: ['beta_link', 'beta_chars', 'beta_notes']
         }
     }
@@ -584,6 +584,7 @@ async function addTask() {
         const rvChars = document.getElementById('taskRVChars')?.value || null
         const betaChars = document.getElementById('taskBetaChars')?.value || null
         const rate = document.getElementById('taskRate')?.value || null
+        const betaRate = document.getElementById('taskBetaRate')?.value || null
         const notes = document.getElementById('taskNotes')?.value || ''
         const betaNotes = document.getElementById('taskBetaNotes')?.value || ''
         
@@ -606,6 +607,7 @@ async function addTask() {
                     rv_chars: rvChars ? parseInt(rvChars) : null,
                     beta_chars: betaChars ? parseInt(betaChars) : null,
                     rate: rate ? parseFloat(rate) : null,
+                    beta_rate: betaRate ? parseFloat(betaRate) : null,
                     notes: notes,
                     beta_notes: betaNotes,
                     created_at: new Date().toISOString()
@@ -628,6 +630,7 @@ async function addTask() {
                 rv_chars: rvChars ? parseInt(rvChars) : null,
                 beta_chars: betaChars ? parseInt(betaChars) : null,
                 rate: rate ? parseFloat(rate) : null,
+                beta_rate: betaRate ? parseFloat(betaRate) : null,
                 notes: notes,
                 beta_notes: betaNotes,
                 created_at: new Date().toISOString()
@@ -875,6 +878,7 @@ async function editTask(id) {
     setVal('taskRVChars', task.rv_chars || '')
     setVal('taskBetaChars', task.beta_chars || '')
     setVal('taskRate', task.rate || '')
+    setVal('taskBetaRate', task.beta_rate || '')
     setVal('taskNotes', task.notes || '')
     setVal('taskBetaNotes', task.beta_notes || '')
     document.getElementById('taskStatusField').style.display = 'block'
@@ -954,6 +958,7 @@ async function updateTask() {
     const rvChars = document.getElementById('taskRVChars').value
     const betaChars = document.getElementById('taskBetaChars').value
     const rate = document.getElementById('taskRate').value
+    const betaRate = document.getElementById('taskBetaRate').value
     const notes = document.getElementById('taskNotes').value
     const betaNotes = document.getElementById('taskBetaNotes').value
     
@@ -992,6 +997,7 @@ async function updateTask() {
                 rv_chars: rvChars ? parseInt(rvChars) : null,
                 beta_chars: betaChars ? parseInt(betaChars) : null,
                 rate: rate ? parseFloat(rate) : null,
+                beta_rate: betaRate ? parseFloat(betaRate) : null,
                 notes: notes || null,
                 beta_notes: betaNotes || null,
                 updated_at: new Date().toISOString()
@@ -1590,6 +1596,23 @@ function showAddTaskModal() {
 function setFieldPermissions(taskType) {
     if (!currentUser) return
     
+    // Clear any previous field states first
+    const allFields = [
+        'taskName', 'taskDescription', 'taskDeadline', 'taskPriority', 
+        'taskSubmissionLink', 'taskDialogueChars', 'taskTotalChars', 
+        'taskRVChars', 'taskRate', 'taskNotes', 'taskAssignee',
+        'taskBetaLink', 'taskBetaChars', 'taskBetaNotes', 'taskBetaRate'
+    ]
+    
+    allFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId)
+        if (field) {
+            field.classList.remove('field-disabled', 'field-enabled')
+            field.disabled = false
+            field.readOnly = false
+        }
+    })
+    
     const fields = {
         'taskName': 'name',
         'taskDescription': 'description', 
@@ -1604,7 +1627,8 @@ function setFieldPermissions(taskType) {
         'taskAssignee': 'assignee_id',
         'taskBetaLink': 'beta_link',
         'taskBetaChars': 'beta_chars',
-        'taskBetaNotes': 'beta_notes'
+        'taskBetaNotes': 'beta_notes',
+        'taskBetaRate': 'beta_rate'
     }
     
     Object.entries(fields).forEach(([fieldId, fieldName]) => {
@@ -1624,6 +1648,18 @@ function setFieldPermissions(taskType) {
             }
         }
     })
+    
+    // Handle notes field visibility based on task type
+    const notesField = document.getElementById('taskNotes').parentElement
+    const betaNotesField = document.getElementById('betaNotesField')
+    
+    if (taskType === 'rv') {
+        if (notesField) notesField.style.display = ''
+        if (betaNotesField) betaNotesField.style.display = 'none'
+    } else if (taskType === 'beta') {
+        if (notesField) notesField.style.display = 'none'
+        if (betaNotesField) betaNotesField.style.display = ''
+    }
 }
 
 // Modal chuyển giao công việc
@@ -2455,10 +2491,10 @@ function renderBetaTasksTable() {
         // Format Beta chars
         const betaChars = task.beta_chars ? `<span class="badge badge-gradient-blue">${task.beta_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         
-        // Calculate payment (rate * beta_chars)
+        // Calculate payment (beta_rate * beta_chars)
         let payment = '<span class="text-muted">-</span>'
-        if (typeof task.rate === 'number' && typeof task.beta_chars === 'number' && !isNaN(task.rate) && !isNaN(task.beta_chars)) {
-            const money = Math.round((task.rate * task.beta_chars) / 1000)
+        if (typeof task.beta_rate === 'number' && typeof task.beta_chars === 'number' && !isNaN(task.beta_rate) && !isNaN(task.beta_chars)) {
+            const money = Math.round((task.beta_rate * task.beta_chars) / 1000)
             payment = `<span class="badge badge-gradient-green">${money.toLocaleString()}k</span>`
         }
         
@@ -2559,18 +2595,12 @@ async function editBetaTask(id) {
     setVal('taskBetaLink', task.beta_link || '')
     setVal('taskNotes', task.notes || '')
     setVal('taskBetaNotes', task.beta_notes || '')
-    
-    // Show/hide fields based on task type
-    const notesField = document.getElementById('taskNotes').parentElement
-    const betaNotesField = document.getElementById('betaNotesField')
-    
-    if (notesField) notesField.style.display = 'none'
-    if (betaNotesField) betaNotesField.style.display = ''
+    setVal('taskBetaRate', task.beta_rate || '')
     
     // Store current task ID for update
     window.currentEditingTaskId = id
     
-    // Set field permissions for beta tasks
+    // Set field permissions for beta tasks (this will handle UI reset)
     setFieldPermissions('beta')
     
     // Show modal
@@ -2607,6 +2637,7 @@ async function claimBetaTask(taskId) {
     }
     
     try {
+        // Only update the assignee_id, don't create new task
         const { error } = await supabase
             .from('tasks')
             .update({ 
@@ -2614,6 +2645,7 @@ async function claimBetaTask(taskId) {
                 updated_at: new Date().toISOString()
             })
             .eq('id', taskId)
+            .eq('task_type', 'beta') // Ensure we're only updating beta tasks
         
         if (error) throw error
         
@@ -2624,9 +2656,11 @@ async function claimBetaTask(taskId) {
             tasks[taskIndex].updated_at = new Date().toISOString()
         }
         
-        // Re-render tables
-        renderBetaTasksTable()
-        renderProjectsTable()
+        // Re-render tables with delay to prevent UI freezing
+        setTimeout(() => {
+            renderBetaTasksTable()
+            renderProjectsTable()
+        }, 100)
         
         showNotification('Đã nhận công việc thành công', 'success')
     } catch (error) {
@@ -2710,6 +2744,7 @@ async function updateBetaTask() {
     const betaLink = document.getElementById('taskBetaLink').value.trim()
     const notes = document.getElementById('taskNotes').value.trim()
     const betaNotes = document.getElementById('taskBetaNotes').value.trim()
+    const betaRate = document.getElementById('taskBetaRate').value
     
     if (!name || !deadline) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'warning')
@@ -2728,6 +2763,7 @@ async function updateBetaTask() {
             beta_link: betaLink || null,
             notes: notes,
             beta_notes: betaNotes,
+            beta_rate: betaRate ? parseFloat(betaRate) : null,
             updated_at: new Date().toISOString()
         }
         

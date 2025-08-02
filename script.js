@@ -49,6 +49,9 @@ function showTasksView(projectId) {
     // Initialize beta task functionality
     initializeBetaTasks()
     
+    // Re-render beta tasks table to apply rank-based styling
+    renderBetaTasksTable()
+    
     // Update UI to show/hide buttons based on current view
     updateUserInterface()
 }
@@ -1756,6 +1759,10 @@ async function refreshData() {
         updateProjectLinkButtons()
     }
     
+    // Re-render tables to apply updated rank-based styling
+    renderTasksTable()
+    renderBetaTasksTable()
+    
     showNotification('Đã làm mới dữ liệu', 'info')
 }
 
@@ -2022,6 +2029,12 @@ async function loadAllTimeLeaderboard() {
         // Lưu dữ liệu vào window object để sử dụng cho màu sắc
         window.allTimeLeaderboardData = leaderboardData
         renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
+        
+        // Re-render tables to apply updated rank-based styling
+        if (currentProjectId) {
+            renderTasksTable()
+            renderBetaTasksTable()
+        }
     } catch (error) {
         console.error('Error loading all-time leaderboard:', error)
     }
@@ -2096,6 +2109,12 @@ async function loadMonthlyLeaderboard() {
         // Lưu dữ liệu vào window object để sử dụng cho màu sắc
         window.monthlyLeaderboardData = leaderboardData
         renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
+        
+        // Re-render tables to apply updated rank-based styling
+        if (currentProjectId) {
+            renderTasksTable()
+            renderBetaTasksTable()
+        }
     } catch (error) {
         console.error('Error loading monthly leaderboard:', error)
     }
@@ -2514,6 +2533,10 @@ function renderBetaTasksTable() {
         const isCurrentUserAssignee = currentUser && task.assignee_id === currentUser.id
         const isCurrentUserManager = currentUser && currentUser.role === 'manager'
         
+        // Lấy rank và màu sắc cho người thực hiện
+        const assigneeRank = getEmployeeRank(task.assignee_id)
+        const assigneeColorClass = getAssigneeColorClass(assigneeRank)
+        
         // Calculate time left
         const timeLeft = calculateTimeLeft(task.deadline)
         const isOverdue = new Date(task.deadline) < new Date()
@@ -2607,7 +2630,7 @@ function renderBetaTasksTable() {
                 <td>${betaChars}</td>
                 <td>${payment}</td>
                 <td>
-                    ${assignee ? assignee.name : '<span class="text-muted">Chưa phân công</span>'}
+                    ${assignee ? `<span class="${assigneeColorClass}">${assignee.name}</span>` : '<span class="text-muted">Chưa phân công</span>'}
                 </td>
                 <td>${notesDisplay}</td>
                 <td>
@@ -2938,6 +2961,7 @@ function getEmployeeRank(employeeId) {
     const allTimeLeaderboard = window.allTimeLeaderboardData || []
     const allTimeRank = allTimeLeaderboard.findIndex(emp => emp.id === employeeId)
     if (allTimeRank !== -1) {
+        console.log(`Employee ${employeeId} found in all-time leaderboard at rank ${allTimeRank + 1}`)
         return { type: 'all-time', rank: allTimeRank + 1 }
     }
     
@@ -2945,29 +2969,60 @@ function getEmployeeRank(employeeId) {
     const monthlyLeaderboard = window.monthlyLeaderboardData || []
     const monthlyRank = monthlyLeaderboard.findIndex(emp => emp.id === employeeId)
     if (monthlyRank !== -1) {
+        console.log(`Employee ${employeeId} found in monthly leaderboard at rank ${monthlyRank + 1}`)
         return { type: 'monthly', rank: monthlyRank + 1 }
     }
     
+    console.log(`Employee ${employeeId} not found in any leaderboard`)
     return null
 }
 
 // Function để lấy class màu sắc dựa trên rank
 function getAssigneeColorClass(rankInfo) {
-    if (!rankInfo) return 'text-success' // Mặc định màu xanh
+    if (!rankInfo) {
+        console.log('No rank info, using default color')
+        return 'text-success' // Mặc định màu xanh
+    }
     
     const { type, rank } = rankInfo
+    console.log(`Applying color for ${type} rank ${rank}`)
     
+    // Ưu tiên all-time rank và áp dụng hiệu ứng rainbow cho top 3
     if (rank === 1) {
-        return 'text-warning fw-bold' // Vàng cho rank 1
+        console.log('Applying rainbow-text-1 for rank 1')
+        return 'rainbow-text-1 fw-bold' // Rainbow effect cho rank 1
     } else if (rank === 2) {
-        return 'text-secondary fw-bold' // Bạc cho rank 2
+        console.log('Applying rainbow-text-2 for rank 2')
+        return 'rainbow-text-2 fw-bold' // Rainbow effect cho rank 2
     } else if (rank === 3) {
-        return 'text-danger fw-bold' // Đồng cho rank 3
+        console.log('Applying rainbow-text-3 for rank 3')
+        return 'rainbow-text-3 fw-bold' // Rainbow effect cho rank 3
     } else if (rank <= 5) {
+        console.log('Applying text-primary for top 5')
         return 'text-primary fw-bold' // Xanh dương cho top 5
     } else if (rank <= 10) {
+        console.log('Applying text-info for top 10')
         return 'text-info fw-bold' // Xanh nhạt cho top 10
     } else {
+        console.log('Applying text-success for others')
         return 'text-success' // Xanh lá cho những người khác
     }
+}
+
+// Test function để kiểm tra rank-based styling
+function testRankBasedStyling() {
+    console.log('=== Testing Rank-Based Styling ===')
+    console.log('All-time leaderboard data:', window.allTimeLeaderboardData)
+    console.log('Monthly leaderboard data:', window.monthlyLeaderboardData)
+    
+    // Test với một số employee IDs
+    const testEmployeeIds = ['test-1', 'test-2', 'test-3']
+    
+    testEmployeeIds.forEach(employeeId => {
+        const rank = getEmployeeRank(employeeId)
+        const colorClass = getAssigneeColorClass(rank)
+        console.log(`Employee ${employeeId}:`, { rank, colorClass })
+    })
+    
+    console.log('=== End Test ===')
 }

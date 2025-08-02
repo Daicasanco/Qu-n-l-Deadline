@@ -1420,7 +1420,7 @@ function applyProjectFilters() {
             matches = false
         }
         
-        if (managerFilter && project.manager_id !== parseInt(managerFilter)) {
+        if (managerFilter && project.manager_id !== managerFilter) {
             matches = false
         }
         

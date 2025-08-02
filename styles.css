@@ -1171,10 +1171,10 @@ body {
 }
 
 .notification-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #e1d7e2 0%, #6ae3cf 100%);
     border: none !important;
     border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(240, 147, 251, 0.4);
+    box-shadow: 0 12px 40px rgba(122, 194, 185, 0.4);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     position: relative;

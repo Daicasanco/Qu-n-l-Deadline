@@ -100,6 +100,9 @@ async function loadDataFromSupabase() {
         // Load tasks
         await loadTasks()
         
+        // Re-render projects table after tasks are loaded to ensure accurate task counts
+        renderProjectsTable()
+        
         // Load leaderboards and notifications
         await loadLeaderboards()
         await loadNotifications()
@@ -128,10 +131,8 @@ async function loadProjects() {
     try {
         let query = supabase.from('projects').select('*')
         
-        // Nhân viên chỉ xem các dự án đang hoạt động
-        if (currentUser && currentUser.role === 'employee') {
-            query = query.eq('status', 'active')
-        }
+        // Employees can see all projects (active, completed, paused) but cannot interact with completed/paused ones
+        // Managers can see all projects and have full rights on their own projects
         
         const { data, error } = await query
         
@@ -163,12 +164,34 @@ async function loadTasks(projectId = null) {
         if (error) throw error
         tasks = data || []
         
+        console.log(`Loaded ${tasks.length} tasks total`)
+        if (projectId) {
+            console.log(`Tasks for project ${projectId}:`, tasks.filter(t => t.project_id === projectId))
+        }
+        
         renderTasksTable()
+        
+        // Re-render projects table to update task counts
+        renderProjectsTable()
         
     } catch (error) {
         console.error('Error loading tasks:', error)
         showNotification('Lỗi tải dữ liệu công việc', 'error')
     }
+}
+
+// Function to manually refresh task counts for debugging
+function refreshTaskCounts() {
+    console.log('Refreshing task counts...')
+    console.log('Current tasks:', tasks)
+    console.log('Current projects:', projects)
+    
+    projects.forEach(project => {
+        const taskCount = tasks.filter(t => t.project_id === project.id).length
+        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks`)
+    })
+    
+    renderProjectsTable()
 }
 
 // Realtime Subscriptions
@@ -338,11 +361,9 @@ async function addProject() {
 function canOperateOnProject(project) {
     if (!currentUser) return false
     
-    // Managers can only operate on active projects they own
+    // Managers have full rights to operate on their own projects regardless of status
     if (currentUser.role === 'manager') {
-        return currentUser.id === project.manager_id && 
-               project.status !== 'completed' && 
-               project.status !== 'paused'
+        return currentUser.id === project.manager_id
     }
     
     // Employees cannot operate on any projects
@@ -355,13 +376,7 @@ async function editProject(id) {
     
     // Check if user can operate on this project
     if (!canOperateOnProject(project)) {
-        if (project.status === 'completed') {
-            showNotification('Không thể chỉnh sửa dự án đã hoàn thành', 'error')
-        } else if (project.status === 'paused') {
-            showNotification('Không thể chỉnh sửa dự án đã tạm dừng', 'error')
-        } else {
-            showNotification('Bạn không có quyền chỉnh sửa dự án này', 'error')
-        }
+        showNotification('Bạn không có quyền chỉnh sửa dự án này', 'error')
         return
     }
     
@@ -438,13 +453,7 @@ async function deleteProject(id) {
     
     // Check if user can operate on this project
     if (!canOperateOnProject(project)) {
-        if (project.status === 'completed') {
-            showNotification('Không thể xóa dự án đã hoàn thành', 'error')
-        } else if (project.status === 'paused') {
-            showNotification('Không thể xóa dự án đã tạm dừng', 'error')
-        } else {
-            showNotification('Bạn không có quyền xóa dự án này', 'error')
-        }
+        showNotification('Bạn không có quyền xóa dự án này', 'error')
         return
     }
     
@@ -895,6 +904,9 @@ function renderProjectsTable() {
     const tbody = document.getElementById('projectsTableBody')
     tbody.innerHTML = ''
     
+    console.log('Rendering projects table with', filteredProjects.length, 'projects')
+    console.log('Current tasks array has', tasks.length, 'tasks')
+    
     if (filteredProjects.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -922,6 +934,7 @@ function renderProjectsTable() {
         
         // Get task count for this project - fix the count display
         const taskCount = tasks.filter(t => t.project_id === project.id).length
+        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks found`)
         
         row.innerHTML = `
             <td>${project.id}</td>

@@ -1466,10 +1466,8 @@ function showNotification(message, type = 'info') {
                            type === 'warning' ? 'Cảnh báo' : 'Thông báo'
     toastMessage.textContent = message
     
-    // Set toast class
-    toast.className = `toast ${type === 'error' ? 'bg-danger text-white' : 
-                              type === 'success' ? 'bg-success text-white' : 
-                              type === 'warning' ? 'bg-warning text-dark' : ''}`
+    // Set toast class with new optimized styling
+    toast.className = `toast toast-${type}`
     
     // Show toast
     const bsToast = new bootstrap.Toast(toast)

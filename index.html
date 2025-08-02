@@ -7,6 +7,74 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <style>
+        /* Custom styles for project link buttons */
+        .project-links .btn-group {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .project-links .btn {
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+        
+        .project-links .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+        }
+        
+        .project-links .btn:active {
+            transform: translateY(0);
+        }
+        
+        .project-links .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+        
+        .project-links .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+        }
+        
+        .project-links .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+        
+        .project-links .btn i {
+            font-size: 0.9em;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .project-links .btn {
+                min-width: 60px;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            .project-links .btn i {
+                font-size: 0.8em;
+            }
+        }
+        
+        /* Animation for button appearance */
+        .project-links .btn {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -221,15 +289,20 @@
                                     Công việc trong dự án: <span id="currentProjectName">Dự án</span>
                                 </h5>
                                 <div class="project-links">
-                                    <button class="btn btn-outline-primary btn-sm me-2" id="storyLinkBtn" onclick="openStoryLink()" style="display: none;">
-                                        <i class="fas fa-book me-1"></i>Link truyện
-                                    </button>
-                                    <button class="btn btn-outline-success btn-sm me-2" id="ruleLinkBtn" onclick="openRuleLink()" style="display: none;">
-                                        <i class="fas fa-gavel me-1"></i>Link Rule
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm" id="bnvLinkBtn" onclick="openBnvLink()" style="display: none;">
-                                        <i class="fas fa-file-alt me-1"></i>Link BNV
-                                    </button>
+                                    <div class="btn-group" role="group" aria-label="Project Links">
+                                        <button class="btn btn-primary btn-sm me-1 shadow-sm" id="storyLinkBtn" onclick="openStoryLink()" style="display: none;" title="Mở link truyện">
+                                            <i class="fas fa-book-open me-1"></i>
+                                            <span class="d-none d-md-inline">Truyện</span>
+                                        </button>
+                                        <button class="btn btn-success btn-sm me-1 shadow-sm" id="ruleLinkBtn" onclick="openRuleLink()" style="display: none;" title="Mở link rule">
+                                            <i class="fas fa-gavel me-1"></i>
+                                            <span class="d-none d-md-inline">Rule</span>
+                                        </button>
+                                        <button class="btn btn-warning btn-sm shadow-sm" id="bnvLinkBtn" onclick="openBnvLink()" style="display: none;" title="Mở link BNV">
+                                            <i class="fas fa-file-alt me-1"></i>
+                                            <span class="d-none d-md-inline">BNV</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

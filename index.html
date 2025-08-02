@@ -215,10 +215,23 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-tasks me-2"></i>
-                                Công việc trong dự án: <span id="currentProjectName">Dự án</span>
-                            </h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-tasks me-2"></i>
+                                    Công việc trong dự án: <span id="currentProjectName">Dự án</span>
+                                </h5>
+                                <div class="project-links">
+                                    <button class="btn btn-outline-primary btn-sm me-2" id="storyLinkBtn" onclick="openStoryLink()" style="display: none;">
+                                        <i class="fas fa-book me-1"></i>Link truyện
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm me-2" id="ruleLinkBtn" onclick="openRuleLink()" style="display: none;">
+                                        <i class="fas fa-gavel me-1"></i>Link Rule
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm" id="bnvLinkBtn" onclick="openBnvLink()" style="display: none;">
+                                        <i class="fas fa-file-alt me-1"></i>Link BNV
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-body">
                             <!-- Task Type Tabs -->
@@ -459,6 +472,28 @@
                         <div class="mb-3">
                             <label class="form-label">Mô tả:</label>
                             <textarea class="form-control" id="projectDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <!-- Link fields -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Link truyện:</label>
+                                    <input type="url" class="form-control" id="projectStoryLink" placeholder="https://...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Link Rule:</label>
+                                    <input type="url" class="form-control" id="projectRuleLink" placeholder="https://...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Link BNV:</label>
+                                    <input type="url" class="form-control" id="projectBnvLink" placeholder="https://...">
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>

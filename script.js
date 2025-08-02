@@ -39,6 +39,9 @@ function showTasksView(projectId) {
         document.getElementById('currentProjectName').textContent = project.name
     }
     
+    // Update project link buttons
+    updateProjectLinkButtons()
+    
     // Render tasks for this project
     renderTasksTable()
     setupTaskFilters()
@@ -362,6 +365,9 @@ async function addProject() {
     const name = document.getElementById('projectName').value
     const description = document.getElementById('projectDescription').value
     const status = document.getElementById('projectStatus').value
+    const storyLink = document.getElementById('projectStoryLink').value
+    const ruleLink = document.getElementById('projectRuleLink').value
+    const bnvLink = document.getElementById('projectBnvLink').value
     
     // Validate input
     if (!name) {
@@ -376,6 +382,9 @@ async function addProject() {
                 name: name,
                 description: description,
                 status: status,
+                story_link: storyLink || null,
+                rule_link: ruleLink || null,
+                bnv_link: bnvLink || null,
                 manager_id: currentUser.id, // UUID
                 created_at: new Date().toISOString()
             }])
@@ -450,6 +459,9 @@ async function editProject(id) {
     document.getElementById('projectName').value = project.name
     document.getElementById('projectDescription').value = project.description || ''
     document.getElementById('projectStatus').value = project.status
+    document.getElementById('projectStoryLink').value = project.story_link || ''
+    document.getElementById('projectRuleLink').value = project.rule_link || ''
+    document.getElementById('projectBnvLink').value = project.bnv_link || ''
     
     // Update modal title
     document.getElementById('projectModalTitle').textContent = 'Chỉnh sửa Dự án'
@@ -476,6 +488,9 @@ async function updateProject() {
     const name = document.getElementById('projectName').value
     const description = document.getElementById('projectDescription').value
     const status = document.getElementById('projectStatus').value
+    const storyLink = document.getElementById('projectStoryLink').value
+    const ruleLink = document.getElementById('projectRuleLink').value
+    const bnvLink = document.getElementById('projectBnvLink').value
     
     // Validate input
     if (!name) {
@@ -490,6 +505,9 @@ async function updateProject() {
                 name: name,
                 description: description,
                 status: status,
+                story_link: storyLink || null,
+                rule_link: ruleLink || null,
+                bnv_link: bnvLink || null,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
@@ -1475,6 +1493,11 @@ function showAddProjectModal() {
     document.getElementById('projectId').value = ''
     document.getElementById('projectModalTitle').textContent = 'Thêm Dự án'
     
+    // Clear link fields
+    document.getElementById('projectStoryLink').value = ''
+    document.getElementById('projectRuleLink').value = ''
+    document.getElementById('projectBnvLink').value = ''
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('projectModal'))
     modal.show()
@@ -1725,8 +1748,12 @@ async function handleTransferTask() {
 
 async function refreshData() {
     await loadDataFromSupabase()
-    await loadLeaderboards()
-    await loadNotifications()
+    
+    // Update project link buttons if we're in tasks view
+    if (currentProjectId) {
+        updateProjectLinkButtons()
+    }
+    
     showNotification('Đã làm mới dữ liệu', 'info')
 }
 
@@ -2835,3 +2862,64 @@ function initializeBetaTasks() {
     // Setup filters
     setupBetaTaskFilters()
 } 
+
+// Project link functions
+function openStoryLink() {
+    const currentProject = projects.find(p => p.id === currentProjectId)
+    if (currentProject && currentProject.story_link) {
+        window.open(currentProject.story_link, '_blank')
+    } else {
+        showNotification('Link truyện chưa được thiết lập', 'warning')
+    }
+}
+
+function openRuleLink() {
+    const currentProject = projects.find(p => p.id === currentProjectId)
+    if (currentProject && currentProject.rule_link) {
+        window.open(currentProject.rule_link, '_blank')
+    } else {
+        showNotification('Link Rule chưa được thiết lập', 'warning')
+    }
+}
+
+function openBnvLink() {
+    const currentProject = projects.find(p => p.id === currentProjectId)
+    if (currentProject && currentProject.bnv_link) {
+        window.open(currentProject.bnv_link, '_blank')
+    } else {
+        showNotification('Link BNV chưa được thiết lập', 'warning')
+    }
+}
+
+function updateProjectLinkButtons() {
+    const currentProject = projects.find(p => p.id === currentProjectId)
+    const storyBtn = document.getElementById('storyLinkBtn')
+    const ruleBtn = document.getElementById('ruleLinkBtn')
+    const bnvBtn = document.getElementById('bnvLinkBtn')
+    
+    if (currentProject) {
+        // Show/hide buttons based on available links
+        if (currentProject.story_link) {
+            storyBtn.style.display = 'inline-block'
+        } else {
+            storyBtn.style.display = 'none'
+        }
+        
+        if (currentProject.rule_link) {
+            ruleBtn.style.display = 'inline-block'
+        } else {
+            ruleBtn.style.display = 'none'
+        }
+        
+        if (currentProject.bnv_link) {
+            bnvBtn.style.display = 'inline-block'
+        } else {
+            bnvBtn.style.display = 'none'
+        }
+    } else {
+        // Hide all buttons if no project selected
+        storyBtn.style.display = 'none'
+        ruleBtn.style.display = 'none'
+        bnvBtn.style.display = 'none'
+    }
+}

@@ -1290,6 +1290,10 @@ function renderTasksTable() {
         const assigneeName = assignee ? assignee.name : 'Chưa có người nhận'
         const isCurrentUserAssignee = currentUser && currentUser.id === task.assignee_id
         const canClaim = currentUser && !task.assignee_id && currentUser.role === 'employee'
+        
+        // Lấy rank và màu sắc cho người thực hiện
+        const assigneeRank = getEmployeeRank(task.assignee_id)
+        const assigneeColorClass = getAssigneeColorClass(assigneeRank)
         const submissionLink = task.submission_link ? `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Xem</a>` : '<span class="text-muted">-</span>'
         const dialogueChars = task.dialogue_chars ? `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         const totalChars = task.total_chars ? `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
@@ -1353,7 +1357,7 @@ function renderTasksTable() {
             <td>${totalChars}</td>
             <td>${rvChars}</td>
             <td>${payment}</td>
-            <td><span class="${task.assignee_id ? 'text-success' : 'text-muted'}">${assigneeName}</span></td>
+            <td><span class="${task.assignee_id ? assigneeColorClass : 'text-muted'}">${assigneeName}</span></td>
             <td>${notesDisplay}</td>
             <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
@@ -2015,6 +2019,8 @@ async function loadAllTimeLeaderboard() {
             .slice(0, 5) // TOP 5
 
         console.log('All-time leaderboard data:', leaderboardData)
+        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
+        window.allTimeLeaderboardData = leaderboardData
         renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
     } catch (error) {
         console.error('Error loading all-time leaderboard:', error)
@@ -2087,6 +2093,8 @@ async function loadMonthlyLeaderboard() {
             .slice(0, 10) // TOP 10
 
         console.log('Monthly leaderboard data:', leaderboardData)
+        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
+        window.monthlyLeaderboardData = leaderboardData
         renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
     } catch (error) {
         console.error('Error loading monthly leaderboard:', error)
@@ -2919,5 +2927,47 @@ function updateProjectLinkButtons() {
         storyBtn.style.display = 'none'
         ruleBtn.style.display = 'none'
         bnvBtn.style.display = 'none'
+    }
+}
+
+// Function để lấy rank của nhân viên từ leaderboard
+function getEmployeeRank(employeeId) {
+    if (!employeeId) return null
+    
+    // Tìm trong all-time leaderboard trước
+    const allTimeLeaderboard = window.allTimeLeaderboardData || []
+    const allTimeRank = allTimeLeaderboard.findIndex(emp => emp.id === employeeId)
+    if (allTimeRank !== -1) {
+        return { type: 'all-time', rank: allTimeRank + 1 }
+    }
+    
+    // Tìm trong monthly leaderboard
+    const monthlyLeaderboard = window.monthlyLeaderboardData || []
+    const monthlyRank = monthlyLeaderboard.findIndex(emp => emp.id === employeeId)
+    if (monthlyRank !== -1) {
+        return { type: 'monthly', rank: monthlyRank + 1 }
+    }
+    
+    return null
+}
+
+// Function để lấy class màu sắc dựa trên rank
+function getAssigneeColorClass(rankInfo) {
+    if (!rankInfo) return 'text-success' // Mặc định màu xanh
+    
+    const { type, rank } = rankInfo
+    
+    if (rank === 1) {
+        return 'text-warning fw-bold' // Vàng cho rank 1
+    } else if (rank === 2) {
+        return 'text-secondary fw-bold' // Bạc cho rank 2
+    } else if (rank === 3) {
+        return 'text-danger fw-bold' // Đồng cho rank 3
+    } else if (rank <= 5) {
+        return 'text-primary fw-bold' // Xanh dương cho top 5
+    } else if (rank <= 10) {
+        return 'text-info fw-bold' // Xanh nhạt cho top 10
+    } else {
+        return 'text-success' // Xanh lá cho những người khác
     }
 }

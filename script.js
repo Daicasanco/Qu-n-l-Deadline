@@ -2498,8 +2498,19 @@ function renderBetaTasksTable() {
             payment = `<span class="badge badge-gradient-green">${money.toLocaleString()}k</span>`
         }
         
-        // Format RV link
-        const rvLink = task.rv_link ? `<a href="${task.rv_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem</a>` : '<span class="text-muted">-</span>'
+        // Format RV link - cải thiện để debug và hiển thị thông tin chi tiết
+        let rvLink = '<span class="text-muted">-</span>'
+        if (task.rv_link && task.rv_link.trim()) {
+            rvLink = `<a href="${task.rv_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
+        } else {
+            // Debug: hiển thị thông tin nếu không có link
+            console.log('Beta task missing RV link:', {
+                taskId: task.id,
+                taskName: task.name,
+                rvLink: task.rv_link,
+                parentTaskId: task.parent_task_id
+            })
+        }
         
         // Format notes with link if extensive
         let notesDisplay = '<span class="text-muted">-</span>'

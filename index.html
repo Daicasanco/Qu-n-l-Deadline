@@ -185,10 +185,10 @@
         <!-- Action Buttons -->
         <div class="mb-3">
             <button class="btn btn-primary" id="addProjectBtn" onclick="showAddProjectModal()" style="display: none;">
-                <i class="fas fa-plus"></i> Thêm Dự án
+                <i class="fas fa-plus"></i> Thêm Truyện
             </button>
             <button class="btn btn-success" id="addTaskBtn" onclick="showAddTaskModal()" style="display: none;">
-                <i class="fas fa-plus"></i> Thêm Công việc
+                <i class="fas fa-plus"></i> Thêm Deadline
             </button>
             <button class="btn btn-info" id="viewEmployeesBtn" onclick="showEmployeesList()" style="display: none;">
                 <i class="fas fa-users"></i> Xem Nhân viên
@@ -249,7 +249,7 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th>ID</th>
-                                            <th>Tên dự án</th>
+                                            <th>Tên Truyện</th>
                                             <th>Mô tả</th>
                                             <th>Trạng thái</th>
                                             <th>Người quản lý</th>
@@ -286,7 +286,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
                                     <i class="fas fa-tasks me-2"></i>
-                                    Công việc trong dự án: <span id="currentProjectName">Dự án</span>
+                                    Deadline trong truyện: <span id="currentProjectName">Dự án</span>
                                 </h5>
                                 <div class="project-links">
                                     <div class="btn-group" role="group" aria-label="Project Links">
@@ -311,12 +311,12 @@
                             <ul class="nav nav-tabs mb-3" id="taskTypeTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="rv-tab" data-bs-toggle="tab" data-bs-target="#rv-tasks" type="button" role="tab" aria-controls="rv-tasks" aria-selected="true" onclick="switchTaskType('rv')">
-                                        <i class="fas fa-eye me-2"></i>Review Tasks
+                                        <i class="fas fa-eye me-2"></i>Deadline Review
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="beta-tab" data-bs-toggle="tab" data-bs-target="#beta-tasks" type="button" role="tab" aria-controls="beta-tasks" aria-selected="false" onclick="switchTaskType('beta')">
-                                        <i class="fas fa-code me-2"></i>Beta Tasks
+                                        <i class="fas fa-code me-2"></i>Deadline Beta
                                     </button>
                                 </li>
                             </ul>
@@ -350,7 +350,7 @@
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th>Deadline</th>
-                                                    <th>Tên công việc</th>
+                                                    <th>Tên Chap</th>
                                                     <th>Trạng thái</th>
                                                     <th>Mức ưu tiên</th>
                                                     <th>Link nộp</th>
@@ -397,7 +397,7 @@
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th>Deadline</th>
-                                                    <th>Tên công việc</th>
+                                                    <th>Tên Chap</th>
                                                     <th>Trạng thái</th>
                                                     <th>Link RV</th>
                                                     <th>Link Beta</th>
@@ -516,7 +516,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="projectModalTitle">Thêm Dự án</h5>
+                    <h5 class="modal-title" id="projectModalTitle">Thêm Truyện</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -525,7 +525,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Tên dự án:</label>
+                                    <label class="form-label">Tên Truyện:</label>
                                     <input type="text" class="form-control" id="projectName" required>
                                 </div>
                             </div>
@@ -581,7 +581,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="taskModalTitle">Thêm Công việc</h5>
+                    <h5 class="modal-title" id="taskModalTitle">Thêm Deadline</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -591,7 +591,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Tên công việc:</label>
+                                    <label class="form-label">Tên Chap:</label>
                                     <input type="text" class="form-control" id="taskName" required>
                                 </div>
                             </div>

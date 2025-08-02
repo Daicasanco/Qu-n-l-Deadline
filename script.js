@@ -329,7 +329,7 @@ function updateUserInterface() {
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
-            // Chỉ hiện nút "Thêm Công việc" khi ở trong tasks view và là manager
+            // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager
     const tasksView = document.getElementById('tasksView')
     const isInTasksView = tasksView && tasksView.style.display !== 'none'
     addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
@@ -374,7 +374,7 @@ async function addProject() {
     
     // Validate input
     if (!name) {
-        showNotification('Vui lòng điền tên dự án', 'error')
+        showNotification('Vui lòng điền Tên Truyện', 'error')
         return
     }
     
@@ -399,14 +399,14 @@ async function addProject() {
         const modal = bootstrap.Modal.getInstance(document.getElementById('projectModal'))
         modal.hide()
         
-        showNotification('Thêm dự án thành công!', 'success')
+        showNotification('Thêm Truyện thành công!', 'success')
         
         // Clear form
         document.getElementById('projectForm').reset()
         
     } catch (error) {
         console.error('Error adding project:', error)
-        showNotification('Lỗi thêm dự án', 'error')
+        showNotification('Lỗi Thêm Truyện', 'error')
     }
 }
 
@@ -497,7 +497,7 @@ async function updateProject() {
     
     // Validate input
     if (!name) {
-        showNotification('Vui lòng điền tên dự án', 'error')
+        showNotification('Vui lòng điền Tên Truyện', 'error')
         return
     }
     
@@ -525,7 +525,7 @@ async function updateProject() {
         
         // Clear form
         document.getElementById('projectForm').reset()
-        document.getElementById('projectModalTitle').textContent = 'Thêm Dự án'
+        document.getElementById('projectModalTitle').textContent = 'Thêm Truyện'
         
     } catch (error) {
         console.error('Error updating project:', error)
@@ -590,7 +590,7 @@ async function addTask() {
     if (currentUser && currentUser.role === 'employee') {
         const project = projects.find(p => p.id === parseInt(projectId))
         if (project && project.status === 'completed') {
-            showNotification('Không thể thêm công việc vào dự án đã hoàn thành', 'error')
+            showNotification('Không thể Thêm Deadline vào dự án đã hoàn thành', 'error')
             return
         }
     }
@@ -672,7 +672,7 @@ async function addTask() {
         
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
-        showNotification('Thêm công việc thành công!', 'success')
+        showNotification('Thêm Deadline thành công!', 'success')
         document.getElementById('taskForm').reset()
     } catch (error) {
         console.error('Error adding task:', error)
@@ -682,7 +682,7 @@ async function addTask() {
             details: error.details,
             hint: error.hint
         })
-        showNotification('Lỗi thêm công việc: ' + error.message, 'error')
+        showNotification('Lỗi Thêm Deadline: ' + error.message, 'error')
     }
 }
 
@@ -713,7 +713,7 @@ async function claimTask(taskId) {
         if (currentUser.role === 'employee') {
             const project = projects.find(p => p.id === currentTask.project_id)
             if (project && project.status === 'completed') {
-                showNotification('Không thể nhận công việc trong dự án đã hoàn thành', 'error')
+                showNotification('Không thể nhận Deadline trong truyện đã hoàn thành', 'error')
                 return
             }
         }
@@ -875,7 +875,7 @@ async function editTask(id) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể chỉnh sửa công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể chỉnh sửa Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -995,7 +995,7 @@ async function updateTask() {
         if (task) {
             const project = projects.find(p => p.id === task.project_id)
             if (project && project.status === 'completed') {
-                showNotification('Không thể cập nhật công việc trong dự án đã hoàn thành', 'error')
+                showNotification('Không thể cập nhật Deadline trong truyện đã hoàn thành', 'error')
                 return
             }
         }
@@ -1056,7 +1056,7 @@ async function updateTask() {
             // Clear form and hide status field
             document.getElementById('taskForm').reset()
             document.getElementById('taskStatusField').style.display = 'none'
-            document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+            document.getElementById('taskModalTitle').textContent = 'Thêm Deadline'
         } else {
             showNotification('Không thể cập nhật công việc', 'error')
         }
@@ -1075,7 +1075,7 @@ async function deleteTask(id) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể xóa công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể xóa Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -1124,7 +1124,7 @@ async function changeTaskStatus(id, newStatus) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể thay đổi trạng thái công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể thay đổi trạng thái Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -1188,7 +1188,7 @@ function renderProjectsTable() {
                     <div class="empty-state">
                         <i class="fas fa-project-diagram"></i>
                         <h4>Không có dự án nào</h4>
-                        <p>Hãy thêm dự án đầu tiên để bắt đầu</p>
+                        <p>Hãy Thêm Truyện đầu tiên để bắt đầu</p>
                     </div>
                 </td>
             </tr>
@@ -1270,7 +1270,7 @@ function renderTasksTable() {
     }
     
     if (projectTasks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy thêm công việc đầu tiên cho dự án này</p></div></td></tr>`
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy Thêm Deadline đầu tiên cho dự án này</p></div></td></tr>`
         return
     }
     projectTasks.forEach(task => {
@@ -1327,7 +1327,7 @@ function renderTasksTable() {
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
         } else if (currentUser && currentUser.role === 'employee') {
-            // Nhân viên không thể thao tác với công việc trong dự án đã hoàn thành
+            // Nhân viên không thể thao tác với Deadline trong truyện đã hoàn thành
             if (!isCompletedProject) {
                 if (isCurrentUserAssignee) {
                     actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
@@ -1489,14 +1489,14 @@ function showLoginModal() {
 
 function showAddProjectModal() {
     if (!currentUser) {
-        showNotification('Vui lòng đăng nhập để thêm dự án', 'error')
+        showNotification('Vui lòng đăng nhập để Thêm Truyện', 'error')
         return
     }
     
     // Clear form
     document.getElementById('projectForm').reset()
     document.getElementById('projectId').value = ''
-    document.getElementById('projectModalTitle').textContent = 'Thêm Dự án'
+    document.getElementById('projectModalTitle').textContent = 'Thêm Truyện'
     
     // Clear link fields
     document.getElementById('projectStoryLink').value = ''
@@ -1523,7 +1523,7 @@ function showAddTaskModal() {
     console.log('currentProjectId:', currentProjectId)
     
     if (!currentUser) {
-        showNotification('Vui lòng đăng nhập để thêm công việc', 'error')
+        showNotification('Vui lòng đăng nhập để Thêm Deadline', 'error')
         return
     }
     if (!currentProjectId) {
@@ -1535,7 +1535,7 @@ function showAddTaskModal() {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === currentProjectId)
         if (project && project.status === 'completed') {
-            showNotification('Không thể thêm công việc vào dự án đã hoàn thành', 'error')
+            showNotification('Không thể Thêm Deadline vào dự án đã hoàn thành', 'error')
             return
         }
     }
@@ -1543,7 +1543,7 @@ function showAddTaskModal() {
     document.getElementById('taskId').value = ''
     document.getElementById('taskProjectId').value = currentProjectId
     document.getElementById('taskStatusField').style.display = 'none'
-    document.getElementById('taskModalTitle').textContent = 'Thêm Công việc'
+    document.getElementById('taskModalTitle').textContent = 'Thêm Deadline'
     updateAssigneeDropdowns()
     
     // Handle field restrictions for employees
@@ -2655,7 +2655,7 @@ async function editBetaTask(id) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể chỉnh sửa công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể chỉnh sửa Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -2709,7 +2709,7 @@ async function claimBetaTask(taskId) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === currentTask.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể nhận công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể nhận Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -2761,7 +2761,7 @@ async function deleteBetaTask(id) {
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể xóa công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể xóa Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }
@@ -2806,7 +2806,7 @@ async function updateBetaTask() {
     if (currentUser && currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
-            showNotification('Không thể cập nhật công việc trong dự án đã hoàn thành', 'error')
+            showNotification('Không thể cập nhật Deadline trong truyện đã hoàn thành', 'error')
             return
         }
     }

@@ -2498,21 +2498,21 @@ function renderBetaTasksTable() {
             payment = `<span class="badge badge-gradient-green">${money.toLocaleString()}k</span>`
         }
         
-        // Format RV link - lấy submission_link từ parent RV task (link nộp của task review)
+        // Format RV link - lấy rv_link từ parent RV task (link nộp thực tế như facebook.com)
         let rvLink = '<span class="text-muted">-</span>'
         if (task.parent_task_id) {
-            // Tìm parent RV task để lấy submission_link (link nộp của task review)
+            // Tìm parent RV task để lấy rv_link (link nộp thực tế như facebook.com)
             const parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
-            if (parentRVTask && parentRVTask.submission_link && parentRVTask.submission_link.trim()) {
-                rvLink = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
+            if (parentRVTask && parentRVTask.rv_link && parentRVTask.rv_link.trim()) {
+                rvLink = `<a href="${parentRVTask.rv_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
             } else {
                 // Debug: hiển thị thông tin nếu không có link
-                console.log('Beta task missing parent RV submission link:', {
+                console.log('Beta task missing parent RV rv_link:', {
                     taskId: task.id,
                     taskName: task.name,
                     parentTaskId: task.parent_task_id,
                     parentRVTask: parentRVTask,
-                    parentSubmissionLink: parentRVTask ? parentRVTask.submission_link : null
+                    parentRVLink: parentRVTask ? parentRVTask.rv_link : null
                 })
             }
         } else {

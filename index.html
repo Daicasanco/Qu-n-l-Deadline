@@ -523,19 +523,27 @@
                     <form id="projectForm">
                         <input type="hidden" id="projectId">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Tên Truyện:</label>
                                     <input type="text" class="form-control" id="projectName" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Trạng thái:</label>
                                     <select class="form-select" id="projectStatus" required>
                                         <option value="active">Đang hoạt động</option>
                                         <option value="paused">Tạm dừng</option>
                                         <option value="completed">Hoàn thành</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Người quản lý:</label>
+                                    <select class="form-select" id="projectManager">
+                                        <option value="">Chọn người quản lý...</option>
                                     </select>
                                 </div>
                             </div>

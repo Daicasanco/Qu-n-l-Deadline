@@ -147,7 +147,11 @@ async function loadDataFromSupabase() {
 
 async function loadProjects() {
     try {
-        let query = supabase.from('projects').select('*')
+        let query = supabase.from('projects')
+            .select(`
+                *,
+                manager:employees(name)
+            `)
         
         // Employees can only see completed projects and cannot interact with them
         // Managers can see all projects and have full rights on their own projects
@@ -368,6 +372,7 @@ async function addProject() {
     const name = document.getElementById('projectName').value
     const description = document.getElementById('projectDescription').value
     const status = document.getElementById('projectStatus').value
+    const managerId = document.getElementById('projectManager').value
     const storyLink = document.getElementById('projectStoryLink').value
     const ruleLink = document.getElementById('projectRuleLink').value
     const bnvLink = document.getElementById('projectBnvLink').value
@@ -385,10 +390,10 @@ async function addProject() {
                 name: name,
                 description: description,
                 status: status,
+                manager_id: managerId || currentUser.id, // Use selected manager or current user
                 story_link: storyLink || null,
                 rule_link: ruleLink || null,
                 bnv_link: bnvLink || null,
-                manager_id: currentUser.id, // UUID
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -469,6 +474,10 @@ async function editProject(id) {
     // Update modal title
     document.getElementById('projectModalTitle').textContent = 'Chỉnh sửa Dự án'
     
+    // Populate manager dropdown and set selected value
+    await populateManagerDropdown()
+    document.getElementById('projectManager').value = project.manager_id || ''
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('projectModal'))
     modal.show()
@@ -491,6 +500,7 @@ async function updateProject() {
     const name = document.getElementById('projectName').value
     const description = document.getElementById('projectDescription').value
     const status = document.getElementById('projectStatus').value
+    const managerId = document.getElementById('projectManager').value
     const storyLink = document.getElementById('projectStoryLink').value
     const ruleLink = document.getElementById('projectRuleLink').value
     const bnvLink = document.getElementById('projectBnvLink').value
@@ -508,6 +518,7 @@ async function updateProject() {
                 name: name,
                 description: description,
                 status: status,
+                manager_id: managerId || null,
                 story_link: storyLink || null,
                 rule_link: ruleLink || null,
                 bnv_link: bnvLink || null,
@@ -1219,7 +1230,7 @@ function renderProjectsTable() {
             </td>
             <td>${project.description || '-'}</td>
             <td>${getProjectStatusBadge(project.status)}</td>
-            <td>${project.manager_name || 'N/A'}</td>
+            <td>${project.manager?.name || 'N/A'}</td>
             <td>${formatDateTime(project.created_at)}</td>
             <td><span class="badge bg-info">${taskCount} công việc</span></td>
             <td>
@@ -1503,9 +1514,39 @@ function showAddProjectModal() {
     document.getElementById('projectRuleLink').value = ''
     document.getElementById('projectBnvLink').value = ''
     
+    // Populate manager dropdown
+    populateManagerDropdown()
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('projectModal'))
     modal.show()
+}
+
+// Function to populate manager dropdown
+async function populateManagerDropdown() {
+    try {
+        const { data: managers, error } = await supabase
+            .from('employees')
+            .select('id, name')
+            .eq('role', 'manager')
+            .order('name')
+        
+        if (error) throw error
+        
+        const managerSelect = document.getElementById('projectManager')
+        managerSelect.innerHTML = '<option value="">Chọn người quản lý...</option>'
+        
+        managers.forEach(manager => {
+            const option = document.createElement('option')
+            option.value = manager.id
+            option.textContent = manager.name
+            managerSelect.appendChild(option)
+        })
+        
+    } catch (error) {
+        console.error('Error loading managers:', error)
+        showNotification('Lỗi tải danh sách người quản lý', 'error')
+    }
 }
 
 function toggleBatchCreate() {

@@ -700,13 +700,15 @@ async function claimTask(taskId) {
                 console.log('Updated task data:', tasks[taskIndex])
             }
             
-            // Re-render appropriate table
+            // Re-render appropriate table after a short delay
             console.log('Re-rendering table...')
-            if (currentTaskType === 'beta') {
-                renderBetaTasksTable()
-            } else {
-                renderTasksTable()
-            }
+            setTimeout(() => {
+                if (currentTaskType === 'beta') {
+                    renderBetaTasksTable()
+                } else {
+                    renderTasksTable()
+                }
+            }, 100)
             
         } else {
             console.log('No rows updated - task may have been claimed by someone else')
@@ -792,12 +794,14 @@ async function unclaimTask(taskId) {
                 tasks[taskIndex] = updatedTask
             }
             
-            // Re-render appropriate table
-            if (currentTaskType === 'beta') {
-                renderBetaTasksTable()
-            } else {
-                renderTasksTable()
-            }
+            // Re-render appropriate table after a short delay
+            setTimeout(() => {
+                if (currentTaskType === 'beta') {
+                    renderBetaTasksTable()
+                } else {
+                    renderTasksTable()
+                }
+            }, 100)
         } else {
             showNotification('Không thể hủy nhận công việc', 'error')
         }
@@ -958,16 +962,20 @@ async function updateTask() {
                 tasks[taskIndex] = updatedTask
             }
             
-            // Re-render table ngay lập tức
-            if (currentTaskType === 'beta') {
-                renderBetaTasksTable()
-            } else {
-                renderTasksTable()
+            // Close modal first
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
+            if (modal) {
+                modal.hide()
             }
             
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
-            modal.hide()
+            // Re-render table after modal is closed
+            setTimeout(() => {
+                if (currentTaskType === 'beta') {
+                    renderBetaTasksTable()
+                } else {
+                    renderTasksTable()
+                }
+            }, 100)
             
             showNotification('Cập nhật công việc thành công!', 'success')
             
@@ -1016,12 +1024,14 @@ async function deleteTask(id) {
             // Remove from local data
             tasks = tasks.filter(t => t.id !== id)
             
-            // Re-render appropriate table
-            if (currentTaskType === 'beta') {
-                renderBetaTasksTable()
-            } else {
-                renderTasksTable()
-            }
+            // Re-render appropriate table after a short delay
+            setTimeout(() => {
+                if (currentTaskType === 'beta') {
+                    renderBetaTasksTable()
+                } else {
+                    renderTasksTable()
+                }
+            }, 100)
             
             showNotification('Xóa công việc thành công!', 'success')
             
@@ -1552,10 +1562,6 @@ function setFieldPermissions(taskType) {
             }
         }
     })
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('taskModal'))
-    modal.show()
 }
 
 // Modal chuyển giao công việc

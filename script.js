@@ -282,6 +282,9 @@ function updateUserInterface() {
         
         // Update assignee dropdowns
         updateAssigneeDropdowns()
+        
+        // Load leaderboards for all users (both employees and managers)
+        loadLeaderboards()
     } else {
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
@@ -331,13 +334,34 @@ async function addProject() {
     }
 }
 
+// Function to check if user can operate on a project
+function canOperateOnProject(project) {
+    if (!currentUser) return false
+    
+    // Managers can only operate on active projects they own
+    if (currentUser.role === 'manager') {
+        return currentUser.id === project.manager_id && 
+               project.status !== 'completed' && 
+               project.status !== 'paused'
+    }
+    
+    // Employees cannot operate on any projects
+    return false
+}
+
 async function editProject(id) {
     const project = projects.find(p => p.id === id)
     if (!project) return
     
-    // Check permissions
-    if (currentUser.role !== 'manager' || currentUser.id !== project.manager_id) {
-        showNotification('Bạn không có quyền chỉnh sửa dự án này', 'error')
+    // Check if user can operate on this project
+    if (!canOperateOnProject(project)) {
+        if (project.status === 'completed') {
+            showNotification('Không thể chỉnh sửa dự án đã hoàn thành', 'error')
+        } else if (project.status === 'paused') {
+            showNotification('Không thể chỉnh sửa dự án đã tạm dừng', 'error')
+        } else {
+            showNotification('Bạn không có quyền chỉnh sửa dự án này', 'error')
+        }
         return
     }
     
@@ -412,27 +436,33 @@ async function deleteProject(id) {
     const project = projects.find(p => p.id === id)
     if (!project) return
     
-    // Check permissions
-    if (currentUser.role !== 'manager' || currentUser.id !== project.manager_id) {
-        showNotification('Bạn không có quyền xóa dự án này', 'error')
+    // Check if user can operate on this project
+    if (!canOperateOnProject(project)) {
+        if (project.status === 'completed') {
+            showNotification('Không thể xóa dự án đã hoàn thành', 'error')
+        } else if (project.status === 'paused') {
+            showNotification('Không thể xóa dự án đã tạm dừng', 'error')
+        } else {
+            showNotification('Bạn không có quyền xóa dự án này', 'error')
+        }
         return
     }
     
-    if (confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
-        try {
-            const { error } = await supabase
-                .from('projects')
-                .delete()
-                .eq('id', id)
-            
-            if (error) throw error
-            
-            showNotification('Xóa dự án thành công!', 'success')
-            
-        } catch (error) {
-            console.error('Error deleting project:', error)
-            showNotification('Lỗi xóa dự án', 'error')
-        }
+    if (!confirm('Bạn có chắc chắn muốn xóa dự án này?')) return
+    
+    try {
+        const { error } = await supabase
+            .from('projects')
+            .delete()
+            .eq('id', id)
+        
+        if (error) throw error
+        
+        showNotification('Xóa dự án thành công!', 'success')
+        
+    } catch (error) {
+        console.error('Error deleting project:', error)
+        showNotification('Lỗi xóa dự án', 'error')
     }
 }
 
@@ -890,7 +920,7 @@ function renderProjectsTable() {
             row.classList.add('table-row-paused')
         }
         
-        // Get task count for this project
+        // Get task count for this project - fix the count display
         const taskCount = tasks.filter(t => t.project_id === project.id).length
         
         row.innerHTML = `
@@ -904,10 +934,10 @@ function renderProjectsTable() {
             <td>${getProjectStatusBadge(project.status)}</td>
             <td>${project.manager_name || 'N/A'}</td>
             <td>${formatDateTime(project.created_at)}</td>
-            <td><span class="badge bg-info">${taskCount}</span></td>
+            <td><span class="badge bg-info">${taskCount} công việc</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    ${currentUser && currentUser.role === 'manager' && currentUser.id === project.manager_id ? 
+                    ${canOperateOnProject(project) ? 
                         `<button class="btn btn-outline-warning btn-sm" onclick="editProject(${project.id})">
                             <i class="fas fa-edit"></i>
                         </button>

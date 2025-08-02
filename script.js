@@ -15,6 +15,16 @@ let employees = []
 let filteredProjects = []
 let currentProjectId = null
 
+// Helper function to check if user has manager or boss permissions
+function hasManagerOrBossPermissions(user) {
+    return user && (user.role === 'manager' || user.role === 'boss');
+}
+
+// Helper function to check if user is boss
+function isBoss(user) {
+    return user && user.role === 'boss';
+}
+
 // View Management Functions
 function showProjectsView() {
     document.getElementById('projectsView').style.display = ''
@@ -103,7 +113,7 @@ async function loadDataFromSupabase() {
         employees = window.allEmployees.filter(emp => emp.role === 'employee')
         
         // Filter for managers (role 'manager') for manager filter
-        const managers = window.allEmployees.filter(emp => emp.role === 'manager')
+        const managers = window.allEmployees.filter(emp => emp.role === 'manager' || emp.role === 'boss')
         
         console.log('Loaded allEmployees:', window.allEmployees)
         console.log('Filtered employees:', employees)
@@ -331,24 +341,24 @@ function updateUserInterface() {
     
     if (currentUser) {
         currentUserSpan.textContent = currentUser.name
-        addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        addProjectBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
-            // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager
+            // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager hoặc boss
     const tasksView = document.getElementById('tasksView')
     const isInTasksView = tasksView && tasksView.style.display !== 'none'
-    addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
+    addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
     
     // Debug logging
     console.log('updateUserInterface - currentUser.role:', currentUser.role)
     console.log('updateUserInterface - isInTasksView:', isInTasksView)
     console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
         
-        viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
+        viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
-        // Show/hide announcement edit button for managers
+        // Show/hide announcement edit button for managers and bosses
         const editAnnouncementBtn = document.getElementById('editAnnouncementBtn')
         if (editAnnouncementBtn) {
-            editAnnouncementBtn.style.display = currentUser.role === 'manager' ? 'block' : 'none'
+            editAnnouncementBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'block' : 'none'
         }
         
         // Update assignee dropdowns
@@ -419,8 +429,8 @@ async function addProject() {
 function canOperateOnProject(project) {
     if (!currentUser) return false
     
-    // Managers have full rights to operate on their own projects regardless of status
-    if (currentUser.role === 'manager') {
+    // Managers and bosses have full rights to operate on their own projects regardless of status
+    if (hasManagerOrBossPermissions(currentUser)) {
         return currentUser.id === project.manager_id
     }
     
@@ -891,7 +901,7 @@ async function editTask(id) {
         }
     }
     
-    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
         return
     }
@@ -1091,8 +1101,8 @@ async function deleteTask(id) {
         }
     }
     
-    // Check permissions - Manager hoặc người đang làm task
-    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+    // Check permissions - Manager/Boss hoặc người đang làm task
+    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền xóa công việc này', 'error')
         return
     }
@@ -1140,8 +1150,8 @@ async function changeTaskStatus(id, newStatus) {
         }
     }
     
-    // Check permissions - Manager hoặc người đang làm task
-    if (currentUser.role !== 'manager' && currentUser.id !== task.assignee_id) {
+    // Check permissions - Manager/Boss hoặc người đang làm task
+    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
         showNotification('Bạn không có quyền thay đổi trạng thái công việc này', 'error')
         return
     }
@@ -1334,7 +1344,7 @@ function renderTasksTable() {
         const currentProject = projects.find(p => p.id === currentProjectId);
         const isCompletedProject = currentProject && currentProject.status === 'completed';
         
-        if (currentUser && currentUser.role === 'manager') {
+        if (currentUser && hasManagerOrBossPermissions(currentUser)) {
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
         } else if (currentUser && currentUser.role === 'employee') {
@@ -1528,7 +1538,7 @@ async function populateManagerDropdown() {
         const { data: managers, error } = await supabase
             .from('employees')
             .select('id, name')
-            .eq('role', 'manager')
+            .in('role', ['manager', 'boss'])
             .order('name')
         
         if (error) throw error
@@ -1860,8 +1870,8 @@ checkOverdueTasks()
 
 // Employee Management Functions
 function showEmployeesList() {
-    if (!currentUser || currentUser.role !== 'manager') {
-        showNotification('Chỉ quản lý mới có thể xem danh sách nhân viên', 'error')
+    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Chỉ quản lý và boss mới có thể xem danh sách nhân viên', 'error')
         return
     }
     
@@ -1886,7 +1896,9 @@ function showEmployeesList() {
     
     window.allEmployees.forEach(employee => { // Use window.allEmployees here
         const row = document.createElement('tr')
-        const roleBadge = employee.role === 'manager' 
+        const roleBadge = employee.role === 'boss' 
+            ? `<span class="badge bg-danger">Boss</span>` 
+            : employee.role === 'manager' 
             ? `<span class="badge bg-primary">Quản lý</span>` 
             : `<span class="badge bg-secondary">Nhân viên</span>`
         row.innerHTML = `
@@ -2572,7 +2584,7 @@ function renderBetaTasksTable() {
     tbody.innerHTML = filteredBetaTasks.map(task => {
         const assignee = employees.find(emp => emp.id === task.assignee_id)
         const isCurrentUserAssignee = currentUser && task.assignee_id === currentUser.id
-        const isCurrentUserManager = currentUser && currentUser.role === 'manager'
+        const isCurrentUserManager = currentUser && hasManagerOrBossPermissions(currentUser)
         
         // Lấy rank và màu sắc cho người thực hiện
         const assigneeRank = getEmployeeRank(task.assignee_id)
@@ -2637,8 +2649,8 @@ function renderBetaTasksTable() {
         const currentProject = projects.find(p => p.id === currentProjectId)
         const isCompletedProject = currentProject && currentProject.status === 'completed'
         
-        if (currentUser && currentUser.role === 'manager') {
-            // Manager can edit any task
+        if (currentUser && hasManagerOrBossPermissions(currentUser)) {
+            // Manager and Boss can edit any task
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editBetaTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteBetaTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`
         } else if (currentUser && currentUser.role === 'employee') {

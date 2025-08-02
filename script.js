@@ -528,27 +528,59 @@ async function addTask() {
         }
     }
     try {
+        // Get additional form values
+        const description = document.getElementById('taskDescription')?.value || ''
+        const submissionLink = document.getElementById('taskSubmissionLink')?.value || ''
+        const betaLink = document.getElementById('taskBetaLink')?.value || ''
+        const assigneeId = document.getElementById('taskAssignee')?.value || null
+        const dialogueChars = document.getElementById('taskDialogueChars')?.value || null
+        const totalChars = document.getElementById('taskTotalChars')?.value || null
+        const rvChars = document.getElementById('taskRVChars')?.value || null
+        const betaChars = document.getElementById('taskBetaChars')?.value || null
+        const rate = document.getElementById('taskRate')?.value || null
+        const notes = document.getElementById('taskNotes')?.value || ''
+        
         let insertData = []
         if (isBatch && batchCount > 1) {
             for (let i = 0; i < batchCount; i++) {
                 insertData.push({
                     name: name + ' ' + (batchStart + i),
+                    description: description,
                     deadline: new Date(deadline).toISOString(),
                     priority: priority,
                     status: 'pending',
                     project_id: parseInt(projectId),
-                    task_type: currentTaskType, // Set task type based on current tab
+                    task_type: currentTaskType,
+                    submission_link: submissionLink || null,
+                    beta_link: betaLink || null,
+                    assignee_id: assigneeId,
+                    dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
+                    total_chars: totalChars ? parseInt(totalChars) : null,
+                    rv_chars: rvChars ? parseInt(rvChars) : null,
+                    beta_chars: betaChars ? parseInt(betaChars) : null,
+                    rate: rate ? parseFloat(rate) : null,
+                    notes: notes,
                     created_at: new Date().toISOString()
                 })
             }
         } else {
             insertData.push({
                 name: name,
+                description: description,
                 deadline: new Date(deadline).toISOString(),
                 priority: priority,
                 status: 'pending',
                 project_id: parseInt(projectId),
-                task_type: currentTaskType, // Set task type based on current tab
+                task_type: currentTaskType,
+                submission_link: submissionLink || null,
+                beta_link: betaLink || null,
+                assignee_id: assigneeId,
+                dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
+                total_chars: totalChars ? parseInt(totalChars) : null,
+                rv_chars: rvChars ? parseInt(rvChars) : null,
+                beta_chars: betaChars ? parseInt(betaChars) : null,
+                rate: rate ? parseFloat(rate) : null,
+                notes: notes,
                 created_at: new Date().toISOString()
             })
         }
@@ -778,6 +810,7 @@ async function editTask(id) {
     setVal('taskPriority', task.priority || '')
     setVal('taskStatus', task.status || '')
     setVal('taskSubmissionLink', task.submission_link || '')
+    setVal('taskBetaLink', task.beta_link || '')
     setVal('taskDialogueChars', task.dialogue_chars || '')
     setVal('taskTotalChars', task.total_chars || '')
     setVal('taskRVChars', task.rv_chars || '')
@@ -838,6 +871,7 @@ async function updateTask() {
     
     // New fields
     const submissionLink = document.getElementById('taskSubmissionLink').value
+    const betaLink = document.getElementById('taskBetaLink').value
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
     const rvChars = document.getElementById('taskRVChars').value
@@ -874,6 +908,7 @@ async function updateTask() {
                 assignee_id: assigneeId || null, // Có thể null
                 status: status,
                 submission_link: submissionLink || null,
+                beta_link: betaLink || null,
                 dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
                 total_chars: totalChars ? parseInt(totalChars) : null,
                 rv_chars: rvChars ? parseInt(rvChars) : null,
@@ -1420,6 +1455,8 @@ function showAddTaskModal() {
     const betaCharsField = document.getElementById('taskBetaChars')
     const dialogueCharsField = document.getElementById('taskDialogueChars')
     const totalCharsField = document.getElementById('taskTotalChars')
+    const submissionLinkField = document.getElementById('taskSubmissionLink')
+    const betaLinkField = document.getElementById('taskBetaLink')
     
     if (isBetaTask) {
         // For beta tasks, show beta chars field and hide RV calculation fields
@@ -1427,12 +1464,16 @@ function showAddTaskModal() {
         if (betaCharsField) betaCharsField.parentElement.style.display = ''
         if (dialogueCharsField) dialogueCharsField.parentElement.style.display = 'none'
         if (totalCharsField) totalCharsField.parentElement.style.display = 'none'
+        if (submissionLinkField) submissionLinkField.parentElement.style.display = 'none'
+        if (betaLinkField) betaLinkField.parentElement.style.display = ''
     } else {
         // For RV tasks, show RV calculation fields and hide beta chars field
         if (rvCharsField) rvCharsField.parentElement.style.display = ''
         if (betaCharsField) betaCharsField.parentElement.style.display = 'none'
         if (dialogueCharsField) dialogueCharsField.parentElement.style.display = ''
         if (totalCharsField) totalCharsField.parentElement.style.display = ''
+        if (submissionLinkField) submissionLinkField.parentElement.style.display = ''
+        if (betaLinkField) betaLinkField.parentElement.style.display = 'none'
     }
     
     // Show modal
@@ -2324,8 +2365,8 @@ function renderBetaTasksTable() {
                     <small class="text-muted">${task.description || ''}</small>
                 </td>
                 <td>${getTaskStatusBadge(task.status)}</td>
-                <td>${getPriorityBadge(task.priority)}</td>
                 <td>${rvLink}</td>
+                <td>${task.beta_link ? `<a href="${task.beta_link}" target="_blank" class="btn btn-sm btn-outline-success"><i class="fas fa-external-link-alt"></i> Link</a>` : '<span class="text-muted">-</span>'}</td>
                 <td>${rvChars}</td>
                 <td>${betaChars}</td>
                 <td>${payment}</td>
@@ -2370,13 +2411,14 @@ async function editBetaTask(id) {
     setVal('taskStatus', task.status)
     setVal('taskAssignee', task.assignee_id || '')
     setVal('taskBetaChars', task.beta_chars || '')
+    setVal('taskBetaLink', task.beta_link || '')
     setVal('taskNotes', task.notes || '')
     
     // Store current task ID for update
     window.currentEditingTaskId = id
     
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('addTaskModal'))
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'))
     modal.show()
 }
 
@@ -2509,6 +2551,7 @@ async function updateBetaTask() {
     const status = document.getElementById('taskStatus').value
     const assigneeId = document.getElementById('taskAssignee').value || null
     const betaChars = document.getElementById('taskBetaChars').value
+    const betaLink = document.getElementById('taskBetaLink').value.trim()
     const notes = document.getElementById('taskNotes').value.trim()
     
     if (!name || !deadline) {
@@ -2525,6 +2568,7 @@ async function updateBetaTask() {
             status: status,
             assignee_id: assigneeId,
             beta_chars: betaChars ? parseInt(betaChars) : null,
+            beta_link: betaLink || null,
             notes: notes,
             updated_at: new Date().toISOString()
         }
@@ -2547,11 +2591,11 @@ async function updateBetaTask() {
         renderProjectsTable()
         
         // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'))
+        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
         
         // Clear form
-        document.getElementById('addTaskForm').reset()
+        document.getElementById('taskForm').reset()
         window.currentEditingTaskId = null
         
         showNotification('Đã cập nhật công việc thành công', 'success')
@@ -2572,19 +2616,6 @@ function setupBetaTaskFilters() {
 
 // Initialize beta task functionality
 function initializeBetaTasks() {
-    // Add event listener for beta task form submission
-    const addTaskForm = document.getElementById('addTaskForm')
-    if (addTaskForm) {
-        addTaskForm.addEventListener('submit', function(e) {
-            e.preventDefault()
-            if (currentTaskType === 'beta') {
-                updateBetaTask()
-            } else {
-                updateTask()
-            }
-        })
-    }
-    
     // Setup filters
     setupBetaTaskFilters()
 } 

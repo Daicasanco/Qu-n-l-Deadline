@@ -69,6 +69,15 @@ function initializeApp() {
     // Set up event listeners
     setupEventListeners()
     
+    // Debug: Add click listener to addTaskBtn
+    const addTaskBtn = document.getElementById('addTaskBtn')
+    if (addTaskBtn) {
+        addTaskBtn.addEventListener('click', function(e) {
+            console.log('addTaskBtn clicked!')
+            console.log('onclick handler:', this.onclick)
+        })
+    }
+    
     // Set up realtime subscriptions
     setupRealtimeSubscriptions()
 }
@@ -314,9 +323,15 @@ function updateUserInterface() {
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
-        // Chỉ hiện nút "Thêm Công việc" khi ở trong tasks view và là manager
-        const isInTasksView = document.getElementById('tasksView').style.display !== 'none'
-        addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
+            // Chỉ hiện nút "Thêm Công việc" khi ở trong tasks view và là manager
+    const tasksView = document.getElementById('tasksView')
+    const isInTasksView = tasksView && tasksView.style.display !== 'none'
+    addTaskBtn.style.display = (currentUser.role === 'manager' && isInTasksView) ? 'inline-block' : 'none'
+    
+    // Debug logging
+    console.log('updateUserInterface - currentUser.role:', currentUser.role)
+    console.log('updateUserInterface - isInTasksView:', isInTasksView)
+    console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
         
         viewEmployeesBtn.style.display = currentUser.role === 'manager' ? 'inline-block' : 'none'
         
@@ -527,6 +542,11 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
+    console.log('addTask() called')
+    console.log('currentUser:', currentUser)
+    console.log('currentTaskType:', currentTaskType)
+    console.log('currentProjectId:', currentProjectId)
+    
     const nameInput = document.getElementById('taskName');
     const deadlineInput = document.getElementById('taskDeadline');
     const priorityInput = document.getElementById('taskPriority');
@@ -537,6 +557,8 @@ async function addTask() {
     const name = nameInput ? nameInput.value : '';
     const deadline = deadlineInput ? deadlineInput.value : '';
     const priority = priorityInput ? priorityInput.value : '';
+
+    console.log('Form values:', { name, deadline, priority, projectId, currentTaskType })
 
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
@@ -630,7 +652,13 @@ async function addTask() {
         document.getElementById('taskForm').reset()
     } catch (error) {
         console.error('Error adding task:', error)
-        showNotification('Lỗi thêm công việc', 'error')
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+        })
+        showNotification('Lỗi thêm công việc: ' + error.message, 'error')
     }
 }
 
@@ -1456,6 +1484,10 @@ function toggleBatchCreate() {
 }
 
 function showAddTaskModal() {
+    console.log('showAddTaskModal() called')
+    console.log('currentUser:', currentUser)
+    console.log('currentProjectId:', currentProjectId)
+    
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để thêm công việc', 'error')
         return
@@ -1548,6 +1580,10 @@ function showAddTaskModal() {
     // Setup event listeners for auto-calculation
     document.getElementById('taskDialogueChars').addEventListener('input', calculateRVChars)
     document.getElementById('taskTotalChars').addEventListener('input', calculateRVChars)
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'))
+    modal.show()
 }
 
 // Function to set field permissions based on task type and user role

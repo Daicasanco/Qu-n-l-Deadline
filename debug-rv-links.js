@@ -5,165 +5,182 @@
 function debugBetaTaskRVLinks() {
     console.log('=== DEBUG: Kiểm tra RV links cho Beta tasks ===')
     
-    // Lấy tất cả tasks
-    fetch('/api/tasks')
-        .then(response => response.json())
-        .then(tasks => {
-            const betaTasks = tasks.filter(t => t.task_type === 'beta')
-            const rvTasks = tasks.filter(t => t.task_type === 'rv')
+    // Sử dụng data có sẵn thay vì fetch từ API
+    if (typeof tasks === 'undefined') {
+        console.error('❌ Lỗi: Biến tasks không tồn tại. Hãy đảm bảo trang đã load xong.')
+        return
+    }
+    
+    const betaTasks = tasks.filter(t => t.task_type === 'beta')
+    const rvTasks = tasks.filter(t => t.task_type === 'rv')
+    
+    console.log('Tổng số Beta tasks:', betaTasks.length)
+    console.log('Tổng số RV tasks:', rvTasks.length)
+    
+    let issuesFound = 0
+    
+    betaTasks.forEach(betaTask => {
+        if (betaTask.parent_task_id) {
+            const parentRVTask = rvTasks.find(rv => rv.id === betaTask.parent_task_id)
             
-            console.log('Tổng số Beta tasks:', betaTasks.length)
-            console.log('Tổng số RV tasks:', rvTasks.length)
-            
-            let issuesFound = 0
-            
-            betaTasks.forEach(betaTask => {
-                if (betaTask.parent_task_id) {
-                    const parentRVTask = rvTasks.find(rv => rv.id === betaTask.parent_task_id)
-                    
-                    if (parentRVTask) {
-                        console.log(`\n--- Beta Task: ${betaTask.name} (ID: ${betaTask.id}) ---`)
-                        console.log('Parent RV Task:', parentRVTask.name, '(ID:', parentRVTask.id + ')')
-                        console.log('Beta task rv_link:', betaTask.rv_link)
-                        console.log('Beta task submission_link:', betaTask.submission_link)
-                        console.log('Parent RV task rv_link:', parentRVTask.rv_link)
-                        
-                        let hasIssues = false
-                        
-                        if (!parentRVTask.rv_link || parentRVTask.rv_link.trim() === '') {
-                            console.log('❌ VẤN ĐỀ: Parent RV task không có rv_link')
-                            hasIssues = true
-                        }
-                        
-                        if (!betaTask.rv_link || betaTask.rv_link.trim() === '') {
-                            console.log('❌ VẤN ĐỀ: Beta task không có rv_link')
-                            hasIssues = true
-                        } else if (betaTask.rv_link !== parentRVTask.rv_link) {
-                            console.log('❌ VẤN ĐỀ: rv_link không khớp với parent rv_link')
-                            console.log('  Beta rv_link:', betaTask.rv_link)
-                            console.log('  Parent rv_link:', parentRVTask.rv_link)
-                            hasIssues = true
-                        }
-                        
-                        if (!betaTask.submission_link || betaTask.submission_link.trim() === '') {
-                            console.log('❌ VẤN ĐỀ: Beta task không có submission_link')
-                            hasIssues = true
-                        } else if (betaTask.submission_link !== parentRVTask.rv_link) {
-                            console.log('❌ VẤN ĐỀ: submission_link không khớp với parent rv_link')
-                            console.log('  Beta submission_link:', betaTask.submission_link)
-                            console.log('  Parent rv_link:', parentRVTask.rv_link)
-                            hasIssues = true
-                        }
-                        
-                        if (!hasIssues) {
-                            console.log('✅ OK: Tất cả links khớp')
-                        } else {
-                            issuesFound++
-                        }
-                    } else {
-                        console.log(`\n❌ VẤN ĐỀ: Beta task ${betaTask.name} không tìm thấy parent RV task`)
-                        issuesFound++
-                    }
+            if (parentRVTask) {
+                console.log(`\n--- Beta Task: ${betaTask.name} (ID: ${betaTask.id}) ---`)
+                console.log('Parent RV Task:', parentRVTask.name, '(ID:', parentRVTask.id + ')')
+                console.log('Beta task rv_link:', betaTask.rv_link)
+                console.log('Beta task submission_link:', betaTask.submission_link)
+                console.log('Parent RV task submission_link:', parentRVTask.submission_link)
+                
+                let hasIssues = false
+                
+                if (!parentRVTask.submission_link || parentRVTask.submission_link.trim() === '') {
+                    console.log('❌ VẤN ĐỀ: Parent RV task không có submission_link')
+                    hasIssues = true
+                }
+                
+                if (!betaTask.rv_link || betaTask.rv_link.trim() === '') {
+                    console.log('❌ VẤN ĐỀ: Beta task không có rv_link')
+                    hasIssues = true
+                } else if (betaTask.rv_link !== parentRVTask.submission_link) {
+                    console.log('❌ VẤN ĐỀ: rv_link không khớp với parent submission_link')
+                    console.log('  Beta rv_link:', betaTask.rv_link)
+                    console.log('  Parent submission_link:', parentRVTask.submission_link)
+                    hasIssues = true
+                }
+                
+                if (!betaTask.submission_link || betaTask.submission_link.trim() === '') {
+                    console.log('❌ VẤN ĐỀ: Beta task không có submission_link')
+                    hasIssues = true
+                } else if (betaTask.submission_link !== parentRVTask.submission_link) {
+                    console.log('❌ VẤN ĐỀ: submission_link không khớp với parent submission_link')
+                    console.log('  Beta submission_link:', betaTask.submission_link)
+                    console.log('  Parent submission_link:', parentRVTask.submission_link)
+                    hasIssues = true
+                }
+                
+                if (!hasIssues) {
+                    console.log('✅ OK: Tất cả links khớp')
                 } else {
-                    console.log(`\n❌ VẤN ĐỀ: Beta task ${betaTask.name} không có parent_task_id`)
                     issuesFound++
                 }
-            })
-            
-            console.log(`\n=== TỔNG KẾT: Tìm thấy ${issuesFound} vấn đề ===`)
-        })
-        .catch(error => {
-            console.error('Lỗi khi debug:', error)
-        })
+            } else {
+                console.log(`\n❌ VẤN ĐỀ: Beta task ${betaTask.name} không tìm thấy parent RV task`)
+                issuesFound++
+            }
+        } else {
+            console.log(`\n❌ VẤN ĐỀ: Beta task ${betaTask.name} không có parent_task_id`)
+            issuesFound++
+        }
+    })
+    
+    console.log(`\n=== TỔNG KẾT: Tìm thấy ${issuesFound} vấn đề ===`)
 }
 
 // Function để kiểm tra và sửa link RV cho beta tasks
 async function fixBetaTaskRVLinks() {
     console.log('=== FIX: Sửa RV links cho Beta tasks ===')
     
-    try {
-        // Lấy tất cả tasks
-        const response = await fetch('/api/tasks')
-        const tasks = await response.json()
-        
-        const betaTasks = tasks.filter(t => t.task_type === 'beta')
-        const rvTasks = tasks.filter(t => t.task_type === 'rv')
-        
-        let fixedCount = 0
-        let errorCount = 0
-        
-        for (const betaTask of betaTasks) {
-            if (betaTask.parent_task_id) {
-                const parentRVTask = rvTasks.find(rv => rv.id === betaTask.parent_task_id)
+    // Sử dụng data có sẵn thay vì fetch từ API
+    if (typeof tasks === 'undefined') {
+        console.error('❌ Lỗi: Biến tasks không tồn tại. Hãy đảm bảo trang đã load xong.')
+        return
+    }
+    
+    const betaTasks = tasks.filter(t => t.task_type === 'beta')
+    const rvTasks = tasks.filter(t => t.task_type === 'rv')
+    
+    let fixedCount = 0
+    let errorCount = 0
+    
+    for (const betaTask of betaTasks) {
+        if (betaTask.parent_task_id) {
+            const parentRVTask = rvTasks.find(rv => rv.id === betaTask.parent_task_id)
+            
+            if (parentRVTask && parentRVTask.submission_link && parentRVTask.submission_link.trim()) {
+                // Kiểm tra xem có cần update không
+                const needsRVLinkUpdate = !betaTask.rv_link || betaTask.rv_link.trim() === '' || betaTask.rv_link !== parentRVTask.submission_link
+                const needsSubmissionLinkUpdate = !betaTask.submission_link || betaTask.submission_link.trim() === '' || betaTask.submission_link !== parentRVTask.submission_link
                 
-                if (parentRVTask && parentRVTask.rv_link && parentRVTask.rv_link.trim()) {
-                    // Kiểm tra xem có cần update không
-                    const needsRVLinkUpdate = !betaTask.rv_link || betaTask.rv_link.trim() === '' || betaTask.rv_link !== parentRVTask.rv_link
-                    const needsSubmissionLinkUpdate = !betaTask.submission_link || betaTask.submission_link.trim() === '' || betaTask.submission_link !== parentRVTask.rv_link
+                if (needsRVLinkUpdate || needsSubmissionLinkUpdate) {
+                    console.log(`\nSửa Beta task: ${betaTask.name}`)
+                    console.log('  Old rv_link:', betaTask.rv_link)
+                    console.log('  Old submission_link:', betaTask.submission_link)
+                    console.log('  New links:', parentRVTask.submission_link)
                     
-                    if (needsRVLinkUpdate || needsSubmissionLinkUpdate) {
-                        console.log(`\nSửa Beta task: ${betaTask.name}`)
-                        console.log('  Old rv_link:', betaTask.rv_link)
-                        console.log('  Old submission_link:', betaTask.submission_link)
-                        console.log('  New links:', parentRVTask.rv_link)
-                        
-                        // Update via Supabase
-                        const updateResponse = await fetch(`/api/tasks/${betaTask.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                rv_link: parentRVTask.rv_link,
-                                submission_link: parentRVTask.rv_link
+                    // Update via Supabase
+                    try {
+                        const { data, error } = await supabase
+                            .from('tasks')
+                            .update({
+                                rv_link: parentRVTask.submission_link,
+                                submission_link: parentRVTask.submission_link
                             })
-                        })
+                            .eq('id', betaTask.id)
                         
-                        if (updateResponse.ok) {
+                        if (error) {
+                            console.log('  ❌ Lỗi khi sửa:', error.message)
+                            errorCount++
+                        } else {
                             console.log('  ✅ Đã sửa thành công')
                             fixedCount++
-                        } else {
-                            console.log('  ❌ Lỗi khi sửa:', updateResponse.statusText)
-                            errorCount++
+                            
+                            // Update local data
+                            const taskIndex = tasks.findIndex(t => t.id === betaTask.id)
+                            if (taskIndex !== -1) {
+                                tasks[taskIndex].rv_link = parentRVTask.submission_link
+                                tasks[taskIndex].submission_link = parentRVTask.submission_link
+                            }
                         }
-                    } else {
-                        console.log(`\n✅ Beta task ${betaTask.name} đã đúng`)
+                    } catch (err) {
+                        console.log('  ❌ Exception khi sửa:', err.message)
+                        errorCount++
                     }
                 } else {
-                    console.log(`\n❌ Parent RV task không có rv_link cho Beta task: ${betaTask.name}`)
-                    errorCount++
+                    console.log(`\n✅ Beta task ${betaTask.name} đã đúng`)
                 }
             } else {
-                console.log(`\n❌ Beta task ${betaTask.name} không có parent_task_id`)
+                console.log(`\n❌ Parent RV task không có submission_link cho Beta task: ${betaTask.name}`)
                 errorCount++
             }
+        } else {
+            console.log(`\n❌ Beta task ${betaTask.name} không có parent_task_id`)
+            errorCount++
         }
-        
-        console.log(`\n=== TỔNG KẾT: Đã sửa ${fixedCount} tasks, ${errorCount} lỗi ===`)
-        
-        // Refresh trang để xem kết quả
-        setTimeout(() => {
-            location.reload()
-        }, 2000)
-        
-    } catch (error) {
-        console.error('Lỗi khi fix RV links:', error)
     }
+    
+    console.log(`\n=== TỔNG KẾT: Đã sửa ${fixedCount} tasks, ${errorCount} lỗi ===`)
+    
+    // Refresh trang để xem kết quả
+    setTimeout(() => {
+        location.reload()
+    }, 2000)
 }
 
-// Function để kiểm tra real-time data
+// Function để kiểm tra data real-time
 function checkRealTimeData() {
-    console.log('=== REAL-TIME DATA CHECK ===')
-    console.log('Current tasks data:', tasks.length)
-    console.log('Beta tasks:', tasks.filter(t => t.task_type === 'beta').length)
-    console.log('RV tasks:', tasks.filter(t => t.task_type === 'rv').length)
+    console.log('=== CHECK: Kiểm tra data real-time ===')
     
-    // Kiểm tra một số beta tasks cụ thể
-    const betaTasks = tasks.filter(t => t.task_type === 'beta').slice(0, 5)
-    betaTasks.forEach(task => {
-        console.log(`Beta Task ${task.id}: ${task.name}`)
-        console.log(`  RV Link: ${task.rv_link || 'NULL'}`)
-        console.log(`  Parent ID: ${task.parent_task_id}`)
+    if (typeof tasks === 'undefined') {
+        console.error('❌ Lỗi: Biến tasks không tồn tại')
+        return
+    }
+    
+    console.log('Tổng số tasks:', tasks.length)
+    console.log('Tasks theo loại:')
+    console.log('- RV tasks:', tasks.filter(t => t.task_type === 'rv').length)
+    console.log('- Beta tasks:', tasks.filter(t => t.task_type === 'beta').length)
+    
+    // Hiển thị một số task mẫu
+    const sampleRVTasks = tasks.filter(t => t.task_type === 'rv').slice(0, 3)
+    const sampleBetaTasks = tasks.filter(t => t.task_type === 'beta').slice(0, 3)
+    
+    console.log('\n--- Sample RV Tasks ---')
+    sampleRVTasks.forEach(task => {
+        console.log(`ID: ${task.id}, Name: ${task.name}, rv_link: ${task.rv_link}, submission_link: ${task.submission_link}`)
+    })
+    
+    console.log('\n--- Sample Beta Tasks ---')
+    sampleBetaTasks.forEach(task => {
+        console.log(`ID: ${task.id}, Name: ${task.name}, parent_task_id: ${task.parent_task_id}, rv_link: ${task.rv_link}, submission_link: ${task.submission_link}`)
     })
 }
 

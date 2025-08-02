@@ -106,10 +106,15 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-        // Get task ID from URL parameters
+        // Get task ID and type from URL
         function getTaskIdFromUrl() {
             const urlParams = new URLSearchParams(window.location.search)
             return urlParams.get('taskId')
+        }
+
+        function getTaskTypeFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search)
+            return urlParams.get('type') || 'rv' // Default to 'rv' if not specified
         }
 
         // Format date
@@ -134,6 +139,7 @@
         // Load task details and notes
         async function loadTaskNotes() {
             const taskId = getTaskIdFromUrl()
+            const taskType = getTaskTypeFromUrl()
             
             if (!taskId) {
                 document.getElementById('notesContent').innerHTML = `
@@ -176,15 +182,32 @@
                 document.getElementById('taskStatus').innerHTML = getStatusBadge(task.status)
                 document.getElementById('taskDeadline').textContent = formatDateTime(task.deadline)
 
-                // Display notes
+                // Display notes based on task type
                 const notesContent = document.getElementById('notesContent')
-                if (task.notes && task.notes.trim()) {
-                    notesContent.innerHTML = task.notes
+                let notesText = ''
+                let notesLabel = ''
+
+                if (taskType === 'beta') {
+                    notesText = task.beta_notes || ''
+                    notesLabel = 'Ghi chú Beta'
+                } else {
+                    notesText = task.notes || ''
+                    notesLabel = 'Ghi chú RV'
+                }
+
+                // Update the header to show which type of notes
+                const headerElement = document.querySelector('.notes-header h2')
+                if (headerElement) {
+                    headerElement.innerHTML = `<i class="fas fa-sticky-note me-2"></i>${notesLabel}`
+                }
+
+                if (notesText && notesText.trim()) {
+                    notesContent.innerHTML = notesText
                 } else {
                     notesContent.innerHTML = `
                         <div class="text-center text-muted">
                             <i class="fas fa-sticky-note fa-2x mb-3"></i>
-                            <p>Chưa có ghi chú nào</p>
+                            <p>Chưa có ${notesLabel.toLowerCase()} nào</p>
                         </div>
                     `
                 }

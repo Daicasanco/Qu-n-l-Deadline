@@ -563,6 +563,7 @@ async function addTask() {
         const betaChars = document.getElementById('taskBetaChars')?.value || null
         const rate = document.getElementById('taskRate')?.value || null
         const notes = document.getElementById('taskNotes')?.value || ''
+        const betaNotes = document.getElementById('taskBetaNotes')?.value || ''
         
         let insertData = []
         if (isBatch && batchCount > 1) {
@@ -584,6 +585,7 @@ async function addTask() {
                     beta_chars: betaChars ? parseInt(betaChars) : null,
                     rate: rate ? parseFloat(rate) : null,
                     notes: notes,
+                    beta_notes: betaNotes,
                     created_at: new Date().toISOString()
                 })
             }
@@ -605,6 +607,7 @@ async function addTask() {
                 beta_chars: betaChars ? parseInt(betaChars) : null,
                 rate: rate ? parseFloat(rate) : null,
                 notes: notes,
+                beta_notes: betaNotes,
                 created_at: new Date().toISOString()
             })
         }
@@ -845,9 +848,23 @@ async function editTask(id) {
     setVal('taskBetaChars', task.beta_chars || '')
     setVal('taskRate', task.rate || '')
     setVal('taskNotes', task.notes || '')
+    setVal('taskBetaNotes', task.beta_notes || '')
     document.getElementById('taskStatusField').style.display = 'block'
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
     updateAssigneeDropdowns()
+    
+    // Show/hide fields based on task type
+    const isBetaTask = task.task_type === 'beta'
+    const notesField = document.getElementById('taskNotes').parentElement
+    const betaNotesField = document.getElementById('betaNotesField')
+    
+    if (isBetaTask) {
+        if (notesField) notesField.style.display = 'none'
+        if (betaNotesField) betaNotesField.style.display = ''
+    } else {
+        if (notesField) notesField.style.display = ''
+        if (betaNotesField) betaNotesField.style.display = 'none'
+    }
     const assigneeEl = document.getElementById('taskAssignee');
     if (assigneeEl) assigneeEl.value = task.assignee_id || '';
     const isEmployee = currentUser.role === 'employee'
@@ -910,6 +927,7 @@ async function updateTask() {
     const betaChars = document.getElementById('taskBetaChars').value
     const rate = document.getElementById('taskRate').value
     const notes = document.getElementById('taskNotes').value
+    const betaNotes = document.getElementById('taskBetaNotes').value
     
     // Validate input
     if (!name || !deadline) {
@@ -947,6 +965,7 @@ async function updateTask() {
                 beta_chars: betaChars ? parseInt(betaChars) : null,
                 rate: rate ? parseFloat(rate) : null,
                 notes: notes || null,
+                beta_notes: betaNotes || null,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
@@ -1233,7 +1252,7 @@ function renderTasksTable() {
         let notesDisplay = '<span class="text-muted">-</span>'
         if (task.notes && task.notes.trim()) {
             if (task.notes.length > 100) {
-                notesDisplay = `<a href="task-notes.html?taskId=${task.id}" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú</a>`
+                notesDisplay = `<a href="task-notes.html?taskId=${task.id}&type=rv" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú RV</a>`
             } else {
                 notesDisplay = `<span title="${task.notes}">${task.notes.substring(0, 50)}${task.notes.length > 50 ? '...' : ''}</span>`
             }
@@ -1495,6 +1514,8 @@ function showAddTaskModal() {
     const totalCharsField = document.getElementById('taskTotalChars')
     const submissionLinkField = document.getElementById('taskSubmissionLink')
     const betaLinkField = document.getElementById('taskBetaLink')
+    const notesField = document.getElementById('taskNotes').parentElement
+    const betaNotesField = document.getElementById('betaNotesField')
     
     if (isBetaTask) {
         // For beta tasks, show beta chars field and hide RV calculation fields
@@ -1504,6 +1525,8 @@ function showAddTaskModal() {
         if (totalCharsField) totalCharsField.parentElement.style.display = 'none'
         if (submissionLinkField) submissionLinkField.parentElement.style.display = 'none'
         if (betaLinkField) betaLinkField.parentElement.style.display = ''
+        if (notesField) notesField.style.display = 'none'
+        if (betaNotesField) betaNotesField.style.display = ''
         
         // Set field permissions for beta tasks
         setFieldPermissions('beta')
@@ -1515,6 +1538,8 @@ function showAddTaskModal() {
         if (totalCharsField) totalCharsField.parentElement.style.display = ''
         if (submissionLinkField) submissionLinkField.parentElement.style.display = ''
         if (betaLinkField) betaLinkField.parentElement.style.display = 'none'
+        if (notesField) notesField.style.display = ''
+        if (betaNotesField) betaNotesField.style.display = 'none'
         
         // Set field permissions for RV tasks
         setFieldPermissions('rv')
@@ -1542,7 +1567,8 @@ function setFieldPermissions(taskType) {
         'taskNotes': 'notes',
         'taskAssignee': 'assignee_id',
         'taskBetaLink': 'beta_link',
-        'taskBetaChars': 'beta_chars'
+        'taskBetaChars': 'beta_chars',
+        'taskBetaNotes': 'beta_notes'
     }
     
     Object.entries(fields).forEach(([fieldId, fieldName]) => {
@@ -2405,11 +2431,11 @@ function renderBetaTasksTable() {
         
         // Format notes with link if extensive
         let notesDisplay = '<span class="text-muted">-</span>'
-        if (task.notes && task.notes.trim()) {
-            if (task.notes.length > 100) {
-                notesDisplay = `<a href="task-notes.html?taskId=${task.id}" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú</a>`
+        if (task.beta_notes && task.beta_notes.trim()) {
+            if (task.beta_notes.length > 100) {
+                notesDisplay = `<a href="task-notes.html?taskId=${task.id}&type=beta" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-sticky-note"></i> Xem ghi chú Beta</a>`
             } else {
-                notesDisplay = `<span title="${task.notes}">${task.notes.substring(0, 50)}${task.notes.length > 50 ? '...' : ''}</span>`
+                notesDisplay = `<span title="${task.beta_notes}">${task.beta_notes.substring(0, 50)}${task.beta_notes.length > 50 ? '...' : ''}</span>`
             }
         }
         
@@ -2496,6 +2522,14 @@ async function editBetaTask(id) {
     setVal('taskBetaChars', task.beta_chars || '')
     setVal('taskBetaLink', task.beta_link || '')
     setVal('taskNotes', task.notes || '')
+    setVal('taskBetaNotes', task.beta_notes || '')
+    
+    // Show/hide fields based on task type
+    const notesField = document.getElementById('taskNotes').parentElement
+    const betaNotesField = document.getElementById('betaNotesField')
+    
+    if (notesField) notesField.style.display = 'none'
+    if (betaNotesField) betaNotesField.style.display = ''
     
     // Store current task ID for update
     window.currentEditingTaskId = id
@@ -2639,6 +2673,7 @@ async function updateBetaTask() {
     const betaChars = document.getElementById('taskBetaChars').value
     const betaLink = document.getElementById('taskBetaLink').value.trim()
     const notes = document.getElementById('taskNotes').value.trim()
+    const betaNotes = document.getElementById('taskBetaNotes').value.trim()
     
     if (!name || !deadline) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'warning')
@@ -2656,6 +2691,7 @@ async function updateBetaTask() {
             beta_chars: betaChars ? parseInt(betaChars) : null,
             beta_link: betaLink || null,
             notes: notes,
+            beta_notes: betaNotes,
             updated_at: new Date().toISOString()
         }
         

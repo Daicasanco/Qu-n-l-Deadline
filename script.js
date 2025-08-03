@@ -2395,10 +2395,18 @@ async function loadAllTimeLeaderboard() {
             const employeeId = task.assignee_id
             if (employeeStats[employeeId]) {
                 employeeStats[employeeId].totalTasks++
-                // Tính cả rv_chars và beta_chars cho bảng xếp hạng
-                const rvChars = task.rv_chars || 0
-                const betaChars = task.beta_chars || 0
-                employeeStats[employeeId].totalChars += (rvChars + betaChars)
+                
+                // Tính số chữ theo loại task
+                let taskChars = 0
+                if (task.task_type === 'beta') {
+                    // Task beta: chỉ tính beta_chars
+                    taskChars = task.beta_chars || 0
+                } else {
+                    // Task rv: chỉ tính rv_chars
+                    taskChars = task.rv_chars || 0
+                }
+                
+                employeeStats[employeeId].totalChars += taskChars
             }
         })
 
@@ -2478,10 +2486,18 @@ async function loadMonthlyLeaderboard() {
             const employeeId = task.assignee_id
             if (employeeStats[employeeId]) {
                 employeeStats[employeeId].totalTasks++
-                // Tính cả rv_chars và beta_chars cho bảng xếp hạng
-                const rvChars = task.rv_chars || 0
-                const betaChars = task.beta_chars || 0
-                employeeStats[employeeId].totalChars += (rvChars + betaChars)
+                
+                // Tính số chữ theo loại task
+                let taskChars = 0
+                if (task.task_type === 'beta') {
+                    // Task beta: chỉ tính beta_chars
+                    taskChars = task.beta_chars || 0
+                } else {
+                    // Task rv: chỉ tính rv_chars
+                    taskChars = task.rv_chars || 0
+                }
+                
+                employeeStats[employeeId].totalChars += taskChars
             }
         })
 

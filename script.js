@@ -1513,9 +1513,11 @@ function renderProjectsTable() {
             <td><span class="badge bg-info">${taskCount} công việc</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
-                        <i class="fas fa-chart-bar"></i>
-                    </button>
+                    ${hasManagerOrBossPermissions(currentUser) ? 
+                        `<button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>` : ''
+                    }
                     ${canOperateOnProject(project) ? 
                         `<button class="btn btn-outline-warning btn-sm" onclick="editProject(${project.id})">
                             <i class="fas fa-edit"></i>
@@ -3458,6 +3460,12 @@ function testRankBasedStyling() {
 
 // Project Reporting Functions
 async function showProjectReport(projectId) {
+    // Check if user has permission to view reports (only boss and manager)
+    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền xem báo cáo thống kê', 'error')
+        return
+    }
+
     const project = projects.find(p => p.id === projectId)
     if (!project) {
         showNotification('Không tìm thấy dự án', 'error')

@@ -2804,6 +2804,9 @@ async function editBetaTask(id) {
     // Store current task ID for update
     window.currentEditingTaskId = id
     
+    // Set modal title for editing
+    document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
+    
     // Set field permissions for beta tasks (this will handle UI reset)
     setFieldPermissions('beta')
     

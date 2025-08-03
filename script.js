@@ -724,7 +724,8 @@ async function addTask() {
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
         showNotification('Thêm Deadline thành công!', 'success')
-        document.getElementById('taskForm').reset()
+        // Remove form reset - not needed since modal is already closed
+        // This was causing race conditions when users quickly clicked to edit another task
     } catch (error) {
         console.error('Error adding task:', error)
         console.error('Error details:', {
@@ -1136,10 +1137,8 @@ async function updateTask() {
             
             showNotification('Cập nhật công việc thành công!', 'success')
             
-            // Clear form and hide status field
-            document.getElementById('taskForm').reset()
-            document.getElementById('taskStatusField').style.display = 'none'
-            document.getElementById('taskModalTitle').textContent = 'Thêm Deadline'
+            // Remove form reset and title change - not needed since modal is already closed
+            // This was causing race conditions when users quickly clicked to edit another task
         } else {
             showNotification('Không thể cập nhật công việc', 'error')
         }
@@ -3005,8 +3004,8 @@ async function updateBetaTask() {
         const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'))
         modal.hide()
         
-        // Clear form
-        document.getElementById('taskForm').reset()
+        // Remove form reset - not needed since modal is already closed
+        // This was causing race conditions when users quickly clicked to edit another task
         window.currentEditingTaskId = null
         
         showNotification('Đã cập nhật công việc thành công', 'success')

@@ -2637,7 +2637,7 @@ function renderBetaTasksTable() {
     }
     
     if (assigneeFilter) {
-        filteredBetaTasks = filteredBetaTasks.filter(task => task.assignee_id === assigneeFilter)
+        filteredBetaTasks = filteredBetaTasks.filter(task => String(task.assignee_id) === assigneeFilter)
     }
     
     // Sắp xếp theo tên deadline A-Z
@@ -2799,6 +2799,9 @@ async function editBetaTask(id) {
             return
         }
     }
+    
+    // Set currentTaskType to 'beta' for proper field permissions
+    currentTaskType = 'beta'
     
     // Set form values
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };

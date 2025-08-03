@@ -142,8 +142,8 @@
 
             <!-- Main Content Area -->
             <div class="col-lg-8 col-md-6">
-                        <!-- Dashboard -->
-        <div id="dashboard" class="row">
+                <!-- Dashboard -->
+                <div id="dashboard" class="row">
             <div class="col-md-3">
                 <div class="card text-center mb-3">
                     <div class="card-body">
@@ -182,104 +182,6 @@
             </div>
         </div>
 
-        <!-- Advanced Analytics Dashboard -->
-        <div id="advancedAnalytics" class="row mb-4" style="display: none;">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-gradient-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Analytics Nâng cao
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Thời gian trung bình hoàn thành -->
-                            <div class="col-md-3">
-                                <div class="card bg-primary text-white text-center">
-                                    <div class="card-body">
-                                        <i class="fas fa-clock fa-2x mb-2"></i>
-                                        <h5 class="card-title">Thời gian TB hoàn thành</h5>
-                                        <h4 id="avgCompletionTime">0 giờ</h4>
-                                        <small>Kể từ khi nhận deadline</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Tỷ lệ hoàn thành đúng hạn -->
-                            <div class="col-md-3">
-                                <div class="card bg-success text-white text-center">
-                                    <div class="card-body">
-                                        <i class="fas fa-check-double fa-2x mb-2"></i>
-                                        <h5 class="card-title">Tỷ lệ đúng hạn</h5>
-                                        <h4 id="onTimeRate">0%</h4>
-                                        <small>Task hoàn thành đúng deadline</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Hiệu suất trung bình -->
-                            <div class="col-md-3">
-                                <div class="card bg-info text-white text-center">
-                                    <div class="card-body">
-                                        <i class="fas fa-tachometer-alt fa-2x mb-2"></i>
-                                        <h5 class="card-title">Hiệu suất TB</h5>
-                                        <h4 id="avgPerformance">0 chữ/giờ</h4>
-                                        <small>Tốc độ xử lý trung bình</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Doanh thu tháng -->
-                            <div class="col-md-3">
-                                <div class="card bg-warning text-white text-center">
-                                    <div class="card-body">
-                                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
-                                        <h5 class="card-title">Doanh thu tháng</h5>
-                                        <h4 id="monthlyRevenue">0 VNĐ</h4>
-                                        <small>Tháng hiện tại</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Employee Performance Table -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-users me-2"></i>
-                                            Hiệu suất nhân viên
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped" id="employeePerformanceTable">
-                                                <thead class="table-dark">
-                                                    <tr>
-                                                        <th>Nhân viên</th>
-                                                        <th>Task hoàn thành</th>
-                                                        <th>Thời gian TB</th>
-                                                        <th>Tỷ lệ đúng hạn</th>
-                                                        <th>Hiệu suất</th>
-                                                        <th>Doanh thu</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="employeePerformanceBody">
-                                                    <!-- Employee performance data will be loaded here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Action Buttons -->
         <div class="mb-3">
             <button class="btn btn-primary" id="addProjectBtn" onclick="showAddProjectModal()" style="display: none;">
@@ -290,9 +192,6 @@
             </button>
             <button class="btn btn-info" id="viewEmployeesBtn" onclick="showEmployeesList()" style="display: none;">
                 <i class="fas fa-users"></i> Xem Nhân viên
-            </button>
-            <button class="btn btn-warning" id="toggleAnalyticsBtn" onclick="toggleAdvancedAnalytics()" style="display: none;">
-                <i class="fas fa-chart-line"></i> Analytics
             </button>
             <button class="btn btn-secondary" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i> Làm mới

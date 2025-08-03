@@ -144,11 +144,6 @@ async function loadDataFromSupabase() {
         updateAssigneeDropdowns() // Ensure dropdowns are updated after data load
         setupBetaTaskFilters() // Ensure beta task filters are updated after data load
         
-        // Update analytics if visible
-        if (document.getElementById('advancedAnalytics').style.display !== 'none') {
-            updateAdvancedAnalytics()
-        }
-        
         // Ensure we start with projects view
         showProjectsView()
         
@@ -347,26 +342,22 @@ function updateUserInterface() {
     const addProjectBtn = document.getElementById('addProjectBtn')
     const addTaskBtn = document.getElementById('addTaskBtn')
     const viewEmployeesBtn = document.getElementById('viewEmployeesBtn')
-    const toggleAnalyticsBtn = document.getElementById('toggleAnalyticsBtn')
     
     if (currentUser) {
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
-        // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager hoặc boss
-        const tasksView = document.getElementById('tasksView')
-        const isInTasksView = tasksView && tasksView.style.display !== 'none'
-        addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
-        
-        // Debug logging
-        console.log('updateUserInterface - currentUser.role:', currentUser.role)
-        console.log('updateUserInterface - isInTasksView:', isInTasksView)
-        console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
+            // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager hoặc boss
+    const tasksView = document.getElementById('tasksView')
+    const isInTasksView = tasksView && tasksView.style.display !== 'none'
+    addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
+    
+    // Debug logging
+    console.log('updateUserInterface - currentUser.role:', currentUser.role)
+    console.log('updateUserInterface - isInTasksView:', isInTasksView)
+    console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
-        
-        // Show/hide analytics button for managers and bosses
-        toggleAnalyticsBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
         // Show/hide announcement edit button for managers and bosses
         const editAnnouncementBtn = document.getElementById('editAnnouncementBtn')
@@ -387,7 +378,6 @@ function updateUserInterface() {
         addProjectBtn.style.display = 'none'
         addTaskBtn.style.display = 'none'
         viewEmployeesBtn.style.display = 'none'
-        toggleAnalyticsBtn.style.display = 'none'
     }
 }
 
@@ -1701,286 +1691,6 @@ function updateDashboard() {
     document.getElementById('totalTasks').textContent = totalTasks
     document.getElementById('activeProjects').textContent = activeProjects
     document.getElementById('completedProjects').textContent = completedProjects
-    
-    // Update advanced analytics if visible
-    if (document.getElementById('advancedAnalytics').style.display !== 'none') {
-        updateAdvancedAnalytics()
-    }
-}
-
-// Advanced Analytics Functions
-function toggleAdvancedAnalytics() {
-    const analyticsDiv = document.getElementById('advancedAnalytics')
-    const toggleBtn = document.getElementById('toggleAnalyticsBtn')
-    
-    if (analyticsDiv.style.display === 'none') {
-        analyticsDiv.style.display = 'block'
-        toggleBtn.innerHTML = '<i class="fas fa-chart-line"></i> Ẩn Analytics'
-        toggleBtn.classList.remove('btn-warning')
-        toggleBtn.classList.add('btn-secondary')
-        updateAdvancedAnalytics()
-    } else {
-        analyticsDiv.style.display = 'none'
-        toggleBtn.innerHTML = '<i class="fas fa-chart-line"></i> Analytics'
-        toggleBtn.classList.remove('btn-secondary')
-        toggleBtn.classList.add('btn-warning')
-    }
-}
-
-function updateAdvancedAnalytics() {
-    calculateAverageCompletionTime()
-    calculateOnTimeRate()
-    calculateAveragePerformance()
-    calculateMonthlyRevenue()
-    updateEmployeePerformanceTable()
-}
-
-function calculateAverageCompletionTime() {
-    const completedTasks = tasks.filter(task => task.status === 'completed' && task.completed_at)
-    
-    if (completedTasks.length === 0) {
-        document.getElementById('avgCompletionTime').textContent = '0 giờ'
-        return
-    }
-    
-    let totalHours = 0
-    let validTasks = 0
-    
-    completedTasks.forEach(task => {
-        if (task.deadline && task.completed_at) {
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            const timeDiff = completedAt.getTime() - deadline.getTime()
-            const hours = Math.abs(timeDiff) / (1000 * 60 * 60)
-            totalHours += hours
-            validTasks++
-        }
-    })
-    
-    if (validTasks > 0) {
-        const avgHours = Math.round(totalHours / validTasks)
-        document.getElementById('avgCompletionTime').textContent = `${avgHours} giờ`
-    } else {
-        document.getElementById('avgCompletionTime').textContent = '0 giờ'
-    }
-}
-
-function calculateOnTimeRate() {
-    const completedTasks = tasks.filter(task => task.status === 'completed' && task.completed_at)
-    
-    if (completedTasks.length === 0) {
-        document.getElementById('onTimeRate').textContent = '0%'
-        return
-    }
-    
-    let onTimeCount = 0
-    
-    completedTasks.forEach(task => {
-        if (task.deadline && task.completed_at) {
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            if (completedAt <= deadline) {
-                onTimeCount++
-            }
-        }
-    })
-    
-    const onTimeRate = Math.round((onTimeCount / completedTasks.length) * 100)
-    document.getElementById('onTimeRate').textContent = `${onTimeRate}%`
-}
-
-function calculateAveragePerformance() {
-    const completedTasks = tasks.filter(task => task.status === 'completed' && task.completed_at)
-    
-    if (completedTasks.length === 0) {
-        document.getElementById('avgPerformance').textContent = '0 chữ/giờ'
-        return
-    }
-    
-    let totalChars = 0
-    let totalHours = 0
-    let validTasks = 0
-    
-    completedTasks.forEach(task => {
-        if (task.completed_at && task.deadline) {
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            const timeDiff = Math.abs(completedAt.getTime() - deadline.getTime())
-            const hours = timeDiff / (1000 * 60 * 60)
-            
-            let taskChars = 0
-            if (task.type === 'rv' && task.rv_chars) {
-                taskChars = task.rv_chars
-            } else if (task.type === 'beta' && task.beta_chars) {
-                taskChars = task.beta_chars
-            }
-            
-            if (taskChars > 0 && hours > 0) {
-                totalChars += taskChars
-                totalHours += hours
-                validTasks++
-            }
-        }
-    })
-    
-    if (validTasks > 0 && totalHours > 0) {
-        const avgPerformance = Math.round(totalChars / totalHours)
-        document.getElementById('avgPerformance').textContent = `${avgPerformance} chữ/giờ`
-    } else {
-        document.getElementById('avgPerformance').textContent = '0 chữ/giờ'
-    }
-}
-
-function calculateMonthlyRevenue() {
-    const currentMonth = new Date().getMonth()
-    const currentYear = new Date().getFullYear()
-    
-    const monthlyTasks = tasks.filter(task => {
-        if (task.status === 'completed' && task.completed_at) {
-            const completedDate = new Date(task.completed_at)
-            return completedDate.getMonth() === currentMonth && 
-                   completedDate.getFullYear() === currentYear
-        }
-        return false
-    })
-    
-    let totalRevenue = 0
-    
-    monthlyTasks.forEach(task => {
-        let taskRevenue = 0
-        if (task.type === 'rv' && task.rv_chars && task.rate) {
-            taskRevenue = (task.rv_chars / 1000) * task.rate
-        } else if (task.type === 'beta' && task.beta_chars && task.beta_rate) {
-            taskRevenue = (task.beta_chars / 1000) * task.beta_rate
-        }
-        totalRevenue += taskRevenue
-    })
-    
-    document.getElementById('monthlyRevenue').textContent = `${totalRevenue.toLocaleString('vi-VN')} VNĐ`
-}
-
-function updateEmployeePerformanceTable() {
-    const tbody = document.getElementById('employeePerformanceBody')
-    tbody.innerHTML = ''
-    
-    const employees = window.allEmployees.filter(emp => emp.role === 'employee')
-    
-    employees.forEach(employee => {
-        const employeeTasks = tasks.filter(task => 
-            task.assignee_id === employee.id && task.status === 'completed'
-        )
-        
-        if (employeeTasks.length === 0) return
-        
-        // Calculate metrics for this employee
-        const completedTasks = employeeTasks.length
-        const avgTime = calculateEmployeeAverageTime(employeeTasks)
-        const onTimeRate = calculateEmployeeOnTimeRate(employeeTasks)
-        const performance = calculateEmployeePerformance(employeeTasks)
-        const revenue = calculateEmployeeRevenue(employeeTasks)
-        
-        const row = document.createElement('tr')
-        row.innerHTML = `
-            <td><strong>${employee.name}</strong></td>
-            <td><span class="badge bg-primary">${completedTasks}</span></td>
-            <td>${avgTime}</td>
-            <td><span class="badge bg-${onTimeRate >= 80 ? 'success' : onTimeRate >= 60 ? 'warning' : 'danger'}">${onTimeRate}%</span></td>
-            <td>${performance}</td>
-            <td><strong>${revenue.toLocaleString('vi-VN')} VNĐ</strong></td>
-        `
-        tbody.appendChild(row)
-    })
-}
-
-function calculateEmployeeAverageTime(employeeTasks) {
-    let totalHours = 0
-    let validTasks = 0
-    
-    employeeTasks.forEach(task => {
-        if (task.deadline && task.completed_at) {
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            const timeDiff = completedAt.getTime() - deadline.getTime()
-            const hours = Math.abs(timeDiff) / (1000 * 60 * 60)
-            totalHours += hours
-            validTasks++
-        }
-    })
-    
-    if (validTasks > 0) {
-        return `${Math.round(totalHours / validTasks)} giờ`
-    }
-    return '0 giờ'
-}
-
-function calculateEmployeeOnTimeRate(employeeTasks) {
-    let onTimeCount = 0
-    let totalTasks = 0
-    
-    employeeTasks.forEach(task => {
-        if (task.deadline && task.completed_at) {
-            totalTasks++
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            if (completedAt <= deadline) {
-                onTimeCount++
-            }
-        }
-    })
-    
-    if (totalTasks > 0) {
-        return Math.round((onTimeCount / totalTasks) * 100)
-    }
-    return 0
-}
-
-function calculateEmployeePerformance(employeeTasks) {
-    let totalChars = 0
-    let totalHours = 0
-    let validTasks = 0
-    
-    employeeTasks.forEach(task => {
-        if (task.completed_at && task.deadline) {
-            const deadline = new Date(task.deadline)
-            const completedAt = new Date(task.completed_at)
-            const timeDiff = Math.abs(completedAt.getTime() - deadline.getTime())
-            const hours = timeDiff / (1000 * 60 * 60)
-            
-            let taskChars = 0
-            if (task.type === 'rv' && task.rv_chars) {
-                taskChars = task.rv_chars
-            } else if (task.type === 'beta' && task.beta_chars) {
-                taskChars = task.beta_chars
-            }
-            
-            if (taskChars > 0 && hours > 0) {
-                totalChars += taskChars
-                totalHours += hours
-                validTasks++
-            }
-        }
-    })
-    
-    if (validTasks > 0 && totalHours > 0) {
-        return `${Math.round(totalChars / totalHours)} chữ/giờ`
-    }
-    return '0 chữ/giờ'
-}
-
-function calculateEmployeeRevenue(employeeTasks) {
-    let totalRevenue = 0
-    
-    employeeTasks.forEach(task => {
-        let taskRevenue = 0
-        if (task.type === 'rv' && task.rv_chars && task.rate) {
-            taskRevenue = (task.rv_chars / 1000) * task.rate
-        } else if (task.type === 'beta' && task.beta_chars && task.beta_rate) {
-            taskRevenue = (task.beta_chars / 1000) * task.beta_rate
-        }
-        totalRevenue += taskRevenue
-    })
-    
-    return totalRevenue
 }
 
 function updateManagerFilter(managers) {
@@ -2406,11 +2116,6 @@ async function refreshData() {
     // Re-render tables to apply updated rank-based styling
     renderTasksTable()
     renderBetaTasksTable()
-    
-    // Update analytics if visible
-    if (document.getElementById('advancedAnalytics').style.display !== 'none') {
-        updateAdvancedAnalytics()
-    }
     
     showNotification('Đã làm mới dữ liệu', 'info')
 }

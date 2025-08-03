@@ -1957,11 +1957,19 @@ function showEmployeesList() {
         return
     }
     
-    // Populate employees table with allEmployees
+    // Sắp xếp theo role (Boss -> Manager -> Employee) rồi theo tên A-Z
+    const roleOrder = { boss: 1, manager: 2, employee: 3 }
+    const sortedEmployees = [...window.allEmployees].sort((a, b) => {
+        const roleDiff = (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99)
+        if (roleDiff !== 0) return roleDiff
+        return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+    })
+
+    // Populate employees table with sortedEmployees
     const tbody = document.getElementById('employeesTableBody')
     tbody.innerHTML = ''
     
-    if (window.allEmployees.length === 0) {
+    if (sortedEmployees.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">
@@ -1976,7 +1984,7 @@ function showEmployeesList() {
         return
     }
     
-    window.allEmployees.forEach(employee => { // Use window.allEmployees here
+    sortedEmployees.forEach(employee => { 
         const row = document.createElement('tr')
         const roleBadge = employee.role === 'boss' 
             ? `<span class="badge bg-danger">Boss</span>` 
@@ -1996,23 +2004,6 @@ function showEmployeesList() {
     modal.show()
 }
 
-function updateAssigneeDropdowns() {
-    const assigneeSelects = document.querySelectorAll('#taskAssignee')
-    
-    console.log('Updating assignee dropdowns, employees count:', employees.length)
-    console.log('Employees data:', employees)
-    
-    assigneeSelects.forEach(select => {
-        select.innerHTML = '<option value="">Không chỉ định (để nhân viên tự nhận)</option>'
-        // Chỉ hiển thị employees (không phải managers) trong dropdown assign task
-        employees.forEach(employee => {
-            const option = document.createElement('option')
-            option.value = employee.id
-            option.textContent = employee.name
-            select.appendChild(option)
-        })
-    })
-}
 
 // Auto-calculate RV chars (total - dialogue)
 function calculateRVChars() {

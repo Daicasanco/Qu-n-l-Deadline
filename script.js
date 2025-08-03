@@ -417,6 +417,11 @@ async function addProject() {
         
         showNotification('Thêm Truyện thành công!', 'success')
         
+        // Apply bulk rates if specified
+        if (data && data[0]) {
+            await applyBulkRatesForNewProject(data[0].id)
+        }
+        
         // Clear form
         document.getElementById('projectForm').reset()
         
@@ -522,6 +527,204 @@ async function editProject(id) {
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('projectModal'))
     modal.show()
+    
+    // Setup bulk rate functionality for existing project
+    await setupBulkRateFunctionality(project.id)
+}
+
+// Bulk Rate Management Functions
+async function setupBulkRateFunctionality(projectId) {
+    // Setup event listeners for bulk rate functionality
+    const rateTargetSelect = document.getElementById('projectRateTarget')
+    const individualSection = document.getElementById('individualEmployeeSection')
+    const employeeSelect = document.getElementById('projectEmployeeSelect')
+    
+    // Show/hide individual employee section based on selection
+    rateTargetSelect.addEventListener('change', function() {
+        if (this.value === 'individual') {
+            individualSection.style.display = 'block'
+            populateProjectEmployeeDropdown(projectId)
+        } else {
+            individualSection.style.display = 'none'
+        }
+    })
+    
+    // Populate employee dropdown for individual selection
+    if (rateTargetSelect.value === 'individual') {
+        await populateProjectEmployeeDropdown(projectId)
+    }
+}
+
+async function populateProjectEmployeeDropdown(projectId) {
+    const employeeSelect = document.getElementById('projectEmployeeSelect')
+    
+    let projectEmployees = []
+    
+    if (projectId) {
+        // For existing projects, get employees who have tasks in this project
+        const projectTasks = tasks.filter(task => task.project_id === projectId)
+        const employeeIds = [...new Set(projectTasks.map(task => task.assignee_id).filter(id => id))]
+        projectEmployees = window.allEmployees.filter(emp => employeeIds.includes(emp.id))
+    } else {
+        // For new projects, show all employees
+        projectEmployees = window.allEmployees.filter(emp => emp.role === 'employee')
+    }
+    
+    // Clear and populate dropdown
+    employeeSelect.innerHTML = ''
+    projectEmployees.forEach(employee => {
+        const option = document.createElement('option')
+        option.value = employee.id
+        option.textContent = `${employee.name} (${employee.role})`
+        employeeSelect.appendChild(option)
+    })
+}
+
+async function applyBulkRates() {
+    const projectId = parseInt(document.getElementById('projectId').value)
+    const rvRate = parseFloat(document.getElementById('projectRVRate').value) || 0
+    const betaRate = parseFloat(document.getElementById('projectBetaRate').value) || 0
+    const targetType = document.getElementById('projectRateTarget').value
+    const selectedEmployees = Array.from(document.getElementById('projectEmployeeSelect').selectedOptions).map(opt => opt.value)
+    
+    if (rvRate === 0 && betaRate === 0) {
+        showNotification('Vui lòng nhập ít nhất một rate', 'error')
+        return
+    }
+    
+    if (targetType === 'individual' && selectedEmployees.length === 0) {
+        showNotification('Vui lòng chọn ít nhất một nhân viên', 'error')
+        return
+    }
+    
+    try {
+        let tasksToUpdate = tasks.filter(task => task.project_id === projectId)
+        
+        // Filter by employee if individual selection
+        if (targetType === 'individual') {
+            tasksToUpdate = tasksToUpdate.filter(task => selectedEmployees.includes(task.assignee_id))
+        }
+        
+        if (tasksToUpdate.length === 0) {
+            showNotification('Không có task nào để cập nhật', 'info')
+            return
+        }
+        
+        // Update tasks in batches
+        const batchSize = 10
+        for (let i = 0; i < tasksToUpdate.length; i += batchSize) {
+            const batch = tasksToUpdate.slice(i, i + batchSize)
+            
+            for (const task of batch) {
+                const updateData = {}
+                
+                // Update RV rate for RV tasks
+                if (rvRate > 0 && task.task_type === 'rv') {
+                    updateData.rate = rvRate
+                }
+                
+                // Update Beta rate for Beta tasks
+                if (betaRate > 0 && task.task_type === 'beta') {
+                    updateData.beta_rate = betaRate
+                }
+                
+                if (Object.keys(updateData).length > 0) {
+                    const { error } = await supabase
+                        .from('tasks')
+                        .update(updateData)
+                        .eq('id', task.id)
+                    
+                    if (error) throw error
+                }
+            }
+        }
+        
+        // Reload data to reflect changes
+        await loadTasks(projectId)
+        
+        const updatedCount = tasksToUpdate.length
+        showNotification(`Đã cập nhật rate cho ${updatedCount} task thành công!`, 'success')
+        
+    } catch (error) {
+        console.error('Error applying bulk rates:', error)
+        showNotification('Lỗi khi áp dụng rate hàng loạt', 'error')
+    }
+}
+
+async function applyBulkRatesForNewProject(projectId) {
+    const rvRate = parseFloat(document.getElementById('projectRVRate').value) || 0
+    const betaRate = parseFloat(document.getElementById('projectBetaRate').value) || 0
+    const targetType = document.getElementById('projectRateTarget').value
+    const selectedEmployees = Array.from(document.getElementById('projectEmployeeSelect').selectedOptions).map(opt => opt.value)
+    
+    if (rvRate === 0 && betaRate === 0) {
+        return // No rates to apply
+    }
+    
+    try {
+        // Get all employees for the project (for new projects, this will be empty initially)
+        let employeesToApply = []
+        
+        if (targetType === 'individual' && selectedEmployees.length > 0) {
+            employeesToApply = selectedEmployees
+        } else if (targetType === 'all') {
+            // For new projects, we'll apply to all employees in the system
+            employeesToApply = window.allEmployees.filter(emp => emp.role === 'employee').map(emp => emp.id)
+        }
+        
+        if (employeesToApply.length === 0) {
+            return // No employees to apply rates to
+        }
+        
+        // Create default tasks for each employee with the specified rates
+        const tasksToCreate = []
+        
+        for (const employeeId of employeesToApply) {
+            if (rvRate > 0) {
+                tasksToCreate.push({
+                    name: 'Task RV mặc định',
+                    description: 'Task RV được tạo tự động với rate hàng loạt',
+                    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+                    priority: 'medium',
+                    status: 'pending',
+                    project_id: projectId,
+                    assignee_id: employeeId,
+                    task_type: 'rv',
+                    rate: rvRate,
+                    created_at: new Date().toISOString()
+                })
+            }
+            
+            if (betaRate > 0) {
+                tasksToCreate.push({
+                    name: 'Task Beta mặc định',
+                    description: 'Task Beta được tạo tự động với rate hàng loạt',
+                    deadline: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days from now
+                    priority: 'medium',
+                    status: 'pending',
+                    project_id: projectId,
+                    assignee_id: employeeId,
+                    task_type: 'beta',
+                    beta_rate: betaRate,
+                    created_at: new Date().toISOString()
+                })
+            }
+        }
+        
+        if (tasksToCreate.length > 0) {
+            const { error } = await supabase
+                .from('tasks')
+                .insert(tasksToCreate)
+            
+            if (error) throw error
+            
+            showNotification(`Đã tạo ${tasksToCreate.length} task với rate hàng loạt cho dự án mới!`, 'success')
+        }
+        
+    } catch (error) {
+        console.error('Error applying bulk rates for new project:', error)
+        showNotification('Lỗi khi tạo task với rate hàng loạt cho dự án mới', 'error')
+    }
 }
 
 async function saveProject() {
@@ -1584,7 +1787,7 @@ function showLoginModal() {
     modal.show()
 }
 
-function showAddProjectModal() {
+async function showAddProjectModal() {
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để Thêm Truyện', 'error')
         return
@@ -1600,12 +1803,22 @@ function showAddProjectModal() {
     document.getElementById('projectRuleLink').value = ''
     document.getElementById('projectBnvLink').value = ''
     
+    // Clear bulk rate fields
+    document.getElementById('projectRVRate').value = ''
+    document.getElementById('projectBetaRate').value = ''
+    document.getElementById('projectRateTarget').value = 'all'
+    document.getElementById('individualEmployeeSection').style.display = 'none'
+    document.getElementById('projectEmployeeSelect').innerHTML = ''
+    
     // Populate manager dropdown
     populateManagerDropdown()
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('projectModal'))
     modal.show()
+    
+    // Setup bulk rate functionality for new project
+    await setupBulkRateFunctionality(null)
 }
 
 // Function to populate manager dropdown
@@ -1928,6 +2141,19 @@ function setupEventListeners() {
     
     // Auto-check overdue tasks
     setInterval(checkOverdueTasks, 60000) // Check every minute
+    
+    // Bulk rate functionality event listeners
+    const rateTargetSelect = document.getElementById('projectRateTarget')
+    if (rateTargetSelect) {
+        rateTargetSelect.addEventListener('change', function() {
+            const individualSection = document.getElementById('individualEmployeeSection')
+            if (this.value === 'individual') {
+                individualSection.style.display = 'block'
+            } else {
+                individualSection.style.display = 'none'
+            }
+        })
+    }
 }
 
 function checkOverdueTasks() {

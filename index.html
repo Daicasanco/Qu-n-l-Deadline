@@ -574,6 +574,54 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Bulk Rate Settings -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Cài đặt Rate hàng loạt</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Rate RV (VNĐ/1000 chữ):</label>
+                                            <input type="number" class="form-control" id="projectRVRate" min="0" step="0.01" placeholder="Nhập rate RV...">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Rate Beta (VNĐ/1000 chữ):</label>
+                                            <input type="number" class="form-control" id="projectBetaRate" min="0" step="0.01" placeholder="Nhập rate Beta...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Áp dụng cho:</label>
+                                            <select class="form-select" id="projectRateTarget">
+                                                <option value="all">Tất cả nhân viên</option>
+                                                <option value="individual">Từng nhân viên</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="individualEmployeeSection" style="display: none;">
+                                        <div class="mb-3">
+                                            <label class="form-label">Chọn nhân viên:</label>
+                                            <select class="form-select" id="projectEmployeeSelect" multiple>
+                                                <!-- Will be populated dynamically -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="applyBulkRates()">
+                                        <i class="bi bi-arrow-down-circle"></i> Áp dụng Rate
+                                    </button>
+                                    <small class="text-muted ms-2">Áp dụng rate cho các task hiện có trong dự án</small>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -732,39 +780,6 @@
             </div>
         </div>
     </div>
-
-                            <!-- Transfer Task Modal -->
-                        <div class="modal fade" id="transferModal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Chuyển giao công việc</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form id="transferForm">
-                                        <div class="modal-body">
-                                            <input type="hidden" id="transferTaskId">
-                                            
-                                            <div class="mb-3">
-                                                <label for="transferAssignee" class="form-label">Chọn người nhận *</label>
-                                                <select class="form-select" id="transferAssignee" required>
-                                                    <option value="">Chọn người nhận</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle"></i>
-                                                Công việc sẽ được chuyển giao cho người được chọn. Bạn sẽ không còn quyền quản lý công việc này.
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                            <button type="submit" class="btn btn-primary">Chuyển giao</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Employees Modal -->
                         <div class="modal fade" id="employeesModal" tabindex="-1">

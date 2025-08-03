@@ -2820,6 +2820,7 @@ async function editBetaTask(id) {
     
     // Store current task ID for update
     window.currentEditingTaskId = id
+    document.getElementById('taskId').value = id
     
     // Set modal title for editing
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'

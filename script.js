@@ -832,6 +832,18 @@ async function transferTask(taskId, newAssigneeId) {
         return
     }
     
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions - Boss can transfer any task, others can only transfer their own
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền chuyển giao công việc này', 'error')
+        return
+    }
+    
     try {
         const { data, error } = await supabase
             .from('tasks')
@@ -840,7 +852,6 @@ async function transferTask(taskId, newAssigneeId) {
                 updated_at: new Date().toISOString()
             })
             .eq('id', taskId)
-            .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được chuyển
             .select()
         
         if (error) throw error
@@ -874,6 +885,18 @@ async function unclaimTask(taskId) {
         return
     }
     
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions - Boss can unclaim any task, others can only unclaim their own
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền hủy nhận công việc này', 'error')
+        return
+    }
+    
     try {
         const { data, error } = await supabase
             .from('tasks')
@@ -883,7 +906,6 @@ async function unclaimTask(taskId) {
                 updated_at: new Date().toISOString()
             })
             .eq('id', taskId)
-            .eq('assignee_id', currentUser.id) // Chỉ người đang làm mới được hủy
             .select()
         
         if (error) throw error
@@ -1038,15 +1060,25 @@ async function updateTask() {
         return
     }
     
+    // Find the task to check permissions
+    const task = tasks.find(t => t.id === id)
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions - Boss, Manager, hoặc người đang làm task
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền cập nhật công việc này', 'error')
+        return
+    }
+    
     // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
     if (currentUser && currentUser.role === 'employee') {
-        const task = tasks.find(t => t.id === id)
-        if (task) {
-            const project = projects.find(p => p.id === task.project_id)
-            if (project && project.status === 'completed') {
-                showNotification('Không thể cập nhật Deadline trong truyện đã hoàn thành', 'error')
-                return
-            }
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể cập nhật Deadline trong truyện đã hoàn thành', 'error')
+            return
         }
     }
     

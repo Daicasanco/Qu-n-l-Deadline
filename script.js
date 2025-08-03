@@ -2395,7 +2395,10 @@ async function loadAllTimeLeaderboard() {
             const employeeId = task.assignee_id
             if (employeeStats[employeeId]) {
                 employeeStats[employeeId].totalTasks++
-                employeeStats[employeeId].totalChars += (task.rv_chars || 0)
+                // Tính cả rv_chars và beta_chars cho bảng xếp hạng
+                const rvChars = task.rv_chars || 0
+                const betaChars = task.beta_chars || 0
+                employeeStats[employeeId].totalChars += (rvChars + betaChars)
             }
         })
 
@@ -2475,7 +2478,10 @@ async function loadMonthlyLeaderboard() {
             const employeeId = task.assignee_id
             if (employeeStats[employeeId]) {
                 employeeStats[employeeId].totalTasks++
-                employeeStats[employeeId].totalChars += (task.rv_chars || 0)
+                // Tính cả rv_chars và beta_chars cho bảng xếp hạng
+                const rvChars = task.rv_chars || 0
+                const betaChars = task.beta_chars || 0
+                employeeStats[employeeId].totalChars += (rvChars + betaChars)
             }
         })
 

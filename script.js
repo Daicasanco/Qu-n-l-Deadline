@@ -1395,6 +1395,28 @@ async function deleteTask(id) {
     
     if (confirm('Bạn có chắc chắn muốn xóa công việc này?')) {
         try {
+            // Trước tiên, xóa tất cả task con (child tasks) nếu có
+            const childTasks = tasks.filter(t => t.parent_task_id === id)
+            if (childTasks.length > 0) {
+                console.log(`Xóa ${childTasks.length} task con trước khi xóa task cha`)
+                
+                for (const childTask of childTasks) {
+                    const { error: childError } = await supabase
+                        .from('tasks')
+                        .delete()
+                        .eq('id', childTask.id)
+                    
+                    if (childError) {
+                        console.error('Error deleting child task:', childError)
+                        throw childError
+                    }
+                }
+                
+                // Cập nhật local data - xóa task con
+                tasks = tasks.filter(t => t.parent_task_id !== id)
+            }
+            
+            // Sau đó xóa task cha
             const { error } = await supabase
                 .from('tasks')
                 .delete()
@@ -3225,6 +3247,28 @@ async function deleteBetaTask(id) {
     }
     
     try {
+        // Trước tiên, xóa tất cả task con (child tasks) nếu có
+        const childTasks = tasks.filter(t => t.parent_task_id === id)
+        if (childTasks.length > 0) {
+            console.log(`Xóa ${childTasks.length} task con trước khi xóa task cha`)
+            
+            for (const childTask of childTasks) {
+                const { error: childError } = await supabase
+                    .from('tasks')
+                    .delete()
+                    .eq('id', childTask.id)
+                
+                if (childError) {
+                    console.error('Error deleting child task:', childError)
+                    throw childError
+                }
+            }
+            
+            // Cập nhật local data - xóa task con
+            tasks = tasks.filter(t => t.parent_task_id !== id)
+        }
+        
+        // Sau đó xóa task cha
         const { error } = await supabase
             .from('tasks')
             .delete()

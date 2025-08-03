@@ -1351,6 +1351,13 @@ function renderTasksTable() {
         console.log('After assignee filter:', projectTasks.length)
     }
     
+    // Sắp xếp theo tên deadline A-Z
+    projectTasks.sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase()
+        const nameB = (b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB)
+    })
+    
     if (projectTasks.length === 0) {
         tbody.innerHTML = `<tr><td colspan="12" class="text-center"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Không có công việc nào</h4><p>Hãy Thêm Deadline đầu tiên cho dự án này</p></div></td></tr>`
         return
@@ -2632,6 +2639,13 @@ function renderBetaTasksTable() {
     if (assigneeFilter) {
         filteredBetaTasks = filteredBetaTasks.filter(task => task.assignee_id === assigneeFilter)
     }
+    
+    // Sắp xếp theo tên deadline A-Z
+    filteredBetaTasks.sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase()
+        const nameB = (b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB)
+    })
     
     const tbody = document.getElementById('betaTasksTableBody')
     if (!tbody) return

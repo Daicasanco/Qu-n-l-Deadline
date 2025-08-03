@@ -471,11 +471,13 @@ function getEditableFields(taskType, userRole) {
     const editableFields = {
         rv: {
             manager: ['name', 'description', 'deadline', 'priority', 'submission_link', 'dialogue_chars', 'total_chars', 'rv_chars', 'rate', 'notes', 'assignee_id'],
-            employee: ['submission_link', 'dialogue_chars', 'total_chars', 'notes']
+            employee: ['submission_link', 'dialogue_chars', 'total_chars', 'notes'],
+            boss: ['name', 'description', 'deadline', 'priority', 'submission_link', 'dialogue_chars', 'total_chars', 'rv_chars', 'rate', 'notes', 'assignee_id']
         },
         beta: {
             manager: ['name', 'description', 'deadline', 'priority', 'beta_link', 'beta_chars', 'beta_notes', 'beta_rate', 'assignee_id'],
-            employee: ['beta_link', 'beta_chars', 'beta_notes']
+            employee: ['beta_link', 'beta_chars', 'beta_notes'],
+            boss: ['name', 'description', 'deadline', 'priority', 'beta_link', 'beta_chars', 'beta_notes', 'beta_rate', 'assignee_id']
         }
     }
     
@@ -1809,7 +1811,13 @@ function showTransferModal(taskId) {
     }
     
     const task = tasks.find(t => t.id === taskId)
-    if (!task || task.assignee_id !== currentUser.id) {
+    if (!task) {
+        showNotification('Không tìm thấy công việc', 'error')
+        return
+    }
+    
+    // Check permissions - Boss can transfer any task, others can only transfer their own
+    if (!canOperateOnTask(task)) {
         showNotification('Bạn không có quyền chuyển giao công việc này', 'error')
         return
     }

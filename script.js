@@ -25,7 +25,11 @@ function hasManagerOrBossPermissions(user) {
 
 // Helper function to check if user is boss
 function isBoss(user) {
-    return user && user.role === 'boss';
+    console.log('isBoss - user:', user)
+    console.log('isBoss - user.role:', user?.role)
+    const result = user && user.role === 'boss'
+    console.log('isBoss - result:', result)
+    return result
 }
 
 // View Management Functions
@@ -454,24 +458,38 @@ function canOperateOnProject(project) {
 
 // Function to check if user can operate on a task
 function canOperateOnTask(task) {
-    if (!currentUser) return false
+    console.log('canOperateOnTask - currentUser:', currentUser)
+    console.log('canOperateOnTask - task:', task)
+    
+    if (!currentUser) {
+        console.log('canOperateOnTask - no currentUser, returning false')
+        return false
+    }
     
     // Boss can operate on any task
     if (isBoss(currentUser)) {
+        console.log('canOperateOnTask - isBoss check passed, returning true')
         return true
     }
+    
+    console.log('canOperateOnTask - isBoss check failed, currentUser.role:', currentUser.role)
     
     // Managers can operate on tasks in their own projects
     if (currentUser.role === 'manager') {
         const project = projects.find(p => p.id === task.project_id)
-        return project && currentUser.id === project.manager_id
+        const result = project && currentUser.id === project.manager_id
+        console.log('canOperateOnTask - manager check result:', result)
+        return result
     }
     
     // Employees can only operate on tasks assigned to them
     if (currentUser.role === 'employee') {
-        return currentUser.id === task.assignee_id
+        const result = currentUser.id === task.assignee_id
+        console.log('canOperateOnTask - employee check result:', result)
+        return result
     }
     
+    console.log('canOperateOnTask - no role matched, returning false')
     return false
 }
 

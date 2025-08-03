@@ -15,6 +15,9 @@ let employees = []
 let filteredProjects = []
 let currentProjectId = null
 
+// Project Reporting Functions
+let currentReportData = null
+
 // Helper function to check if user has manager or boss permissions
 function hasManagerOrBossPermissions(user) {
     return user && (user.role === 'manager' || user.role === 'boss');
@@ -1510,6 +1513,9 @@ function renderProjectsTable() {
             <td><span class="badge bg-info">${taskCount} công việc</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
                     ${canOperateOnProject(project) ? 
                         `<button class="btn btn-outline-warning btn-sm" onclick="editProject(${project.id})">
                             <i class="fas fa-edit"></i>
@@ -3448,4 +3454,170 @@ function testRankBasedStyling() {
     })
     
     console.log('=== End Test ===')
+}
+
+// Project Reporting Functions
+async function showProjectReport(projectId) {
+    const project = projects.find(p => p.id === projectId)
+    if (!project) {
+        showNotification('Không tìm thấy dự án', 'error')
+        return
+    }
+    
+    // Set project name in modal
+    document.getElementById('reportProjectName').textContent = project.name
+    
+    // Populate employee filter dropdown
+    const employeeFilter = document.getElementById('reportEmployeeFilter')
+    employeeFilter.innerHTML = '<option value="">Tất cả nhân viên</option>'
+    
+    const projectEmployees = window.allEmployees.filter(emp => {
+        const projectTasks = tasks.filter(task => task.project_id === projectId && task.assignee_id === emp.id)
+        return projectTasks.length > 0
+    })
+    
+    projectEmployees.forEach(employee => {
+        const option = document.createElement('option')
+        option.value = employee.id
+        option.textContent = employee.name
+        employeeFilter.appendChild(option)
+    })
+    
+    // Calculate and display report
+    await calculateProjectReport(projectId)
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('projectReportModal'))
+    modal.show()
+}
+
+async function calculateProjectReport(projectId) {
+    const projectTasks = tasks.filter(task => task.project_id === projectId)
+    const reportData = {}
+    
+    // Group tasks by employee
+    projectTasks.forEach(task => {
+        const employeeId = task.assignee_id
+        if (!employeeId) return
+        
+        const employee = window.allEmployees.find(emp => emp.id === employeeId)
+        if (!employee) return
+        
+        if (!reportData[employeeId]) {
+            reportData[employeeId] = {
+                employee: employee,
+                taskCount: 0,
+                rvChars: 0,
+                betaChars: 0,
+                rvMoney: 0,
+                betaMoney: 0,
+                totalMoney: 0
+            }
+        }
+        
+        const data = reportData[employeeId]
+        data.taskCount++
+        
+        if (task.task_type === 'rv') {
+            data.rvChars += parseInt(task.rv_chars || 0)
+            data.rvMoney += parseFloat(task.rate || 0) * (parseInt(task.rv_chars || 0) / 1000)
+        } else if (task.task_type === 'beta') {
+            data.betaChars += parseInt(task.beta_chars || 0)
+            data.betaMoney += parseFloat(task.beta_rate || 0) * (parseInt(task.beta_chars || 0) / 1000)
+        }
+        
+        data.totalMoney = data.rvMoney + data.betaMoney
+    })
+    
+    currentReportData = reportData
+    displayReportData(reportData)
+}
+
+function displayReportData(reportData) {
+    const tbody = document.getElementById('reportTableBody')
+    tbody.innerHTML = ''
+    
+    let totalTasks = 0
+    let totalRVChars = 0
+    let totalBetaChars = 0
+    let totalMoney = 0
+    
+    Object.values(reportData).forEach(data => {
+        totalTasks += data.taskCount
+        totalRVChars += data.rvChars
+        totalBetaChars += data.betaChars
+        totalMoney += data.totalMoney
+        
+        const row = document.createElement('tr')
+        row.innerHTML = `
+            <td><strong>${data.employee.name}</strong></td>
+            <td><span class="badge bg-primary">${data.taskCount}</span></td>
+            <td>${data.rvChars.toLocaleString()}</td>
+            <td>${data.betaChars.toLocaleString()}</td>
+            <td>${data.rvMoney.toLocaleString()} VNĐ</td>
+            <td>${data.betaMoney.toLocaleString()} VNĐ</td>
+            <td><strong>${data.totalMoney.toLocaleString()} VNĐ</strong></td>
+        `
+        tbody.appendChild(row)
+    })
+    
+    // Update summary cards
+    document.getElementById('totalTasksCount').textContent = totalTasks
+    document.getElementById('totalRVChars').textContent = totalRVChars.toLocaleString()
+    document.getElementById('totalBetaChars').textContent = totalBetaChars.toLocaleString()
+    document.getElementById('totalMoney').textContent = totalMoney.toLocaleString() + ' VNĐ'
+}
+
+function filterReportData() {
+    const selectedEmployee = document.getElementById('reportEmployeeFilter').value
+    
+    if (!currentReportData) return
+    
+    let filteredData = currentReportData
+    
+    if (selectedEmployee) {
+        filteredData = {}
+        if (currentReportData[selectedEmployee]) {
+            filteredData[selectedEmployee] = currentReportData[selectedEmployee]
+        }
+    }
+    
+    displayReportData(filteredData)
+}
+
+function exportReportToCSV() {
+    if (!currentReportData) {
+        showNotification('Không có dữ liệu để xuất', 'error')
+        return
+    }
+    
+    const selectedEmployee = document.getElementById('reportEmployeeFilter').value
+    let dataToExport = currentReportData
+    
+    if (selectedEmployee) {
+        dataToExport = {}
+        if (currentReportData[selectedEmployee]) {
+            dataToExport[selectedEmployee] = currentReportData[selectedEmployee]
+        }
+    }
+    
+    // Create CSV content
+    let csvContent = 'Nhân viên,Số công việc,Chữ RV,Chữ Beta,Tiền RV,Tiền Beta,Tổng tiền\n'
+    
+    Object.values(dataToExport).forEach(data => {
+        csvContent += `"${data.employee.name}",${data.taskCount},${data.rvChars},${data.betaChars},${data.rvMoney},${data.betaMoney},${data.totalMoney}\n`
+    })
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `bao-cao-du-an-${Date.now()}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    showNotification('Đã xuất báo cáo thành công!', 'success')
 }

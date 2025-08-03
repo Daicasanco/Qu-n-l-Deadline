@@ -781,6 +781,92 @@
         </div>
     </div>
 
+                        <!-- Project Report Modal -->
+                        <div class="modal fade" id="projectReportModal" tabindex="-1">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Báo cáo dự án: <span id="reportProjectName">Dự án</span></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Employee Filter -->
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Lọc theo nhân viên:</label>
+                                                <select class="form-select" id="reportEmployeeFilter" onchange="filterReportData()">
+                                                    <option value="">Tất cả nhân viên</option>
+                                                    <!-- Employees will be populated here -->
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Report Summary -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-3">
+                                                <div class="card bg-primary text-white">
+                                                    <div class="card-body text-center">
+                                                        <h4 id="totalTasksCount">0</h4>
+                                                        <p class="mb-0">Tổng công việc</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-success text-white">
+                                                    <div class="card-body text-center">
+                                                        <h4 id="totalRVChars">0</h4>
+                                                        <p class="mb-0">Tổng chữ RV</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-info text-white">
+                                                    <div class="card-body text-center">
+                                                        <h4 id="totalBetaChars">0</h4>
+                                                        <p class="mb-0">Tổng chữ Beta</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-warning text-white">
+                                                    <div class="card-body text-center">
+                                                        <h4 id="totalMoney">0 VNĐ</h4>
+                                                        <p class="mb-0">Tổng tiền</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Detailed Report Table -->
+                                        <div class="table-responsive">
+                                            <table class="table table-striped" id="reportTable">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>Nhân viên</th>
+                                                        <th>Số công việc</th>
+                                                        <th>Chữ RV</th>
+                                                        <th>Chữ Beta</th>
+                                                        <th>Tiền RV</th>
+                                                        <th>Tiền Beta</th>
+                                                        <th>Tổng tiền</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="reportTableBody">
+                                                    <!-- Report data will be loaded here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        <button type="button" class="btn btn-primary" onclick="exportReportToCSV()">
+                                            <i class="fas fa-download me-1"></i>Xuất CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Employees Modal -->
                         <div class="modal fade" id="employeesModal" tabindex="-1">
                             <div class="modal-dialog modal-lg">

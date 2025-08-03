@@ -429,12 +429,40 @@ async function addProject() {
 function canOperateOnProject(project) {
     if (!currentUser) return false
     
-    // Managers and bosses have full rights to operate on their own projects regardless of status
-    if (hasManagerOrBossPermissions(currentUser)) {
+    // Boss can operate on any project
+    if (isBoss(currentUser)) {
+        return true
+    }
+    
+    // Managers can only operate on their own projects
+    if (currentUser.role === 'manager') {
         return currentUser.id === project.manager_id
     }
     
     // Employees cannot operate on any projects (including completed ones)
+    return false
+}
+
+// Function to check if user can operate on a task
+function canOperateOnTask(task) {
+    if (!currentUser) return false
+    
+    // Boss can operate on any task
+    if (isBoss(currentUser)) {
+        return true
+    }
+    
+    // Managers can operate on tasks in their own projects
+    if (currentUser.role === 'manager') {
+        const project = projects.find(p => p.id === task.project_id)
+        return project && currentUser.id === project.manager_id
+    }
+    
+    // Employees can only operate on tasks assigned to them
+    if (currentUser.role === 'employee') {
+        return currentUser.id === task.assignee_id
+    }
+    
     return false
 }
 
@@ -901,7 +929,7 @@ async function editTask(id) {
         }
     }
     
-    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
+    if (!canOperateOnTask(task)) {
         showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
         return
     }
@@ -1101,8 +1129,8 @@ async function deleteTask(id) {
         }
     }
     
-    // Check permissions - Manager/Boss hoặc người đang làm task
-    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
+    // Check permissions - Boss, Manager, hoặc người đang làm task
+    if (!canOperateOnTask(task)) {
         showNotification('Bạn không có quyền xóa công việc này', 'error')
         return
     }
@@ -1150,8 +1178,8 @@ async function changeTaskStatus(id, newStatus) {
         }
     }
     
-    // Check permissions - Manager/Boss hoặc người đang làm task
-    if (!hasManagerOrBossPermissions(currentUser) && currentUser.id !== task.assignee_id) {
+    // Check permissions - Boss, Manager, hoặc người đang làm task
+    if (!canOperateOnTask(task)) {
         showNotification('Bạn không có quyền thay đổi trạng thái công việc này', 'error')
         return
     }
@@ -1344,7 +1372,7 @@ function renderTasksTable() {
         const currentProject = projects.find(p => p.id === currentProjectId);
         const isCompletedProject = currentProject && currentProject.status === 'completed';
         
-        if (currentUser && hasManagerOrBossPermissions(currentUser)) {
+        if (currentUser && (isBoss(currentUser) || (currentUser.role === 'manager' && canOperateOnTask(task)))) {
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`;
         } else if (currentUser && currentUser.role === 'employee') {
@@ -2584,7 +2612,7 @@ function renderBetaTasksTable() {
     tbody.innerHTML = filteredBetaTasks.map(task => {
         const assignee = employees.find(emp => emp.id === task.assignee_id)
         const isCurrentUserAssignee = currentUser && task.assignee_id === currentUser.id
-        const isCurrentUserManager = currentUser && hasManagerOrBossPermissions(currentUser)
+        const isCurrentUserManager = currentUser && (isBoss(currentUser) || (currentUser.role === 'manager' && canOperateOnTask(task)))
         
         // Lấy rank và màu sắc cho người thực hiện
         const assigneeRank = getEmployeeRank(task.assignee_id)
@@ -2649,8 +2677,8 @@ function renderBetaTasksTable() {
         const currentProject = projects.find(p => p.id === currentProjectId)
         const isCompletedProject = currentProject && currentProject.status === 'completed'
         
-        if (currentUser && hasManagerOrBossPermissions(currentUser)) {
-            // Manager and Boss can edit any task
+        if (currentUser && (isBoss(currentUser) || (currentUser.role === 'manager' && canOperateOnTask(task)))) {
+            // Boss can edit any task, Manager can edit tasks in their projects
             actionButtons += `<button class="btn btn-action btn-edit" onclick="editBetaTask(${task.id})" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`
             actionButtons += `<button class="btn btn-action btn-delete" onclick="deleteBetaTask(${task.id})" title="Xóa"><i class="fas fa-trash"></i></button>`
         } else if (currentUser && currentUser.role === 'employee') {
@@ -2705,6 +2733,12 @@ async function editBetaTask(id) {
     }
     
     // Check permissions
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền chỉnh sửa công việc này', 'error')
+        return
+    }
+    
+    // Additional check for employees
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
@@ -2811,6 +2845,12 @@ async function deleteBetaTask(id) {
     }
     
     // Check permissions
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền xóa công việc này', 'error')
+        return
+    }
+    
+    // Additional check for employees
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {
@@ -2856,6 +2896,12 @@ async function updateBetaTask() {
     }
     
     // Check permissions
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền cập nhật công việc này', 'error')
+        return
+    }
+    
+    // Additional check for employees
     if (currentUser && currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
         if (project && project.status === 'completed') {

@@ -25,11 +25,7 @@ function hasManagerOrBossPermissions(user) {
 
 // Helper function to check if user is boss
 function isBoss(user) {
-    console.log('isBoss - user:', user)
-    console.log('isBoss - user.role:', user?.role)
-    const result = user && user.role === 'boss'
-    console.log('isBoss - result:', result)
-    return result
+    return user && user.role === 'boss'
 }
 
 // View Management Functions
@@ -92,14 +88,7 @@ function initializeApp() {
     // Set up event listeners
     setupEventListeners()
     
-    // Debug: Add click listener to addTaskBtn
-    const addTaskBtn = document.getElementById('addTaskBtn')
-    if (addTaskBtn) {
-        addTaskBtn.addEventListener('click', function(e) {
-            console.log('addTaskBtn clicked!')
-            console.log('onclick handler:', this.onclick)
-        })
-    }
+    // Event listeners setup completed
     
     // Set up realtime subscriptions
     setupRealtimeSubscriptions()
@@ -122,9 +111,7 @@ async function loadDataFromSupabase() {
         // Filter for managers (role 'manager') for manager filter
         const managers = window.allEmployees.filter(emp => emp.role === 'manager' || emp.role === 'boss')
         
-        console.log('Loaded allEmployees:', window.allEmployees)
-        console.log('Filtered employees:', employees)
-        console.log('Filtered managers:', managers)
+        // Data loaded successfully
         
         // Update manager filter dropdown
         updateManagerFilter(managers)
@@ -204,10 +191,7 @@ async function loadTasks(projectId = null) {
         if (error) throw error
         tasks = data || []
         
-        console.log(`Loaded ${tasks.length} tasks total`)
-        if (projectId) {
-            console.log(`Tasks for project ${projectId}:`, tasks.filter(t => t.project_id === projectId))
-        }
+        // Tasks loaded successfully
         
         renderTasksTable()
         
@@ -220,39 +204,7 @@ async function loadTasks(projectId = null) {
     }
 }
 
-// Function to manually refresh task counts for debugging
-function refreshTaskCounts() {
-    console.log('Refreshing task counts...')
-    console.log('Current tasks:', tasks)
-    console.log('Current projects:', projects)
-    
-    projects.forEach(project => {
-        const taskCount = tasks.filter(t => t.project_id === project.id).length
-        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks`)
-    })
-    
-    renderProjectsTable()
-}
-
-// Function to test employee visibility
-function testEmployeeVisibility() {
-    console.log('=== Testing Employee Visibility ===')
-    console.log('Current user:', currentUser)
-    console.log('Current user role:', currentUser?.role)
-    console.log('Total projects loaded:', projects.length)
-    console.log('Projects by status:')
-    const statusCounts = {}
-    projects.forEach(project => {
-        statusCounts[project.status] = (statusCounts[project.status] || 0) + 1
-    })
-    console.log(statusCounts)
-    console.log('Total tasks loaded:', tasks.length)
-    console.log('Leaderboard containers exist:', {
-        allTime: !!document.getElementById('allTimeLeaderboard'),
-        monthly: !!document.getElementById('monthlyLeaderboard')
-    })
-    console.log('=== End Test ===')
-}
+// Removed debug functions: refreshTaskCounts() and testEmployeeVisibility()
 
 // Realtime Subscriptions
 function setupRealtimeSubscriptions() {
@@ -260,25 +212,12 @@ function setupRealtimeSubscriptions() {
     supabase
         .channel('projects')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, payload => {
-            console.log('Project change:', payload)
-            loadProjects()
-            showNotification('Dữ liệu dự án đã được cập nhật', 'info')
-        })
-        .subscribe()
-    
-    // Subscribe to task changes - Tạm thời comment để tránh conflict
-    /*
-    supabase
-        .channel('tasks')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
-            console.log('Task change:', payload)
-            if (currentProjectId) {
-                loadTasks(currentProjectId)
-            }
-            showNotification('Dữ liệu công việc đã được cập nhật', 'info')
-        })
-        .subscribe()
-    */
+                    loadProjects()
+        showNotification('Dữ liệu dự án đã được cập nhật', 'info')
+    })
+    .subscribe()
+
+    // Task changes subscription removed for performance
 }
 
 // User Management
@@ -357,9 +296,7 @@ function updateUserInterface() {
     addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
     
     // Debug logging
-    console.log('updateUserInterface - currentUser.role:', currentUser.role)
-    console.log('updateUserInterface - isInTasksView:', isInTasksView)
-    console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
+    // UI updated successfully
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
@@ -375,8 +312,7 @@ function updateUserInterface() {
         // Load leaderboards for all users (both employees and managers)
         loadLeaderboards()
         
-        // Test employee visibility for debugging
-        testEmployeeVisibility()
+        // Employee visibility test removed for production
     } else {
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
@@ -839,10 +775,7 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
-    console.log('addTask() called')
-    console.log('currentUser:', currentUser)
-    console.log('currentTaskType:', currentTaskType)
-    console.log('currentProjectId:', currentProjectId)
+    // addTask function called
     
     const nameInput = document.getElementById('taskName');
     const deadlineInput = document.getElementById('taskDeadline');
@@ -855,7 +788,7 @@ async function addTask() {
     const deadline = deadlineInput ? deadlineInput.value : '';
     const priority = priorityInput ? priorityInput.value : '';
 
-    console.log('Form values:', { name, deadline, priority, projectId, currentTaskType })
+    // Form values validated
 
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
@@ -971,8 +904,7 @@ async function claimTask(taskId) {
     }
     
     try {
-        console.log('Claiming task:', taskId)
-        console.log('Current user:', currentUser)
+        // Claiming task
         
         // Kiểm tra task hiện tại
         const currentTask = tasks.find(t => t.id === taskId)
@@ -995,10 +927,7 @@ async function claimTask(taskId) {
             }
         }
         
-        console.log('Current task before update:', currentTask)
-        
-        // Thực hiện update với điều kiện assignee_id IS NULL
-        console.log('Updating task with user ID:', currentUser.id)
+        // Updating task assignment
         const { data, error } = await supabase
             .from('tasks')
             .update({
@@ -1015,25 +944,19 @@ async function claimTask(taskId) {
             throw error
         }
         
-        console.log('Update result:', data)
-        
         if (data && data.length > 0) {
             showNotification('Đã nhận công việc thành công!', 'success')
             
             // Cập nhật local data ngay lập tức
             const updatedTask = data[0]
-            console.log('Updated task:', updatedTask)
             
             // Tìm và cập nhật task trong mảng local
             const taskIndex = tasks.findIndex(t => t.id === taskId)
             if (taskIndex !== -1) {
                 tasks[taskIndex] = updatedTask
-                console.log('Updated local task at index:', taskIndex)
-                console.log('Updated task data:', tasks[taskIndex])
             }
             
             // Re-render appropriate table after a short delay
-            console.log('Re-rendering table...')
             setTimeout(() => {
                 if (currentTaskType === 'beta') {
                     renderBetaTasksTable()
@@ -1043,7 +966,6 @@ async function claimTask(taskId) {
             }, 100)
             
         } else {
-            console.log('No rows updated - task may have been claimed by someone else')
             showNotification('Công việc đã được nhận bởi người khác', 'error')
         }
         
@@ -1507,8 +1429,7 @@ function renderProjectsTable() {
     const tbody = document.getElementById('projectsTableBody')
     tbody.innerHTML = ''
     
-    console.log('Rendering projects table with', filteredProjects.length, 'projects')
-    console.log('Current tasks array has', tasks.length, 'tasks')
+    // Rendering projects table
     
     if (filteredProjects.length === 0) {
         tbody.innerHTML = `
@@ -1537,7 +1458,7 @@ function renderProjectsTable() {
         
         // Get task count for this project - fix the count display
         const taskCount = tasks.filter(t => t.project_id === project.id).length
-        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks found`)
+        // Project task count calculated
         
         row.innerHTML = `
             <td>${project.id}</td>
@@ -1585,22 +1506,15 @@ function renderTasksTable() {
     const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
     const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
     
-    console.log('Filtering tasks...')
-    console.log('Status filter:', statusFilter)
-    console.log('Assignee filter:', assigneeFilter)
-    console.log('Current project ID:', currentProjectId)
-    console.log('Total tasks:', tasks.length)
+    // Filtering tasks for current project
     
     let projectTasks = tasks.filter(t => t.project_id === currentProjectId && t.task_type === 'rv')
-    console.log('Tasks in current project:', projectTasks.length)
-    
+    // Apply filters
     if (statusFilter) {
         projectTasks = projectTasks.filter(t => t.status === statusFilter)
-        console.log('After status filter:', projectTasks.length)
     }
     if (assigneeFilter) {
         projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
-        console.log('After assignee filter:', projectTasks.length)
     }
     
     // Sắp xếp theo tên deadline A-Z
@@ -1767,13 +1681,7 @@ function applyProjectFilters() {
     renderProjectsTable()
 }
 
-function setupTaskFilters() {
-    const statusFilter = document.getElementById('taskStatusFilter')
-    const assigneeFilter = document.getElementById('taskAssigneeFilter')
-    if (statusFilter) statusFilter.onchange = renderTasksTable
-    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
-    updateTaskAssigneeFilter();
-}
+// setupTaskFilters function removed - duplicate definition
 
 // Utility Functions
 function formatDateTime(dateString) {
@@ -1906,9 +1814,7 @@ function toggleBatchCreate() {
 }
 
 function showAddTaskModal() {
-    console.log('showAddTaskModal() called')
-    console.log('currentUser:', currentUser)
-    console.log('currentProjectId:', currentProjectId)
+    // showAddTaskModal function called
     
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để Thêm Deadline', 'error')
@@ -2312,9 +2218,9 @@ function calculateRVChars() {
     document.getElementById('taskRVChars').value = rvChars >= 0 ? rvChars : 0
 } 
 
-// Thêm hàm cập nhật dropdown nhân viên cho bộ lọc
-function updateTaskAssigneeFilter() {
-    const select = document.getElementById('taskAssigneeFilter')
+// Common function to populate employee dropdowns
+function populateEmployeeDropdown(selectId) {
+    const select = document.getElementById(selectId)
     if (!select) return
     select.innerHTML = '<option value="">Tất cả</option>'
     if (window.allEmployees) {
@@ -2327,13 +2233,19 @@ function updateTaskAssigneeFilter() {
     }
 }
 
-// Gắn event cho filter
-function setupTaskFilters() {
-    updateTaskAssigneeFilter();
+// Update task assignee filter
+function updateTaskAssigneeFilter() {
+    populateEmployeeDropdown('taskAssigneeFilter')
 }
 
-// Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án
-// Ví dụ: trong showTasksView(projectId) hoặc loadDataFromSupabase() thêm setupTaskFilters() 
+// Setup task filters
+function setupTaskFilters() {
+    const statusFilter = document.getElementById('taskStatusFilter')
+    const assigneeFilter = document.getElementById('taskAssigneeFilter')
+    if (statusFilter) statusFilter.onchange = renderTasksTable
+    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
+    updateTaskAssigneeFilter();
+} 
 
 function updateAllCountdowns() {
     const timers = document.querySelectorAll('.countdown-timer');
@@ -2460,8 +2372,7 @@ async function loadAllTimeLeaderboard() {
             })
             .slice(0, 5) // TOP 5
 
-        console.log('All-time leaderboard data:', leaderboardData)
-        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
+        // All-time leaderboard data loaded
         window.allTimeLeaderboardData = leaderboardData
         renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
         
@@ -2551,8 +2462,7 @@ async function loadMonthlyLeaderboard() {
             })
             .slice(0, 10) // TOP 10
 
-        console.log('Monthly leaderboard data:', leaderboardData)
-        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
+        // Monthly leaderboard data loaded
         window.monthlyLeaderboardData = leaderboardData
         renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
         
@@ -3387,18 +3297,7 @@ async function updateBetaTask() {
 
 // Setup beta task filters
 function setupBetaTaskFilters() {
-    const assigneeFilter = document.getElementById('betaTaskAssigneeFilter')
-    if (assigneeFilter) {
-        assigneeFilter.innerHTML = '<option value="">Tất cả</option>'
-        if (window.allEmployees) {
-            window.allEmployees.filter(e => e.role === 'employee').forEach(e => {
-                const option = document.createElement('option')
-                option.value = e.id
-                option.textContent = e.name
-                assigneeFilter.appendChild(option)
-            })
-        }
-    }
+    populateEmployeeDropdown('betaTaskAssigneeFilter')
 }
 
 // Initialize beta task functionality
@@ -3476,7 +3375,6 @@ function getEmployeeRank(employeeId) {
     const allTimeLeaderboard = window.allTimeLeaderboardData || []
     const allTimeRank = allTimeLeaderboard.findIndex(emp => emp.id === employeeId)
     if (allTimeRank !== -1) {
-        console.log(`Employee ${employeeId} found in all-time leaderboard at rank ${allTimeRank + 1}`)
         return { type: 'all-time', rank: allTimeRank + 1 }
     }
     
@@ -3484,63 +3382,37 @@ function getEmployeeRank(employeeId) {
     const monthlyLeaderboard = window.monthlyLeaderboardData || []
     const monthlyRank = monthlyLeaderboard.findIndex(emp => emp.id === employeeId)
     if (monthlyRank !== -1) {
-        console.log(`Employee ${employeeId} found in monthly leaderboard at rank ${monthlyRank + 1}`)
         return { type: 'monthly', rank: monthlyRank + 1 }
     }
     
-    console.log(`Employee ${employeeId} not found in any leaderboard`)
     return null
 }
 
 // Function để lấy class màu sắc dựa trên rank
 function getAssigneeColorClass(rankInfo) {
     if (!rankInfo) {
-        console.log('No rank info, using default color')
         return 'text-success' // Mặc định màu xanh
     }
     
     const { type, rank } = rankInfo
-    console.log(`Applying color for ${type} rank ${rank}`)
     
     // Ưu tiên all-time rank và áp dụng hiệu ứng rainbow cho top 3
     if (rank === 1) {
-        console.log('Applying rainbow-text-1 for rank 1')
         return 'rainbow-text-1 fw-bold' // Rainbow effect cho rank 1
     } else if (rank === 2) {
-        console.log('Applying rainbow-text-2 for rank 2')
         return 'rainbow-text-2 fw-bold' // Rainbow effect cho rank 2
     } else if (rank === 3) {
-        console.log('Applying rainbow-text-3 for rank 3')
         return 'rainbow-text-3 fw-bold' // Rainbow effect cho rank 3
     } else if (rank <= 5) {
-        console.log('Applying text-primary for top 5')
         return 'text-primary fw-bold' // Xanh dương cho top 5
     } else if (rank <= 10) {
-        console.log('Applying text-info for top 10')
         return 'text-info fw-bold' // Xanh nhạt cho top 10
     } else {
-        console.log('Applying text-success for others')
         return 'text-success' // Xanh lá cho những người khác
     }
 }
 
-// Test function để kiểm tra rank-based styling
-function testRankBasedStyling() {
-    console.log('=== Testing Rank-Based Styling ===')
-    console.log('All-time leaderboard data:', window.allTimeLeaderboardData)
-    console.log('Monthly leaderboard data:', window.monthlyLeaderboardData)
-    
-    // Test với một số employee IDs
-    const testEmployeeIds = ['test-1', 'test-2', 'test-3']
-    
-    testEmployeeIds.forEach(employeeId => {
-        const rank = getEmployeeRank(employeeId)
-        const colorClass = getAssigneeColorClass(rank)
-        console.log(`Employee ${employeeId}:`, { rank, colorClass })
-    })
-    
-    console.log('=== End Test ===')
-}
+// Removed debug function: testRankBasedStyling()
 
 // Project Reporting Functions
 async function showProjectReport(projectId) {

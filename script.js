@@ -2942,7 +2942,7 @@ function renderBetaTasksTable() {
         let payment = '<span class="text-muted">-</span>'
         if (typeof task.beta_rate === 'number' && typeof task.beta_chars === 'number' && !isNaN(task.beta_rate) && !isNaN(task.beta_chars)) {
             const money = Math.round((task.beta_rate * task.beta_chars) / 1000)
-            payment = `<span class="badge badge-gradient-green">${money.toLocaleString()}k</span>`
+            payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`
         }
         
         // Format RV link - lấy submission_link từ parent RV task (link nộp thực tế)

@@ -139,6 +139,7 @@ async function loadDataFromSupabase() {
         updateDashboard()
         updateUserInterface()
         updateAssigneeDropdowns() // Ensure dropdowns are updated after data load
+        setupBetaTaskFilters() // Ensure beta task filters are updated after data load
         
         // Ensure we start with projects view
         showProjectsView()
@@ -2613,6 +2614,7 @@ function switchTaskType(taskType) {
     if (taskType === 'rv') {
         renderTasksTable()
     } else {
+        setupBetaTaskFilters() // Ensure beta task filters are updated
         renderBetaTasksTable()
     }
 }
@@ -3040,8 +3042,15 @@ async function updateBetaTask() {
 function setupBetaTaskFilters() {
     const assigneeFilter = document.getElementById('betaTaskAssigneeFilter')
     if (assigneeFilter) {
-        assigneeFilter.innerHTML = '<option value="">Tất cả</option>' + 
-            employees.map(emp => `<option value="${emp.id}">${emp.name}</option>`).join('')
+        assigneeFilter.innerHTML = '<option value="">Tất cả</option>'
+        if (window.allEmployees) {
+            window.allEmployees.filter(e => e.role === 'employee').forEach(e => {
+                const option = document.createElement('option')
+                option.value = e.id
+                option.textContent = e.name
+                assigneeFilter.appendChild(option)
+            })
+        }
     }
 }
 

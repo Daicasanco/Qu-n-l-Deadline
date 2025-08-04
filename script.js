@@ -1,8 +1,35 @@
 // Project Management System with Supabase
 
-// Supabase Configuration - Sử dụng config từ file config.js
-const SUPABASE_URL = config.SUPABASE_URL
-const SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY
+// Anti-Debug Protection - Vô hiệu hóa Developer Tools
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).DisableDevtool=t()}(this,function(){"use strict";function o(e){return(o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function r(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}function u(e,t,n){t&&r(e.prototype,t),n&&r(e,n),Object.defineProperty(e,"prototype",{writable:!1})}function e(e,t,n){t in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n}function n(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function");e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,writable:!0,configurable:!0}}),Object.defineProperty(e,"prototype",{writable:!1}),t&&a(e,t)}function c(e){return(c=Object.setPrototypeOf?Object.getPrototypeOf.bind():function(e){return e.__proto__||Object.getPrototypeOf(e)})(e)}function a(e,t){return(a=Object.setPrototypeOf?Object.setPrototypeOf.bind():function(e,t){return e.__proto__=t,e})(e,t)}function H(e,t){if(t&&("object"==typeof t||"function"==typeof t))return t;if(void 0!==t)throw new TypeError("Derived constructors may only return object or undefined");t=e;if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function l(n){var i=function(){if("undefined"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if("function"==typeof Proxy)return!0;try{return Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],function(){})),!0}catch(e){return!1}}();return function(){var e,t=c(n);return H(this,i?(e=c(this).constructor,Reflect.construct(t,arguments,e)):t.apply(this,arguments))}}function f(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,i=new Array(t);n<t;n++)i[n]=e[n];return i}function s(e,t){var n,i="undefined"!=typeof Symbol&&e[Symbol.iterator]||e["@@iterator"];if(!i){if(Array.isArray(e)||(i=function(e,t){if(e){if("string"==typeof e)return f(e,t);var n=Object.prototype.toString.call(e).slice(8,-1);return"Map"===(n="Object"===n&&e.constructor?e.constructor.name:n)||"Set"===n?Array.from(e):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?f(e,t):void 0}}(e))||t&&e&&"number"==typeof e.length)return i&&(e=i),n=0,{s:t=function(){},n:function(){return n>=e.length?{done:!0}:{done:!1,value:e[n++]}},e:function(e){throw e},f:t};throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}var o,r=!0,u=!1;return{s:function(){i=i.call(e)},n:function(){var e=i.next();return r=e.done,e},e:function(e){u=!0,o=e},f:function(){try{r||null==i.return||i.return()}finally{if(u)throw o}}}}function t(){if(d.url)window.location.href=d.url;else if(d.rewriteHTML)try{document.documentElement.innerHTML=d.rewriteHTML}catch(e){document.documentElement.innerText=d.rewriteHTML}else{try{window.opener=null,window.open("","_self"),window.close(),window.history.back()}catch(e){console.log(e)}setTimeout(function(){window.location.href=d.timeOutUrl||"https://theajack.github.io/disable-devtool/404.html?h=".concat(encodeURIComponent(location.host))},500)}}var d={md5:"",ondevtoolopen:t,ondevtoolclose:null,url:"",timeOutUrl:"",tkName:"ddtk",interval:500,disableMenu:!0,stopIntervalTime:5e3,clearIntervalWhenDevOpenTrigger:!1,detectors:[0,1,3,4,5,6,7],clearLog:!0,disableSelect:!1,disableCopy:!1,disableCut:!1,disablePaste:!1,ignore:null,disableIframeParents:!0,seo:!0,rewriteHTML:""},U=["detectors","ondevtoolclose","ignore"];function q(e){var t,n=0<arguments.length&&void 0!==e?e:{};for(t in d){var i=t;void 0===n[i]||o(d[i])!==o(n[i])&&-1===U.indexOf(i)||(d[i]=n[i])}"function"==typeof d.ondevtoolclose&&!0===d.clearIntervalWhenDevOpenTrigger&&(d.clearIntervalWhenDevOpenTrigger=!1,console.warn("【DISABLE-DEVTOOL】clearIntervalWhenDevOpenTrigger 在使用 ondevtoolclose 时无效"))}function v(){return(new Date).getTime()}function h(e){var t=v();return e(),v()-t}function z(n,i){function e(t){return function(){n&&n();var e=t.apply(void 0,arguments);return i&&i(),e}}var t=window.alert,o=window.confirm,r=window.prompt;try{window.alert=e(t),window.confirm=e(o),window.prompt=e(r)}catch(e){}}var p,y,B,b={iframe:!1,pc:!1,qqBrowser:!1,firefox:!1,macos:!1,edge:!1,oldEdge:!1,ie:!1,iosChrome:!1,iosEdge:!1,chrome:!1,seoBot:!1,mobile:!1};function W(){function e(e){return-1!==t.indexOf(e)}var t=navigator.userAgent.toLowerCase(),n=function(){var e=navigator,t=e.platform,e=e.maxTouchPoints;if("number"==typeof e)return 1<e;if("string"==typeof t){e=t.toLowerCase();if(/(mac|win)/i.test(e))return!1;if(/(android|iphone|ipad|ipod|arch)/i.test(e))return!0}return/(iphone|ipad|ipod|ios|android)/i.test(navigator.userAgent.toLowerCase())}(),i=!!window.top&&window!==window.top,o=!n,r=e("qqbrowser"),u=e("firefox"),c=e("macintosh"),a=e("edge"),l=a&&!e("chrome"),f=l||e("trident")||e("msie"),s=e("crios"),d=e("edgios"),v=e("chrome")||s,h=!n&&/(googlebot|baiduspider|bingbot|applebot|petalbot|yandexbot|bytespider|chrome\-lighthouse|moto g power)/i.test(t);Object.assign(b,{iframe:i,pc:o,qqBrowser:r,firefox:u,macos:c,edge:a,oldEdge:l,ie:f,iosChrome:s,iosEdge:d,chrome:v,seoBot:h,mobile:n})}function M(){for(var e=function(){for(var e={},t=0;t<500;t++)e["".concat(t)]="".concat(t);return e}(),t=[],n=0;n<50;n++)t.push(e);return t}function w(){d.clearLog&&B()}var K="",V=!1;function F(){var e=d.ignore;if(e){if("function"==typeof e)return e();if(0!==e.length){var t=location.href;if(K===t)return V;K=t;var n,i=!1,o=s(e);try{for(o.s();!(n=o.n()).done;){var r=n.value;if("string"==typeof r){if(-1!==t.indexOf(r)){i=!0;break}}else if(r.test(t)){i=!0;break}}}catch(e){o.e(e)}finally{o.f()}return V=i}}}var X=function(){return!1};function g(n){var t,e,i=74,o=73,r=85,u=83,c=123,a=b.macos?function(e,t){return e.metaKey&&e.altKey&&(t===o||t===i)}:function(e,t){return e.ctrlKey&&e.shiftKey&&(t===o||t===i)},l=b.macos?function(e,t){return e.metaKey&&e.altKey&&t===r||e.metaKey&&t===u}:function(e,t){return e.ctrlKey&&(t===u||t===r)};n.addEventListener("keydown",function(e){var t=(e=e||n.event).keyCode||e.which;if(t===c||a(e,t)||l(e,t))return T(n,e)},!0),t=n,d.disableMenu&&t.addEventListener("contextmenu",function(e){if("touch"!==e.pointerType)return T(t,e)}),e=n,d.disableSelect&&m(e,"selectstart"),e=n,d.disableCopy&&m(e,"copy"),e=n,d.disableCut&&m(e,"cut"),e=n,d.disablePaste&&m(e,"paste")}function m(t,e){t.addEventListener(e,function(e){return T(t,e)})}function T(e,t){if(!F()&&!X())return(t=t||e.event).returnValue=!1,t.preventDefault(),!1}var O,D=!1,S={};function N(e){S[e]=!1}function $(){for(var e in S)if(S[e])return D=!0;return D=!1}(_=O=O||{})[_.Unknown=-1]="Unknown",_[_.RegToString=0]="RegToString",_[_.DefineId=1]="DefineId",_[_.Size=2]="Size",_[_.DateToString=3]="DateToString",_[_.FuncToString=4]="FuncToString",_[_.Debugger=5]="Debugger",_[_.Performance=6]="Performance",_[_.DebugLib=7]="DebugLib";var k=function(){function n(e){var t=e.type,e=e.enabled,e=void 0===e||e;i(this,n),this.type=O.Unknown,this.enabled=!0,this.type=t,this.enabled=e,this.enabled&&(t=this,Q.push(t),this.init())}return u(n,[{key:"onDevToolOpen",value:function(){var e;console.warn("You don't have permission to use DEVTOOL!【type = ".concat(this.type,"】")),d.clearIntervalWhenDevOpenTrigger&&te(),window.clearTimeout(J),d.ondevtoolopen(this.type,t),e=this.type,S[e]=!0}},{key:"init",value:function(){}}]),n}(),G=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DebugLib})}return u(t,[{key:"init",value:function(){}},{key:"detect",value:function(){var e;(!0===(null==(e=null==(e=window.eruda)?void 0:e._devTools)?void 0:e._isShow)||window._vcOrigConsole&&window.document.querySelector("#__vconsole.vc-toggle"))&&this.onDevToolOpen()}}],[{key:"isUsing",value:function(){return!!window.eruda||!!window._vcOrigConsole}}]),t}(),Y=0,J=0,Q=[],Z=0;function ee(o){function e(){l=!0}function t(){l=!1}var n,i,r,u,c,a,l=!1;function f(){(a[u]===r?i:n)()}z(e,t),n=t,i=e,void 0!==(a=document).hidden?(r="hidden",c="visibilitychange",u="visibilityState"):void 0!==a.mozHidden?(r="mozHidden",c="mozvisibilitychange",u="mozVisibilityState"):void 0!==a.msHidden?(r="msHidden",c="msvisibilitychange",u="msVisibilityState"):void 0!==a.webkitHidden&&(r="webkitHidden",c="webkitvisibilitychange",u="webkitVisibilityState"),a.removeEventListener(c,f,!1),a.addEventListener(c,f,!1),Y=window.setInterval(function(){if(!(o.isSuspend||l||F())){var e,t,n=s(Q);try{for(n.s();!(e=n.n()).done;){var i=e.value;N(i.type),i.detect(Z++)}}catch(e){n.e(e)}finally{n.f()}w(),"function"==typeof d.ondevtoolclose&&(t=D,!$()&&t&&d.ondevtoolclose())}},d.interval),J=setTimeout(function(){b.pc||G.isUsing()||te()},d.stopIntervalTime)}function te(){window.clearInterval(Y)}var P=8;function ne(e){for(var t=function(e,t){e[t>>5]|=128<<t%32,e[14+(t+64>>>9<<4)]=t;for(var n=1732584193,i=-271733879,o=-1732584194,r=271733878,u=0;u<e.length;u+=16){var c=n,a=i,l=o,f=r;n=E(n,i,o,r,e[u+0],7,-680876936),r=E(r,n,i,o,e[u+1],12,-389564586),o=E(o,r,n,i,e[u+2],17,606105819),i=E(i,o,r,n,e[u+3],22,-1044525330),n=E(n,i,o,r,e[u+4],7,-176418897),r=E(r,n,i,o,e[u+5],12,1200080426),o=E(o,r,n,i,e[u+6],17,-1473231341),i=E(i,o,r,n,e[u+7],22,-45705983),n=E(n,i,o,r,e[u+8],7,1770035416),r=E(r,n,i,o,e[u+9],12,-1958414417),o=E(o,r,n,i,e[u+10],17,-42063),i=E(i,o,r,n,e[u+11],22,-1990404162),n=E(n,i,o,r,e[u+12],7,1804603682),r=E(r,n,i,o,e[u+13],12,-40341101),o=E(o,r,n,i,e[u+14],17,-1502002290),i=E(i,o,r,n,e[u+15],22,1236535329),n=j(n,i,o,r,e[u+1],5,-165796510),r=j(r,n,i,o,e[u+6],9,-1069501632),o=j(o,r,n,i,e[u+11],14,643717713),i=j(i,o,r,n,e[u+0],20,-373897302),n=j(n,i,o,r,e[u+5],5,-701558691),r=j(r,n,i,o,e[u+10],9,38016083),o=j(o,r,n,i,e[u+15],14,-660478335),i=j(i,o,r,n,e[u+4],20,-405537848),n=j(n,i,o,r,e[u+9],5,568446438),r=j(r,n,i,o,e[u+14],9,-1019803690),o=j(o,r,n,i,e[u+3],14,-187363961),i=j(i,o,r,n,e[u+8],20,1163531501),n=j(n,i,o,r,e[u+13],5,-1444681467),r=j(r,n,i,o,e[u+2],9,-51403784),o=j(o,r,n,i,e[u+7],14,1735328473),i=j(i,o,r,n,e[u+12],20,-1926607734),n=I(n,i,o,r,e[u+5],4,-378558),r=I(r,n,i,o,e[u+8],11,-2022574463),o=I(o,r,n,i,e[u+11],16,1839030562),i=I(i,o,r,n,e[u+14],23,-35309556),n=I(n,i,o,r,e[u+1],4,-1530992060),r=I(r,n,i,o,e[u+4],11,1272893353),o=I(o,r,n,i,e[u+7],16,-155497632),i=I(i,o,r,n,e[u+10],23,-1094730640),n=I(n,i,o,r,e[u+13],4,681279174),r=I(r,n,i,o,e[u+0],11,-358537222),o=I(o,r,n,i,e[u+3],16,-722521979),i=I(i,o,r,n,e[u+6],23,76029189),n=I(n,i,o,r,e[u+9],4,-640364487),r=I(r,n,i,o,e[u+12],11,-421815835),o=I(o,r,n,i,e[u+15],16,530742520),i=I(i,o,r,n,e[u+2],23,-995338651),n=L(n,i,o,r,e[u+0],6,-198630844),r=L(r,n,i,o,e[u+7],10,1126891415),o=L(o,r,n,i,e[u+14],15,-1416354905),i=L(i,o,r,n,e[u+5],21,-57434055),n=L(n,i,o,r,e[u+12],6,1700485571),r=L(r,n,i,o,e[u+3],10,-1894986606),o=L(o,r,n,i,e[u+10],15,-1051523),i=L(i,o,r,n,e[u+1],21,-2054922799),n=L(n,i,o,r,e[u+8],6,1873313359),r=L(r,n,i,o,e[u+15],10,-30611744),o=L(o,r,n,i,e[u+6],15,-1560198380),i=L(i,o,r,n,e[u+13],21,1309151649),n=L(n,i,o,r,e[u+4],6,-145523070),r=L(r,n,i,o,e[u+11],10,-1120210379),o=L(o,r,n,i,e[u+2],15,718787259),i=L(i,o,r,n,e[u+9],21,-343485551),n=C(n,c),i=C(i,a),o=C(o,l),r=C(r,f)}return Array(n,i,o,r)}(function(e){for(var t=Array(),n=(1<<P)-1,i=0;i<e.length*P;i+=P)t[i>>5]|=(e.charCodeAt(i/P)&n)<<i%32;return t}(e),e.length*P),n="0123456789abcdef",i="",o=0;o<4*t.length;o++)i+=n.charAt(t[o>>2]>>o%4*8+4&15)+n.charAt(t[o>>2]>>o%4*8&15);return i}function x(e,t,n,i,o,r){return C((t=C(C(t,e),C(i,r)))<<o|t>>>32-o,n)}function E(e,t,n,i,o,r,u){return x(t&n|~t&i,e,t,o,r,u)}function j(e,t,n,i,o,r,u){return x(t&i|n&~i,e,t,o,r,u)}function I(e,t,n,i,o,r,u){return x(t^n^i,e,t,o,r,u)}function L(e,t,n,i,o,r,u){return x(n^(t|~i),e,t,o,r,u)}function C(e,t){var n=(65535&e)+(65535&t);return(e>>16)+(t>>16)+(n>>16)<<16|65535&n}var _=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.RegToString,enabled:b.qqBrowser||b.firefox})}return u(t,[{key:"init",value:function(){var t=this;this.lastTime=0,this.reg=/./,p(this.reg),this.reg.toString=function(){var e;return b.qqBrowser?(e=(new Date).getTime(),t.lastTime&&e-t.lastTime<100?t.onDevToolOpen():t.lastTime=e):b.firefox&&t.onDevToolOpen(),""}}},{key:"detect",value:function(){p(this.reg)}}]),t}(),ie=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DefineId})}return u(t,[{key:"init",value:function(){var e=this;this.div=document.createElement("div"),this.div.__defineGetter__("id",function(){e.onDevToolOpen()}),Object.defineProperty(this.div,"id",{get:function(){e.onDevToolOpen()}})}},{key:"detect",value:function(){p(this.div)}}]),t}(),oe=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Size,enabled:!b.iframe&&!b.edge})}return u(t,[{key:"init",value:function(){var e=this;this.checkWindowSizeUneven(),window.addEventListener("resize",function(){setTimeout(function(){e.checkWindowSizeUneven()},100)},!0)}},{key:"detect",value:function(){}},{key:"checkWindowSizeUneven",value:function(){var e=function(){if(re(window.devicePixelRatio))return window.devicePixelRatio;var e=window.screen;return!(re(e)||!e.deviceXDPI||!e.logicalXDPI)&&e.deviceXDPI/e.logicalXDPI}();if(!1!==e){var t=200<window.outerWidth-window.innerWidth*e,e=300<window.outerHeight-window.innerHeight*e;if(t||e)return this.onDevToolOpen(),!1;N(this.type)}return!0}}]),t}();function re(e){return null!=e}var A,ue=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DateToString,enabled:!b.iosChrome&&!b.iosEdge})}return u(t,[{key:"init",value:function(){var e=this;this.count=0,this.date=new Date,this.date.toString=function(){return e.count++,""}}},{key:"detect",value:function(){this.count=0,p(this.date),w(),2<=this.count&&this.onDevToolOpen()}}]),t}(),ce=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.FuncToString,enabled:!b.iosChrome&&!b.iosEdge})}return u(t,[{key:"init",value:function(){var e=this;this.count=0,this.func=function(){},this.func.toString=function(){return e.count++,""}}},{key:"detect",value:function(){this.count=0,p(this.func),w(),2<=this.count&&this.onDevToolOpen()}}]),t}(),ae=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Debugger,enabled:b.iosChrome||b.iosEdge})}return u(t,[{key:"detect",value:function(){var e=v();100<v()-e&&this.onDevToolOpen()}}]),t}(),le=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Performance,enabled:b.chrome||!b.mobile})}return u(t,[{key:"init",value:function(){this.maxPrintTime=0,this.largeObjectArray=M()}},{key:"detect",value:function(){var e=this,t=h(function(){y(e.largeObjectArray)}),n=h(function(){p(e.largeObjectArray)});if(this.maxPrintTime=Math.max(this.maxPrintTime,n),w(),0===t||0===this.maxPrintTime)return!1;t>10*this.maxPrintTime&&this.onDevToolOpen()}}]),t}(),fe=(e(A={},O.RegToString,_),e(A,O.DefineId,ie),e(A,O.Size,oe),e(A,O.DateToString,ue),e(A,O.FuncToString,ce),e(A,O.Debugger,ae),e(A,O.Performance,le),e(A,O.DebugLib,G),A);var R=Object.assign(function(e){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:"";return{success:!e,reason:e}}var n;if(R.isRunning)return t("already running");if(W(),n=window.console||{log:function(){},table:function(){},clear:function(){}},B=b.ie?(p=function(){return n.log.apply(n,arguments)},y=function(){return n.table.apply(n,arguments)},function(){return n.clear()}):(p=n.log,y=n.table,n.clear),q(e),d.md5&&ne(function(e){var t=window.location.search,n=window.location.hash;if(""!==(t=""===t&&""!==n?"?".concat(n.split("?")[1]):t)&&void 0!==t){n=new RegExp("(^|&)"+e+"=([^&]*)(&|$)","i"),e=t.substr(1).match(n);if(null!=e)return unescape(e[2])}return""}(d.tkName))===d.md5)return t("token passed");if(d.seo&&b.seoBot)return t("seobot");R.isRunning=!0,ee(R);var i=R,o=(X=function(){return i.isSuspend},window.top),r=window.parent;if(g(window),d.disableIframeParents&&o&&r&&o!==window){for(;r!==o;)g(r),r=r.parent;g(o)}return("all"===d.detectors?Object.keys(fe):d.detectors).forEach(function(e){new fe[e]}),t()},{isRunning:!1,isSuspend:!1,md5:ne,version:"0.3.8",DetectorType:O,isDevToolOpened:$});_=function(){if("undefined"==typeof window||!window.document)return null;var n=document.querySelector("[disable-devtool-auto]");if(!n)return null;var i=["disable-menu","disable-select","disable-copy","disable-cut","disable-paste","clear-log"],o=["interval"],r={};return["md5","url","tk-name","detectors"].concat(i,o).forEach(function(e){var t=n.getAttribute(e);null!==t&&(-1!==o.indexOf(e)?t=parseInt(t):-1!==i.indexOf(e)?t="false"!==t:"detector"===e&&"all"!==t&&(t=t.split(" ")),r[function(e){if(-1===e.indexOf("-"))return e;var t=!1;return e.split("").map(function(e){return"-"===e?(t=!0,""):t?(t=!1,e.toUpperCase()):e}).join("")}(e)]=t)}),r}();return _&&R(_),R});
+
+// Khởi tạo Anti-Debug Protection
+(function() {
+    try {
+        // Khởi tạo DisableDevtool với cấu hình tùy chỉnh
+        DisableDevtool({
+            disableMenu: true,        // Vô hiệu hóa chuột phải
+            disableSelect: true,      // Vô hiệu hóa select text
+            disableCopy: true,        // Vô hiệu hóa copy
+            disableCut: true,         // Vô hiệu hóa cut
+            disablePaste: true,       // Vô hiệu hóa paste
+            clearLog: true,           // Xóa console log
+            interval: 1000,           // Kiểm tra mỗi 1 giây
+            detectors: [0,1,2,3,4,5,6,7], // Tất cả các detector
+            ondevtoolopen: function() {
+                // Khi phát hiện Developer Tools mở
+                console.warn("Developer Tools đã được phát hiện!");
+                // Có thể thêm logic khác ở đây
+            }
+        });
+    } catch (error) {
+        console.warn("Anti-debug initialization failed:", error);
+    }
+})();
+
+// Supabase Configuration - Thêm API keys trực tiếp vào đây
+const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'              // ← Thay bằng ANON KEY thực
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -25,7 +52,11 @@ function hasManagerOrBossPermissions(user) {
 
 // Helper function to check if user is boss
 function isBoss(user) {
-    return user && user.role === 'boss'
+    console.log('isBoss - user:', user)
+    console.log('isBoss - user.role:', user?.role)
+    const result = user && user.role === 'boss'
+    console.log('isBoss - result:', result)
+    return result
 }
 
 // View Management Functions
@@ -88,7 +119,14 @@ function initializeApp() {
     // Set up event listeners
     setupEventListeners()
     
-    // Event listeners setup completed
+    // Debug: Add click listener to addTaskBtn
+    const addTaskBtn = document.getElementById('addTaskBtn')
+    if (addTaskBtn) {
+        addTaskBtn.addEventListener('click', function(e) {
+            console.log('addTaskBtn clicked!')
+            console.log('onclick handler:', this.onclick)
+        })
+    }
     
     // Set up realtime subscriptions
     setupRealtimeSubscriptions()
@@ -111,7 +149,9 @@ async function loadDataFromSupabase() {
         // Filter for managers (role 'manager') for manager filter
         const managers = window.allEmployees.filter(emp => emp.role === 'manager' || emp.role === 'boss')
         
-        // Data loaded successfully
+        console.log('Loaded allEmployees:', window.allEmployees)
+        console.log('Filtered employees:', employees)
+        console.log('Filtered managers:', managers)
         
         // Update manager filter dropdown
         updateManagerFilter(managers)
@@ -191,7 +231,10 @@ async function loadTasks(projectId = null) {
         if (error) throw error
         tasks = data || []
         
-        // Tasks loaded successfully
+        console.log(`Loaded ${tasks.length} tasks total`)
+        if (projectId) {
+            console.log(`Tasks for project ${projectId}:`, tasks.filter(t => t.project_id === projectId))
+        }
         
         renderTasksTable()
         
@@ -204,7 +247,39 @@ async function loadTasks(projectId = null) {
     }
 }
 
-// Removed debug functions: refreshTaskCounts() and testEmployeeVisibility()
+// Function to manually refresh task counts for debugging
+function refreshTaskCounts() {
+    console.log('Refreshing task counts...')
+    console.log('Current tasks:', tasks)
+    console.log('Current projects:', projects)
+    
+    projects.forEach(project => {
+        const taskCount = tasks.filter(t => t.project_id === project.id).length
+        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks`)
+    })
+    
+    renderProjectsTable()
+}
+
+// Function to test employee visibility
+function testEmployeeVisibility() {
+    console.log('=== Testing Employee Visibility ===')
+    console.log('Current user:', currentUser)
+    console.log('Current user role:', currentUser?.role)
+    console.log('Total projects loaded:', projects.length)
+    console.log('Projects by status:')
+    const statusCounts = {}
+    projects.forEach(project => {
+        statusCounts[project.status] = (statusCounts[project.status] || 0) + 1
+    })
+    console.log(statusCounts)
+    console.log('Total tasks loaded:', tasks.length)
+    console.log('Leaderboard containers exist:', {
+        allTime: !!document.getElementById('allTimeLeaderboard'),
+        monthly: !!document.getElementById('monthlyLeaderboard')
+    })
+    console.log('=== End Test ===')
+}
 
 // Realtime Subscriptions
 function setupRealtimeSubscriptions() {
@@ -212,12 +287,25 @@ function setupRealtimeSubscriptions() {
     supabase
         .channel('projects')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, payload => {
-                    loadProjects()
-        showNotification('Dữ liệu dự án đã được cập nhật', 'info')
-    })
-    .subscribe()
-
-    // Task changes subscription removed for performance
+            console.log('Project change:', payload)
+            loadProjects()
+            showNotification('Dữ liệu dự án đã được cập nhật', 'info')
+        })
+        .subscribe()
+    
+    // Subscribe to task changes - Tạm thời comment để tránh conflict
+    /*
+    supabase
+        .channel('tasks')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
+            console.log('Task change:', payload)
+            if (currentProjectId) {
+                loadTasks(currentProjectId)
+            }
+            showNotification('Dữ liệu công việc đã được cập nhật', 'info')
+        })
+        .subscribe()
+    */
 }
 
 // User Management
@@ -296,7 +384,9 @@ function updateUserInterface() {
     addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
     
     // Debug logging
-    // UI updated successfully
+    console.log('updateUserInterface - currentUser.role:', currentUser.role)
+    console.log('updateUserInterface - isInTasksView:', isInTasksView)
+    console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
@@ -312,7 +402,8 @@ function updateUserInterface() {
         // Load leaderboards for all users (both employees and managers)
         loadLeaderboards()
         
-        // Employee visibility test removed for production
+        // Test employee visibility for debugging
+        testEmployeeVisibility()
     } else {
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
@@ -775,7 +866,10 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
-    // addTask function called
+    console.log('addTask() called')
+    console.log('currentUser:', currentUser)
+    console.log('currentTaskType:', currentTaskType)
+    console.log('currentProjectId:', currentProjectId)
     
     const nameInput = document.getElementById('taskName');
     const deadlineInput = document.getElementById('taskDeadline');
@@ -788,7 +882,7 @@ async function addTask() {
     const deadline = deadlineInput ? deadlineInput.value : '';
     const priority = priorityInput ? priorityInput.value : '';
 
-    // Form values validated
+    console.log('Form values:', { name, deadline, priority, projectId, currentTaskType })
 
     if (!name || !deadline || !projectId) {
         showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
@@ -904,7 +998,8 @@ async function claimTask(taskId) {
     }
     
     try {
-        // Claiming task
+        console.log('Claiming task:', taskId)
+        console.log('Current user:', currentUser)
         
         // Kiểm tra task hiện tại
         const currentTask = tasks.find(t => t.id === taskId)
@@ -927,7 +1022,10 @@ async function claimTask(taskId) {
             }
         }
         
-        // Updating task assignment
+        console.log('Current task before update:', currentTask)
+        
+        // Thực hiện update với điều kiện assignee_id IS NULL
+        console.log('Updating task with user ID:', currentUser.id)
         const { data, error } = await supabase
             .from('tasks')
             .update({
@@ -944,19 +1042,25 @@ async function claimTask(taskId) {
             throw error
         }
         
+        console.log('Update result:', data)
+        
         if (data && data.length > 0) {
             showNotification('Đã nhận công việc thành công!', 'success')
             
             // Cập nhật local data ngay lập tức
             const updatedTask = data[0]
+            console.log('Updated task:', updatedTask)
             
             // Tìm và cập nhật task trong mảng local
             const taskIndex = tasks.findIndex(t => t.id === taskId)
             if (taskIndex !== -1) {
                 tasks[taskIndex] = updatedTask
+                console.log('Updated local task at index:', taskIndex)
+                console.log('Updated task data:', tasks[taskIndex])
             }
             
             // Re-render appropriate table after a short delay
+            console.log('Re-rendering table...')
             setTimeout(() => {
                 if (currentTaskType === 'beta') {
                     renderBetaTasksTable()
@@ -966,6 +1070,7 @@ async function claimTask(taskId) {
             }, 100)
             
         } else {
+            console.log('No rows updated - task may have been claimed by someone else')
             showNotification('Công việc đã được nhận bởi người khác', 'error')
         }
         
@@ -1429,7 +1534,8 @@ function renderProjectsTable() {
     const tbody = document.getElementById('projectsTableBody')
     tbody.innerHTML = ''
     
-    // Rendering projects table
+    console.log('Rendering projects table with', filteredProjects.length, 'projects')
+    console.log('Current tasks array has', tasks.length, 'tasks')
     
     if (filteredProjects.length === 0) {
         tbody.innerHTML = `
@@ -1458,7 +1564,7 @@ function renderProjectsTable() {
         
         // Get task count for this project - fix the count display
         const taskCount = tasks.filter(t => t.project_id === project.id).length
-        // Project task count calculated
+        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks found`)
         
         row.innerHTML = `
             <td>${project.id}</td>
@@ -1477,6 +1583,9 @@ function renderProjectsTable() {
                     ${hasManagerOrBossPermissions(currentUser) ? 
                         `<button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
                             <i class="fas fa-chart-bar"></i>
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="downloadBetaFiles(${project.id})" title="Tải file Beta">
+                            <i class="fas fa-download"></i>
                         </button>` : ''
                     }
                     ${canOperateOnProject(project) ? 
@@ -1506,15 +1615,22 @@ function renderTasksTable() {
     const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
     const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
     
-    // Filtering tasks for current project
+    console.log('Filtering tasks...')
+    console.log('Status filter:', statusFilter)
+    console.log('Assignee filter:', assigneeFilter)
+    console.log('Current project ID:', currentProjectId)
+    console.log('Total tasks:', tasks.length)
     
     let projectTasks = tasks.filter(t => t.project_id === currentProjectId && t.task_type === 'rv')
-    // Apply filters
+    console.log('Tasks in current project:', projectTasks.length)
+    
     if (statusFilter) {
         projectTasks = projectTasks.filter(t => t.status === statusFilter)
+        console.log('After status filter:', projectTasks.length)
     }
     if (assigneeFilter) {
         projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
+        console.log('After assignee filter:', projectTasks.length)
     }
     
     // Sắp xếp theo tên deadline A-Z
@@ -1681,7 +1797,13 @@ function applyProjectFilters() {
     renderProjectsTable()
 }
 
-// setupTaskFilters function removed - duplicate definition
+function setupTaskFilters() {
+    const statusFilter = document.getElementById('taskStatusFilter')
+    const assigneeFilter = document.getElementById('taskAssigneeFilter')
+    if (statusFilter) statusFilter.onchange = renderTasksTable
+    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
+    updateTaskAssigneeFilter();
+}
 
 // Utility Functions
 function formatDateTime(dateString) {
@@ -1814,7 +1936,9 @@ function toggleBatchCreate() {
 }
 
 function showAddTaskModal() {
-    // showAddTaskModal function called
+    console.log('showAddTaskModal() called')
+    console.log('currentUser:', currentUser)
+    console.log('currentProjectId:', currentProjectId)
     
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để Thêm Deadline', 'error')
@@ -2218,9 +2342,9 @@ function calculateRVChars() {
     document.getElementById('taskRVChars').value = rvChars >= 0 ? rvChars : 0
 } 
 
-// Common function to populate employee dropdowns
-function populateEmployeeDropdown(selectId) {
-    const select = document.getElementById(selectId)
+// Thêm hàm cập nhật dropdown nhân viên cho bộ lọc
+function updateTaskAssigneeFilter() {
+    const select = document.getElementById('taskAssigneeFilter')
     if (!select) return
     select.innerHTML = '<option value="">Tất cả</option>'
     if (window.allEmployees) {
@@ -2233,19 +2357,13 @@ function populateEmployeeDropdown(selectId) {
     }
 }
 
-// Update task assignee filter
-function updateTaskAssigneeFilter() {
-    populateEmployeeDropdown('taskAssigneeFilter')
+// Gắn event cho filter
+function setupTaskFilters() {
+    updateTaskAssigneeFilter();
 }
 
-// Setup task filters
-function setupTaskFilters() {
-    const statusFilter = document.getElementById('taskStatusFilter')
-    const assigneeFilter = document.getElementById('taskAssigneeFilter')
-    if (statusFilter) statusFilter.onchange = renderTasksTable
-    if (assigneeFilter) assigneeFilter.onchange = renderTasksTable
-    updateTaskAssigneeFilter();
-} 
+// Gọi setupTaskFilters sau khi load dữ liệu hoặc chuyển dự án
+// Ví dụ: trong showTasksView(projectId) hoặc loadDataFromSupabase() thêm setupTaskFilters() 
 
 function updateAllCountdowns() {
     const timers = document.querySelectorAll('.countdown-timer');
@@ -2372,7 +2490,8 @@ async function loadAllTimeLeaderboard() {
             })
             .slice(0, 5) // TOP 5
 
-        // All-time leaderboard data loaded
+        console.log('All-time leaderboard data:', leaderboardData)
+        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
         window.allTimeLeaderboardData = leaderboardData
         renderLeaderboard('allTimeLeaderboard', leaderboardData, 'all-time')
         
@@ -2462,7 +2581,8 @@ async function loadMonthlyLeaderboard() {
             })
             .slice(0, 10) // TOP 10
 
-        // Monthly leaderboard data loaded
+        console.log('Monthly leaderboard data:', leaderboardData)
+        // Lưu dữ liệu vào window object để sử dụng cho màu sắc
         window.monthlyLeaderboardData = leaderboardData
         renderLeaderboard('monthlyLeaderboard', leaderboardData, 'monthly')
         
@@ -2950,6 +3070,39 @@ function renderBetaTasksTable() {
             })
         }
         
+        // Format Beta link với phân quyền mới
+        let betaLinkDisplay = ''
+        
+        if (currentUser && (isBoss(currentUser) || currentUser.role === 'manager')) {
+            // Boss/Manager: Luôn thấy button "Chỉnh sửa Beta" nếu có dữ liệu
+            if (task.beta_link) {
+                betaLinkDisplay = `<button class="btn btn-sm btn-outline-primary" onclick="editBetaData(${task.id})">
+                    <i class="fas fa-edit"></i> Chỉnh sửa Beta
+                </button>`
+            } else {
+                betaLinkDisplay = '<span class="text-muted">-</span>'
+            }
+        } else if (currentUser && currentUser.role === 'employee') {
+            // Employee: Chỉ thấy button nếu là người được assign task này
+            if (task.assignee_id === currentUser.id) {
+                if (task.beta_link) {
+                    betaLinkDisplay = `<button class="btn btn-sm btn-outline-primary" onclick="editBetaData(${task.id})">
+                        <i class="fas fa-edit"></i> Cập nhật Beta
+                    </button>`
+                } else {
+                    betaLinkDisplay = `<button class="btn btn-sm btn-outline-success" onclick="inputBetaData(${task.id})">
+                        <i class="fas fa-plus"></i> Nhập Beta
+                    </button>`
+                }
+            } else {
+                // Nhân viên khác: Không thấy gì
+                betaLinkDisplay = '<span class="text-muted">-</span>'
+            }
+        } else {
+            // Khách: Không thấy gì
+            betaLinkDisplay = '<span class="text-muted">-</span>'
+        }
+        
         // Format notes with link if extensive
         let notesDisplay = '<span class="text-muted">-</span>'
         if (task.beta_notes && task.beta_notes.trim()) {
@@ -2996,7 +3149,7 @@ function renderBetaTasksTable() {
                 </td>
                 <td>${getTaskStatusBadge(task.status)}</td>
                 <td>${rvLink}</td>
-                <td>${task.beta_link ? `<a href="${task.beta_link}" target="_blank" class="btn btn-sm btn-outline-success"><i class="fas fa-external-link-alt"></i> Link</a>` : '<span class="text-muted">-</span>'}</td>
+                <td>${betaLinkDisplay}</td>
                 <td>${rvChars}</td>
                 <td>${betaChars}</td>
                 <td>${payment}</td>
@@ -3064,6 +3217,9 @@ async function editBetaTask(id) {
     
     // Set field permissions for beta tasks (this will handle UI reset)
     setFieldPermissions('beta')
+    
+    // Show status field
+    document.getElementById('taskStatusField').style.display = 'block'
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('taskModal'))
@@ -3297,7 +3453,18 @@ async function updateBetaTask() {
 
 // Setup beta task filters
 function setupBetaTaskFilters() {
-    populateEmployeeDropdown('betaTaskAssigneeFilter')
+    const assigneeFilter = document.getElementById('betaTaskAssigneeFilter')
+    if (assigneeFilter) {
+        assigneeFilter.innerHTML = '<option value="">Tất cả</option>'
+        if (window.allEmployees) {
+            window.allEmployees.filter(e => e.role === 'employee').forEach(e => {
+                const option = document.createElement('option')
+                option.value = e.id
+                option.textContent = e.name
+                assigneeFilter.appendChild(option)
+            })
+        }
+    }
 }
 
 // Initialize beta task functionality
@@ -3375,6 +3542,7 @@ function getEmployeeRank(employeeId) {
     const allTimeLeaderboard = window.allTimeLeaderboardData || []
     const allTimeRank = allTimeLeaderboard.findIndex(emp => emp.id === employeeId)
     if (allTimeRank !== -1) {
+        console.log(`Employee ${employeeId} found in all-time leaderboard at rank ${allTimeRank + 1}`)
         return { type: 'all-time', rank: allTimeRank + 1 }
     }
     
@@ -3382,37 +3550,63 @@ function getEmployeeRank(employeeId) {
     const monthlyLeaderboard = window.monthlyLeaderboardData || []
     const monthlyRank = monthlyLeaderboard.findIndex(emp => emp.id === employeeId)
     if (monthlyRank !== -1) {
+        console.log(`Employee ${employeeId} found in monthly leaderboard at rank ${monthlyRank + 1}`)
         return { type: 'monthly', rank: monthlyRank + 1 }
     }
     
+    console.log(`Employee ${employeeId} not found in any leaderboard`)
     return null
 }
 
 // Function để lấy class màu sắc dựa trên rank
 function getAssigneeColorClass(rankInfo) {
     if (!rankInfo) {
+        console.log('No rank info, using default color')
         return 'text-success' // Mặc định màu xanh
     }
     
     const { type, rank } = rankInfo
+    console.log(`Applying color for ${type} rank ${rank}`)
     
     // Ưu tiên all-time rank và áp dụng hiệu ứng rainbow cho top 3
     if (rank === 1) {
+        console.log('Applying rainbow-text-1 for rank 1')
         return 'rainbow-text-1 fw-bold' // Rainbow effect cho rank 1
     } else if (rank === 2) {
+        console.log('Applying rainbow-text-2 for rank 2')
         return 'rainbow-text-2 fw-bold' // Rainbow effect cho rank 2
     } else if (rank === 3) {
+        console.log('Applying rainbow-text-3 for rank 3')
         return 'rainbow-text-3 fw-bold' // Rainbow effect cho rank 3
     } else if (rank <= 5) {
+        console.log('Applying text-primary for top 5')
         return 'text-primary fw-bold' // Xanh dương cho top 5
     } else if (rank <= 10) {
+        console.log('Applying text-info for top 10')
         return 'text-info fw-bold' // Xanh nhạt cho top 10
     } else {
+        console.log('Applying text-success for others')
         return 'text-success' // Xanh lá cho những người khác
     }
 }
 
-// Removed debug function: testRankBasedStyling()
+// Test function để kiểm tra rank-based styling
+function testRankBasedStyling() {
+    console.log('=== Testing Rank-Based Styling ===')
+    console.log('All-time leaderboard data:', window.allTimeLeaderboardData)
+    console.log('Monthly leaderboard data:', window.monthlyLeaderboardData)
+    
+    // Test với một số employee IDs
+    const testEmployeeIds = ['test-1', 'test-2', 'test-3']
+    
+    testEmployeeIds.forEach(employeeId => {
+        const rank = getEmployeeRank(employeeId)
+        const colorClass = getAssigneeColorClass(rank)
+        console.log(`Employee ${employeeId}:`, { rank, colorClass })
+    })
+    
+    console.log('=== End Test ===')
+}
 
 // Project Reporting Functions
 async function showProjectReport(projectId) {
@@ -3584,4 +3778,202 @@ function exportReportToCSV() {
     document.body.removeChild(link)
     
     showNotification('Đã xuất báo cáo thành công!', 'success')
+}
+
+// Beta Data Functions
+function viewBetaData(taskId) {
+    // Chuyển hướng đến edit mode thay vì chỉ xem
+    editBetaData(taskId)
+}
+
+function inputBetaData(taskId) {
+    window.open(`beta-input.html?taskId=${taskId}&mode=input`, '_blank')
+}
+
+function editBetaData(taskId) {
+    window.open(`beta-input.html?taskId=${taskId}&mode=edit`, '_blank')
+}
+
+// Download Beta Files Functions
+async function downloadBetaFiles(projectId) {
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return
+    
+    // Kiểm tra quyền
+    if (!currentUser || (!isBoss(currentUser) && currentUser.role !== 'manager')) {
+        showNotification('Bạn không có quyền tải file beta', 'error')
+        return
+    }
+    
+    // Lấy danh sách beta tasks của dự án
+    const betaTasks = tasks.filter(t => 
+        t.project_id === projectId && 
+        t.task_type === 'beta' && 
+        t.beta_link // Chỉ những task có dữ liệu beta
+    )
+    
+    if (betaTasks.length === 0) {
+        showNotification('Không có file beta nào để tải', 'info')
+        return
+    }
+    
+    // Populate modal
+    document.getElementById('downloadProjectName').textContent = project.name
+    populateBetaFilesTable(betaTasks)
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('downloadBetaModal'))
+    modal.show()
+}
+
+function populateBetaFilesTable(betaTasks) {
+    const tbody = document.getElementById('betaFilesTableBody')
+    tbody.innerHTML = ''
+    
+    // Sắp xếp betaTasks theo số chap
+    betaTasks.sort((a, b) => {
+        const extractNumber = (name) => {
+            const match = (name || '').match(/\d+/)
+            return match ? parseInt(match[0], 10) : null
+        }
+        const numA = extractNumber(a.name)
+        const numB = extractNumber(b.name)
+        if (numA !== null && numB !== null) {
+            return numA - numB
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+    })
+    
+    betaTasks.forEach(task => {
+        const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
+        const row = document.createElement('tr')
+        row.innerHTML = `
+            <td><input type="checkbox" class="beta-file-checkbox" value="${task.id}" checked></td>
+            <td>${task.name}</td>
+            <td>${assignee ? assignee.name : 'N/A'}</td>
+            <td>${getTaskStatusBadge(task.status)}</td>
+            <td>${formatDateTime(task.updated_at || task.created_at)}</td>
+        `
+        tbody.appendChild(row)
+    })
+    
+    // Setup select all checkbox
+    setupSelectAllBetaFiles()
+}
+
+function setupSelectAllBetaFiles() {
+    const selectAll = document.getElementById('selectAllBetaFiles')
+    const checkboxes = document.querySelectorAll('.beta-file-checkbox')
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked)
+        })
+        
+        // Update select all when individual checkboxes change
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const allChecked = Array.from(checkboxes).every(c => c.checked)
+                const someChecked = Array.from(checkboxes).some(c => c.checked)
+                selectAll.checked = allChecked
+                selectAll.indeterminate = someChecked && !allChecked
+            })
+        })
+    }
+}
+
+async function executeDownload() {
+    const downloadMode = document.getElementById('downloadMode').value
+    const mergeOption = document.getElementById('mergeOption').value
+    const selectedTasks = Array.from(document.querySelectorAll('.beta-file-checkbox:checked'))
+        .map(cb => parseInt(cb.value))
+    
+    if (selectedTasks.length === 0) {
+        showNotification('Vui lòng chọn ít nhất một file để tải', 'error')
+        return
+    }
+    
+    try {
+        if (mergeOption === 'merge') {
+            // Gộp thành 1 file
+            await downloadMergedBetaFiles(selectedTasks)
+        } else {
+            // Tải file riêng biệt
+            await downloadSeparateBetaFiles(selectedTasks)
+        }
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('downloadBetaModal'))
+        modal.hide()
+        
+        showNotification('Tải file thành công!', 'success')
+        
+    } catch (error) {
+        console.error('Error downloading files:', error)
+        showNotification('Lỗi khi tải file: ' + error.message, 'error')
+    }
+}
+
+async function downloadMergedBetaFiles(taskIds) {
+    const betaTasks = tasks.filter(t => taskIds.includes(t.id));
+    let mergedContent = '';
+
+    for (const task of betaTasks) {
+        if (task.beta_link) {
+            mergedContent += task.beta_link + '<br><br>';
+        }
+    }
+
+    const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body>${mergedContent.trim()}</body>
+        </html>
+    `;
+
+    const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/msword',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `beta_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function downloadSeparateBetaFiles(taskIds) {
+    const betaTasks = tasks.filter(t => taskIds.includes(t.id))
+    
+    for (const task of betaTasks) {
+        try {
+            let content = ''
+            
+            if (task.beta_link) {
+                content = task.beta_link
+            }
+            
+            // Tạo file riêng cho từng task
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `beta_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+            
+            // Delay nhỏ để tránh browser block multiple downloads
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+        } catch (error) {
+            console.error(`Error downloading file for task ${task.id}:`, error)
+        }
+    }
 }

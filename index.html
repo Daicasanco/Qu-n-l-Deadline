@@ -198,6 +198,9 @@
             <button class="btn btn-info" id="viewEmployeesBtn" onclick="showEmployeesList()" style="display: none;">
                 <i class="fas fa-users"></i> Xem Nhân viên
             </button>
+            <button class="btn btn-warning" id="viewActivityHistoryBtn" onclick="showActivityHistoryView()" style="display: none;">
+                <i class="fas fa-history"></i> Lịch sử hoạt động
+            </button>
             <button class="btn btn-secondary" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i> Làm mới
             </button>
@@ -964,6 +967,75 @@
                     <button type="button" class="btn btn-primary" onclick="executeDownload()">
                         <i class="fas fa-download"></i> Tải File
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity History View -->
+    <div id="activityHistoryView" style="display: none;">
+        <div class="mb-3">
+            <button class="btn btn-secondary" onclick="showProjectsView()">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách dự án
+            </button>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card activity-history-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Lịch sử hoạt động của nhân viên
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Employee Activity Filters -->
+                        <div class="row mb-3 activity-filters">
+                            <div class="col-md-4">
+                                <label class="form-label">Lọc theo nhân viên:</label>
+                                <select class="form-select" id="employeeActivityFilter" onchange="renderActivityHistoryTable()">
+                                    <option value="">Tất cả nhân viên</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Lọc theo trạng thái:</label>
+                                <select class="form-select" id="activityStatusFilter" onchange="renderActivityHistoryTable()">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="active">Đang hoạt động</option>
+                                    <option value="inactive">Không hoạt động</option>
+                                    <option value="warning">Cần chú ý</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-refresh-activity w-100" onclick="refreshActivityHistory()">
+                                    <i class="fas fa-sync-alt me-1"></i>Làm mới
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Activity History Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover activity-history-table" id="activityHistoryTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Nhân viên</th>
+                                        <th>Vai trò</th>
+                                        <th>Task cuối cùng</th>
+                                        <th>Ngày nhận</th>
+                                        <th>Ngày hoàn thành</th>
+                                        <th>Thời gian không hoạt động</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityHistoryTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

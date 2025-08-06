@@ -671,7 +671,7 @@
                     .from('tasks')
                     .update({
                         beta_link: contentUrl,
-                        beta_chars: content.length,
+                        beta_chars: content.trim() ? content.trim().split(/\s+/).length : 0,
                         status: 'completed',
                         updated_at: new Date().toISOString()
                     })

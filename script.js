@@ -111,25 +111,29 @@ function initializeApp() {
     if (savedUser) {
         currentUser = JSON.parse(savedUser)
         updateUserInterface()
+        
+        // Load data from Supabase only if user is logged in
+        loadDataFromSupabase()
+        
+        // Set up event listeners
+        setupEventListeners()
+        
+        // Debug: Add click listener to addTaskBtn
+        const addTaskBtn = document.getElementById('addTaskBtn')
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', function(e) {
+                console.log('addTaskBtn clicked!')
+                console.log('onclick handler:', this.onclick)
+            })
+        }
+        
+        // Set up realtime subscriptions
+        setupRealtimeSubscriptions()
+    } else {
+        // User not logged in - show login modal and hide content
+        showLoginModal()
+        hideAllContent()
     }
-    
-    // Load data from Supabase
-    loadDataFromSupabase()
-    
-    // Set up event listeners
-    setupEventListeners()
-    
-    // Debug: Add click listener to addTaskBtn
-    const addTaskBtn = document.getElementById('addTaskBtn')
-    if (addTaskBtn) {
-        addTaskBtn.addEventListener('click', function(e) {
-            console.log('addTaskBtn clicked!')
-            console.log('onclick handler:', this.onclick)
-        })
-    }
-    
-    // Set up realtime subscriptions
-    setupRealtimeSubscriptions()
 }
 
 // Supabase Data Management
@@ -373,20 +377,23 @@ function updateUserInterface() {
     const addProjectBtn = document.getElementById('addProjectBtn')
     const addTaskBtn = document.getElementById('addTaskBtn')
     const viewEmployeesBtn = document.getElementById('viewEmployeesBtn')
+    const loginMessage = document.getElementById('loginMessage')
+    const mainContent = document.getElementById('mainContent')
     
     if (currentUser) {
+        // User is logged in - show content and hide login message
         currentUserSpan.textContent = currentUser.name
         addProjectBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
-            // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager hoặc boss
-    const tasksView = document.getElementById('tasksView')
-    const isInTasksView = tasksView && tasksView.style.display !== 'none'
-    addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
-    
-    // Debug logging
-    console.log('updateUserInterface - currentUser.role:', currentUser.role)
-    console.log('updateUserInterface - isInTasksView:', isInTasksView)
-    console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
+        // Chỉ hiện nút "Thêm Deadline" khi ở trong tasks view và là manager hoặc boss
+        const tasksView = document.getElementById('tasksView')
+        const isInTasksView = tasksView && tasksView.style.display !== 'none'
+        addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
+        
+        // Debug logging
+        console.log('updateUserInterface - currentUser.role:', currentUser.role)
+        console.log('updateUserInterface - isInTasksView:', isInTasksView)
+        console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         
@@ -395,6 +402,10 @@ function updateUserInterface() {
         if (editAnnouncementBtn) {
             editAnnouncementBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'block' : 'none'
         }
+        
+        // Show main content and hide login message
+        if (mainContent) mainContent.style.display = 'block'
+        if (loginMessage) loginMessage.style.display = 'none'
         
         // Update assignee dropdowns
         updateAssigneeDropdowns()
@@ -405,10 +416,26 @@ function updateUserInterface() {
         // Test employee visibility for debugging
         testEmployeeVisibility()
     } else {
+        // User not logged in - hide content and show login message
         currentUserSpan.textContent = 'Guest'
         addProjectBtn.style.display = 'none'
         addTaskBtn.style.display = 'none'
         viewEmployeesBtn.style.display = 'none'
+        
+        // Hide main content and show login message
+        if (mainContent) mainContent.style.display = 'none'
+        if (loginMessage) {
+            loginMessage.style.display = 'block'
+            loginMessage.innerHTML = `
+                <div class="text-center mt-5">
+                    <h3><i class="fas fa-lock text-warning"></i> Yêu cầu đăng nhập</h3>
+                    <p class="text-muted">Vui lòng đăng nhập để truy cập hệ thống quản lý dự án.</p>
+                    <button class="btn btn-primary" onclick="showLoginModal()">
+                        <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                    </button>
+                </div>
+            `
+        }
     }
 }
 
@@ -1868,6 +1895,34 @@ function showNotification(message, type = 'info') {
 function showLoginModal() {
     const modal = new bootstrap.Modal(document.getElementById('loginModal'))
     modal.show()
+}
+
+function hideAllContent() {
+    // Hide all main content sections
+    const mainContent = document.getElementById('mainContent')
+    const projectsView = document.getElementById('projectsView')
+    const tasksView = document.getElementById('tasksView')
+    const dashboardView = document.getElementById('dashboardView')
+    
+    if (mainContent) mainContent.style.display = 'none'
+    if (projectsView) projectsView.style.display = 'none'
+    if (tasksView) tasksView.style.display = 'none'
+    if (dashboardView) dashboardView.style.display = 'none'
+    
+    // Show login message
+    const loginMessage = document.getElementById('loginMessage')
+    if (loginMessage) {
+        loginMessage.style.display = 'block'
+        loginMessage.innerHTML = `
+            <div class="text-center mt-5">
+                <h3><i class="fas fa-lock text-warning"></i> Yêu cầu đăng nhập</h3>
+                <p class="text-muted">Vui lòng đăng nhập để truy cập hệ thống quản lý dự án.</p>
+                <button class="btn btn-primary" onclick="showLoginModal()">
+                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                </button>
+            </div>
+        `
+    }
 }
 
 async function showAddProjectModal() {

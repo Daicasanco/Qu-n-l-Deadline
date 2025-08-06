@@ -12,7 +12,7 @@
             disableSelect: true,      // Vô hiệu hóa select text
             disableCopy: true,        // Vô hiệu hóa copy
             disableCut: true,         // Vô hiệu hóa cut
-            disablePaste: true,       // Vô hiệu hóa paste
+            disablePaste: false,       // Vô hiệu hóa paste
             clearLog: true,           // Xóa console log
             interval: 1000,           // Kiểm tra mỗi 1 giây
             detectors: [0,1,2,3,4,5,6,7], // Tất cả các detector
@@ -421,6 +421,7 @@ async function addProject() {
     const storyLink = document.getElementById('projectStoryLink').value
     const ruleLink = document.getElementById('projectRuleLink').value
     const bnvLink = document.getElementById('projectBnvLink').value
+    const dialogueLink = document.getElementById('projectDialogueLink').value
     
     // Validate input
     if (!name) {
@@ -439,6 +440,7 @@ async function addProject() {
                 story_link: storyLink || null,
                 rule_link: ruleLink || null,
                 bnv_link: bnvLink || null,
+                dialogue_link: dialogueLink || null,
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -564,6 +566,7 @@ async function editProject(id) {
     document.getElementById('projectStoryLink').value = project.story_link || ''
     document.getElementById('projectRuleLink').value = project.rule_link || ''
     document.getElementById('projectBnvLink').value = project.bnv_link || ''
+    document.getElementById('projectDialogueLink').value = project.dialogue_link || ''
     
     // Update modal title
     document.getElementById('projectModalTitle').textContent = 'Chỉnh sửa Dự án'
@@ -796,6 +799,7 @@ async function updateProject() {
     const storyLink = document.getElementById('projectStoryLink').value
     const ruleLink = document.getElementById('projectRuleLink').value
     const bnvLink = document.getElementById('projectBnvLink').value
+    const dialogueLink = document.getElementById('projectDialogueLink').value
     
     // Validate input
     if (!name) {
@@ -814,6 +818,7 @@ async function updateProject() {
                 story_link: storyLink || null,
                 rule_link: ruleLink || null,
                 bnv_link: bnvLink || null,
+                dialogue_link: dialogueLink || null,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
@@ -1880,6 +1885,7 @@ async function showAddProjectModal() {
     document.getElementById('projectStoryLink').value = ''
     document.getElementById('projectRuleLink').value = ''
     document.getElementById('projectBnvLink').value = ''
+    document.getElementById('projectDialogueLink').value = ''
     
     // Clear bulk rate fields
     document.getElementById('projectRVRate').value = ''
@@ -3030,7 +3036,10 @@ function renderBetaTasksTable() {
         
         // Calculate time left
         const timeLeft = calculateTimeLeft(task.deadline)
-        const isOverdue = new Date(task.deadline) < new Date()
+        const deadline = new Date(task.deadline)
+        const now = new Date()
+        const isCompleted = task.status === 'completed'
+        const isOverdue = deadline < now && !isCompleted
         
         // Format RV chars (from parent task)
         const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
@@ -3135,12 +3144,26 @@ function renderBetaTasksTable() {
             }
         }
         
+        // Countdown deadline
+        let countdown = ''
+        if (isNaN(deadline.getTime())) {
+            countdown = '<span class="text-muted">-</span>'
+        } else if (isCompleted) {
+            countdown = '<span class="badge bg-success">Hoàn thành</span>'
+        } else if (deadline < now) {
+            countdown = '<span class="badge bg-danger">Quá hạn</span>'
+        } else if (timeLeft < 10 * 60 * 60 * 1000) {
+            countdown = `<span class="countdown-timer bg-danger text-white" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`
+        } else {
+            countdown = `<span class="countdown-timer" data-deadline="${task.deadline}" data-taskid="${task.id}"></span>`
+        }
+
         return `
             <tr class="${isOverdue ? 'table-danger' : ''}">
                 <td>
                     <div class="d-flex flex-column">
                         <small class="text-muted">${formatDateTime(task.deadline)}</small>
-                        <span class="badge ${isOverdue ? 'bg-danger' : 'bg-info'}">${timeLeft}</span>
+                        ${countdown}
                     </div>
                 </td>
                 <td>
@@ -3501,11 +3524,21 @@ function openBnvLink() {
     }
 }
 
+function openDialogueLink() {
+    const currentProject = projects.find(p => p.id === currentProjectId)
+    if (currentProject && currentProject.dialogue_link) {
+        window.open(currentProject.dialogue_link, '_blank')
+    } else {
+        showNotification('Link thoại chưa được thiết lập', 'warning')
+    }
+}
+
 function updateProjectLinkButtons() {
     const currentProject = projects.find(p => p.id === currentProjectId)
     const storyBtn = document.getElementById('storyLinkBtn')
     const ruleBtn = document.getElementById('ruleLinkBtn')
     const bnvBtn = document.getElementById('bnvLinkBtn')
+    const dialogueBtn = document.getElementById('dialogueLinkBtn')
     
     if (currentProject) {
         // Show/hide buttons based on available links
@@ -3526,11 +3559,18 @@ function updateProjectLinkButtons() {
         } else {
             bnvBtn.style.display = 'none'
         }
+        
+        if (currentProject.dialogue_link) {
+            dialogueBtn.style.display = 'inline-block'
+        } else {
+            dialogueBtn.style.display = 'none'
+        }
     } else {
         // Hide all buttons if no project selected
         storyBtn.style.display = 'none'
         ruleBtn.style.display = 'none'
         bnvBtn.style.display = 'none'
+        dialogueBtn.style.display = 'none'
     }
 }
 

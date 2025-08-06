@@ -65,6 +65,36 @@ body {
     color: white;
 }
 
+.badge-active {
+    background-color: var(--success-color);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-active:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.4);
+}
+
+.badge-paused {
+    background-color: var(--warning-color);
+    color: var(--dark-color);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-paused:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
+}
+
 /* Priority Badges */
 .badge-priority-low {
     background-color: #28a745;

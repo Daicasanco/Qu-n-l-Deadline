@@ -3732,47 +3732,7 @@ function getAssigneeColorClass(rankInfo) {
 
 
 
-async function calculateProjectReport(projectId) {
-    const projectTasks = tasks.filter(task => task.project_id === projectId)
-    const reportData = {}
-    
-    // Group tasks by employee
-    projectTasks.forEach(task => {
-        const employeeId = task.assignee_id
-        if (!employeeId) return
-        
-        const employee = window.allEmployees.find(emp => emp.id === employeeId)
-        if (!employee) return
-        
-        if (!reportData[employeeId]) {
-            reportData[employeeId] = {
-                employee: employee,
-                taskCount: 0,
-                rvChars: 0,
-                betaChars: 0,
-                rvMoney: 0,
-                betaMoney: 0,
-                totalMoney: 0
-            }
-        }
-        
-        const data = reportData[employeeId]
-        data.taskCount++
-        
-        if (task.task_type === 'rv') {
-            data.rvChars += parseInt(task.rv_chars || 0)
-            data.rvMoney += parseFloat(task.rate || 0) * (parseInt(task.rv_chars || 0) / 1000)
-        } else if (task.task_type === 'beta') {
-            data.betaChars += parseInt(task.beta_chars || 0)
-            data.betaMoney += parseFloat(task.beta_rate || 0) * (parseInt(task.beta_chars || 0) / 1000)
-        }
-        
-        data.totalMoney = data.rvMoney + data.betaMoney
-    })
-    
-    currentReportData = reportData
-    displayReportData(reportData)
-}
+
 
 function displayReportData(reportData) {
     const tbody = document.getElementById('reportTableBody')
@@ -3810,16 +3770,16 @@ function displayReportData(reportData) {
 }
 
 function filterReportData() {
-    const selectedEmployee = document.getElementById('reportEmployeeFilter').value
+    const selectedEmployeeId = document.getElementById('reportEmployeeFilter').value
     
     if (!currentReportData) return
     
     let filteredData = currentReportData
     
-    if (selectedEmployee) {
+    if (selectedEmployeeId) {
         filteredData = {}
-        if (currentReportData[selectedEmployee]) {
-            filteredData[selectedEmployee] = currentReportData[selectedEmployee]
+        if (currentReportData[selectedEmployeeId]) {
+            filteredData[selectedEmployeeId] = currentReportData[selectedEmployeeId]
         }
     }
     
@@ -3832,13 +3792,13 @@ function exportReportToCSV() {
         return
     }
     
-    const selectedEmployee = document.getElementById('reportEmployeeFilter').value
+    const selectedEmployeeId = document.getElementById('reportEmployeeFilter').value
     let dataToExport = currentReportData
     
-    if (selectedEmployee) {
+    if (selectedEmployeeId) {
         dataToExport = {}
-        if (currentReportData[selectedEmployee]) {
-            dataToExport[selectedEmployee] = currentReportData[selectedEmployee]
+        if (currentReportData[selectedEmployeeId]) {
+            dataToExport[selectedEmployeeId] = currentReportData[selectedEmployeeId]
         }
     }
     
@@ -3846,7 +3806,7 @@ function exportReportToCSV() {
     let csvContent = 'Nhân viên,Số công việc,Chữ RV,Chữ Beta,Tiền RV,Tiền Beta,Tổng tiền\n'
     
     Object.values(dataToExport).forEach(data => {
-        csvContent += `"${data.employee.name}",${data.taskCount},${data.rvChars},${data.betaChars},${data.rvMoney},${data.betaMoney},${data.totalMoney}\n`
+        csvContent += `"${data.employee.name}",${data.taskCount},${data.rvChars},${data.betaChars},${data.rvMoney.toFixed(0)},${data.betaMoney.toFixed(0)},${data.totalMoney.toFixed(0)}\n`
     })
     
     // Create and download file
@@ -5054,18 +5014,6 @@ async function loadProjectReportData(projectId) {
         // Load tasks của dự án
         const projectTasks = tasks.filter(t => t.project_id === projectId)
         
-        // Tính toán thống kê
-        const totalTasks = projectTasks.length
-        const totalRVChars = projectTasks.reduce((sum, task) => sum + (task.rv_chars || 0), 0)
-        const totalBetaChars = projectTasks.reduce((sum, task) => sum + (task.beta_chars || 0), 0)
-        const totalMoney = projectTasks.reduce((sum, task) => sum + (task.total_amount || 0), 0)
-        
-        // Cập nhật UI
-        document.getElementById('totalTasksCount').textContent = totalTasks
-        document.getElementById('totalRVChars').textContent = totalRVChars.toLocaleString()
-        document.getElementById('totalBetaChars').textContent = totalBetaChars.toLocaleString()
-        document.getElementById('totalMoney').textContent = totalMoney.toLocaleString() + ' VNĐ'
-        
         // Tạo báo cáo chi tiết theo nhân viên
         const employeeStats = {}
         projectTasks.forEach(task => {
@@ -5074,49 +5022,58 @@ async function loadProjectReportData(projectId) {
                 if (employee) {
                     if (!employeeStats[employee.id]) {
                         employeeStats[employee.id] = {
-                            name: employee.name,
+                            employee: employee,
                             taskCount: 0,
                             rvChars: 0,
                             betaChars: 0,
                             rvMoney: 0,
-                            betaMoney: 0
+                            betaMoney: 0,
+                            totalMoney: 0
                         }
                     }
-                    employeeStats[employee.id].taskCount++
-                    employeeStats[employee.id].rvChars += task.rv_chars || 0
-                    employeeStats[employee.id].betaChars += task.beta_chars || 0
-                    employeeStats[employee.id].rvMoney += task.rv_amount || 0
-                    employeeStats[employee.id].betaMoney += task.beta_amount || 0
+                    
+                    const data = employeeStats[employee.id]
+                    data.taskCount++
+                    
+                    if (task.task_type === 'rv') {
+                        data.rvChars += parseInt(task.rv_chars || 0)
+                        data.rvMoney += parseFloat(task.rate || 0) * (parseInt(task.rv_chars || 0) / 1000)
+                    } else if (task.task_type === 'beta') {
+                        data.betaChars += parseInt(task.beta_chars || 0)
+                        data.betaMoney += parseFloat(task.beta_rate || 0) * (parseInt(task.beta_chars || 0) / 1000)
+                    }
+                    
+                    data.totalMoney = data.rvMoney + data.betaMoney
                 }
             }
         })
         
-        // Render bảng báo cáo
-        const tbody = document.getElementById('reportTableBody')
-        tbody.innerHTML = ''
+        // Lưu dữ liệu để filter
+        currentReportData = employeeStats
         
-        Object.values(employeeStats).forEach(stat => {
-            const row = document.createElement('tr')
-            row.innerHTML = `
-                <td>${stat.name}</td>
-                <td>${stat.taskCount}</td>
-                <td>${stat.rvChars.toLocaleString()}</td>
-                <td>${stat.betaChars.toLocaleString()}</td>
-                <td>${stat.rvMoney.toLocaleString()} VNĐ</td>
-                <td>${stat.betaMoney.toLocaleString()} VNĐ</td>
-                <td><strong>${(stat.rvMoney + stat.betaMoney).toLocaleString()} VNĐ</strong></td>
-            `
-            tbody.appendChild(row)
-        })
+        // Tính tổng thống kê
+        const totalTasks = projectTasks.length
+        const totalRVChars = projectTasks.reduce((sum, task) => sum + (task.rv_chars || 0), 0)
+        const totalBetaChars = projectTasks.reduce((sum, task) => sum + (task.beta_chars || 0), 0)
+        const totalMoney = Object.values(employeeStats).reduce((sum, data) => sum + data.totalMoney, 0)
+        
+        // Cập nhật UI summary
+        document.getElementById('totalTasksCount').textContent = totalTasks
+        document.getElementById('totalRVChars').textContent = totalRVChars.toLocaleString()
+        document.getElementById('totalBetaChars').textContent = totalBetaChars.toLocaleString()
+        document.getElementById('totalMoney').textContent = totalMoney.toLocaleString() + ' VNĐ'
+        
+        // Render bảng báo cáo
+        displayReportData(employeeStats)
         
         // Cập nhật dropdown filter nhân viên
         const employeeFilter = document.getElementById('reportEmployeeFilter')
         if (employeeFilter) {
             employeeFilter.innerHTML = '<option value="">Tất cả nhân viên</option>'
-            Object.values(employeeStats).forEach(stat => {
+            Object.values(employeeStats).forEach(data => {
                 const option = document.createElement('option')
-                option.value = stat.name
-                option.textContent = stat.name
+                option.value = data.employee.id
+                option.textContent = data.employee.name
                 employeeFilter.appendChild(option)
             })
         }
@@ -5177,6 +5134,3 @@ function getTaskStatusBadge(status) {
     }
     return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
 }
-
-
-

@@ -24,11 +24,7 @@ function hasManagerOrBossPermissions(user) {
 
 // Helper function to check if user is boss
 function isBoss(user) {
-    console.log('isBoss - user:', user)
-    console.log('isBoss - user.role:', user?.role)
-    const result = user && user.role === 'boss'
-    console.log('isBoss - result:', result)
-    return result
+    return user && user.role === 'boss'
 }
 
 // View Management Functions
@@ -95,14 +91,7 @@ function initializeApp() {
         // Set up event listeners
         setupEventListeners()
         
-        // Debug: Add click listener to addTaskBtn
-        const addTaskBtn = document.getElementById('addTaskBtn')
-        if (addTaskBtn) {
-            addTaskBtn.addEventListener('click', function(e) {
-                console.log('addTaskBtn clicked!')
-                console.log('onclick handler:', this.onclick)
-            })
-        }
+
         
         // Set up realtime subscriptions
         setupRealtimeSubscriptions()
@@ -130,9 +119,7 @@ async function loadDataFromSupabase() {
         // Filter for managers (role 'manager') for manager filter
         const managers = window.allEmployees.filter(emp => emp.role === 'manager' || emp.role === 'boss')
         
-        console.log('Loaded allEmployees:', window.allEmployees)
-        console.log('Filtered employees:', employees)
-        console.log('Filtered managers:', managers)
+
         
         // Update manager filter dropdown
         updateManagerFilter(managers)
@@ -380,10 +367,7 @@ function updateUserInterface() {
         const isInTasksView = tasksView && tasksView.style.display !== 'none'
         addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
         
-        // Debug logging
-        console.log('updateUserInterface - currentUser.role:', currentUser.role)
-        console.log('updateUserInterface - isInTasksView:', isInTasksView)
-        console.log('updateUserInterface - addTaskBtn.style.display:', addTaskBtn.style.display)
+
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         const viewActivityHistoryBtn = document.getElementById('viewActivityHistoryBtn')
@@ -391,11 +375,7 @@ function updateUserInterface() {
             viewActivityHistoryBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         }
         
-        // Show debug button for boss only
-        const debugBtn = document.querySelector('button[onclick="debugEmployeesModal()"]')
-        if (debugBtn) {
-            debugBtn.style.display = isBoss(currentUser) ? 'inline-block' : 'none'
-        }
+
         
         // Show guest content button for managers and bosses
         const guestContentBtn = document.getElementById('guestContentBtn')
@@ -1595,9 +1575,6 @@ function renderProjectsTable() {
     const tbody = document.getElementById('projectsTableBody')
     tbody.innerHTML = ''
     
-    console.log('Rendering projects table with', filteredProjects.length, 'projects')
-    console.log('Current tasks array has', tasks.length, 'tasks')
-    
     if (filteredProjects.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -1625,7 +1602,6 @@ function renderProjectsTable() {
         
         // Get task count for this project - fix the count display
         const taskCount = tasks.filter(t => t.project_id === project.id).length
-        console.log(`Project ${project.id} (${project.name}): ${taskCount} tasks found`)
         
         row.innerHTML = `
             <td>${project.id}</td>
@@ -1676,22 +1652,13 @@ function renderTasksTable() {
     const statusFilter = document.getElementById('taskStatusFilter')?.value || ''
     const assigneeFilter = document.getElementById('taskAssigneeFilter')?.value || ''
     
-    console.log('Filtering tasks...')
-    console.log('Status filter:', statusFilter)
-    console.log('Assignee filter:', assigneeFilter)
-    console.log('Current project ID:', currentProjectId)
-    console.log('Total tasks:', tasks.length)
-    
     let projectTasks = tasks.filter(t => t.project_id === currentProjectId && t.task_type === 'rv')
-    console.log('Tasks in current project:', projectTasks.length)
     
     if (statusFilter) {
         projectTasks = projectTasks.filter(t => t.status === statusFilter)
-        console.log('After status filter:', projectTasks.length)
     }
     if (assigneeFilter) {
         projectTasks = projectTasks.filter(t => String(t.assignee_id) === assigneeFilter)
-        console.log('After assignee filter:', projectTasks.length)
     }
     
     // Sắp xếp theo tên deadline A-Z
@@ -2372,28 +2339,20 @@ checkOverdueTasks()
 
 // Employee Management Functions
 function showEmployeesList() {
-    console.log('=== showEmployeesList called ===')
-    console.log('currentUser:', currentUser)
-    console.log('hasManagerOrBossPermissions:', typeof hasManagerOrBossPermissions)
-    
     if (!currentUser) {
-        console.log('No current user')
         showNotification('Vui lòng đăng nhập trước', 'error')
         return
     }
     
     if (!hasManagerOrBossPermissions(currentUser)) {
-        console.log('User does not have manager/boss permissions')
         showNotification('Chỉ quản lý và boss mới có thể xem danh sách nhân viên', 'error')
         return
     }
     
-    console.log('User has permissions, proceeding...')
-    
     // Check if modal element exists
     const modalElement = document.getElementById('employeesModal')
     if (!modalElement) {
-        console.error('employeesModal element not found!')
+
         showNotification('Lỗi: Không tìm thấy modal nhân viên', 'error')
         return
     }
@@ -2406,7 +2365,6 @@ function showEmployeesList() {
     // Populate employees table with allEmployees
     const tbody = document.getElementById('employeesTableBody')
     if (!tbody) {
-        console.error('employeesTableBody element not found!')
         showNotification('Lỗi: Không tìm thấy bảng nhân viên', 'error')
         return
     }
@@ -2414,7 +2372,6 @@ function showEmployeesList() {
     tbody.innerHTML = ''
     
     if (!window.allEmployees || window.allEmployees.length === 0) {
-        console.log('No employees data available')
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">
@@ -2429,7 +2386,7 @@ function showEmployeesList() {
         return
     }
     
-    console.log('Processing employees data:', window.allEmployees.length)
+
     
     // Sort employees by role hierarchy: boss -> manager -> employee
     const roleOrder = { 'boss': 1, 'manager': 2, 'employee': 3 };
@@ -2462,9 +2419,7 @@ function showEmployeesList() {
         tbody.appendChild(row)
     })
     
-        console.log('Showing modal...')
-    
-    // Sử dụng Bootstrap Modal để hiển thị
+        // Sử dụng Bootstrap Modal để hiển thị
     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
         try {
             const modal = new bootstrap.Modal(modalElement, {
@@ -2473,13 +2428,11 @@ function showEmployeesList() {
                 focus: true
             })
             modal.show()
-            console.log('Bootstrap modal shown successfully')
             
             // Đảm bảo backdrop được tạo
             setTimeout(() => {
                 let backdrop = document.querySelector('.modal-backdrop')
                 if (!backdrop) {
-                    console.log('Creating backdrop manually...')
                     backdrop = document.createElement('div')
                     backdrop.className = 'modal-backdrop fade show'
                     backdrop.style.position = 'fixed'
@@ -2494,11 +2447,9 @@ function showEmployeesList() {
                 
                 // Đảm bảo modal có z-index cao
                 modalElement.style.zIndex = '1055'
-                console.log('Modal and backdrop should now be visible')
             }, 100)
             
         } catch (error) {
-            console.error('Bootstrap modal error:', error)
             // Fallback: hiển thị modal bằng CSS
             modalElement.style.display = 'block'
             modalElement.style.visibility = 'visible'
@@ -2516,7 +2467,6 @@ function showEmployeesList() {
             backdrop.style.zIndex = '9998'
             document.body.appendChild(backdrop)
             
-            console.log('Using CSS fallback for modal display')
         }
     } else {
         // Bootstrap không có sẵn, sử dụng CSS
@@ -2536,15 +2486,11 @@ function showEmployeesList() {
         backdrop.style.zIndex = '9998'
         document.body.appendChild(backdrop)
         
-        console.log('Bootstrap not available, using CSS display')
     }
 }
 
 function updateAssigneeDropdowns() {
     const assigneeSelects = document.querySelectorAll('#taskAssignee')
-    
-    console.log('Updating assignee dropdowns, employees count:', employees.length)
-    console.log('Employees data:', employees)
     
     assigneeSelects.forEach(select => {
         select.innerHTML = '<option value="">Không chỉ định (để nhân viên tự nhận)</option>'
@@ -4600,27 +4546,19 @@ async function downloadSeparateBetaFiles(taskIds) {
 
 // Activity History Functions
 function showActivityHistoryView() {
-    console.log('=== showActivityHistoryView called ===')
-    console.log('currentUser:', currentUser)
-    
     if (!currentUser) {
-        console.log('No current user')
         showNotification('Vui lòng đăng nhập trước', 'error')
         return
     }
     
     if (!hasManagerOrBossPermissions(currentUser)) {
-        console.log('User does not have manager/boss permissions')
         showNotification('Chỉ quản lý và boss mới có thể xem lịch sử hoạt động', 'error')
         return
     }
     
-    console.log('User has permissions, proceeding...')
-    
     // Check if view element exists
     const activityHistoryView = document.getElementById('activityHistoryView')
     if (!activityHistoryView) {
-        console.error('activityHistoryView element not found!')
         showNotification('Lỗi: Không tìm thấy view lịch sử hoạt động', 'error')
         return
     }
@@ -4631,19 +4569,14 @@ function showActivityHistoryView() {
     const dashboardView = document.getElementById('dashboardView')
     
     if (projectsView) {
-        console.log('Hiding projectsView')
         projectsView.style.display = 'none'
     }
     if (tasksView) {
-        console.log('Hiding tasksView')
         tasksView.style.display = 'none'
     }
     if (dashboardView) {
-        console.log('Hiding dashboardView')
         dashboardView.style.display = 'none'
     }
-    
-    console.log('Showing activityHistoryView')
     
     // Ẩn tất cả view khác trước
     const projectsViewElement = document.getElementById('projectsView')
@@ -4661,18 +4594,12 @@ function showActivityHistoryView() {
     activityHistoryView.style.visibility = 'visible'
     activityHistoryView.style.zIndex = '1000'
     
-    console.log('Activity History View displayed')
-    
     // Load activity history data
-    console.log('Loading activity history data...')
     loadActivityHistoryData()
 }
 
 async function loadActivityHistoryData() {
-    console.log('=== loadActivityHistoryData called ===')
-    
     try {
-        console.log('Loading employees data...')
         // Get all employees
         const { data: employees, error: employeesError } = await supabase
             .from('employees')
@@ -4685,9 +4612,7 @@ async function loadActivityHistoryData() {
             throw employeesError
         }
 
-        console.log('Employees loaded:', employees?.length || 0)
 
-        console.log('Loading tasks data...')
         // Get all tasks with employee data (not just completed)
         const { data: allTasks, error: tasksError } = await supabase
             .from('tasks')
@@ -4708,12 +4633,8 @@ async function loadActivityHistoryData() {
             throw tasksError
         }
 
-        console.log('Tasks loaded:', allTasks?.length || 0)
-
         // Process activity data for each employee
-        console.log('Processing activity data...')
         const activityData = processEmployeeActivityData(employees, allTasks)
-        console.log('Activity data processed:', activityData?.length || 0)
         
         // Store activity data globally
         window.activityHistoryData = activityData
@@ -5436,51 +5357,5 @@ function getTaskStatusBadge(status) {
     return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
 }
 
-// Hàm debug để kiểm tra modal
-function debugModal(modalId) {
-    const modal = document.getElementById(modalId)
-    if (!modal) {
-        console.error(`Modal ${modalId} not found`)
-        return
-    }
-    
-    console.log(`=== Debug Modal ${modalId} ===`)
-    console.log('Modal element:', modal)
-    console.log('Display style:', modal.style.display)
-    console.log('Visibility style:', modal.style.visibility)
-    console.log('Z-index style:', modal.style.zIndex)
-    console.log('Classes:', modal.className)
-    
-    const computedStyle = window.getComputedStyle(modal)
-    console.log('Computed display:', computedStyle.display)
-    console.log('Computed visibility:', computedStyle.visibility)
-    console.log('Computed z-index:', computedStyle.zIndex)
-    console.log('Computed position:', computedStyle.position)
-    
-    const backdrop = document.querySelector('.modal-backdrop')
-    console.log('Backdrop element:', backdrop)
-    if (backdrop) {
-        console.log('Backdrop display:', backdrop.style.display)
-        console.log('Backdrop z-index:', backdrop.style.zIndex)
-    }
-    
-    const rect = modal.getBoundingClientRect()
-    console.log('Modal position:', {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        visible: rect.width > 0 && rect.height > 0
-    })
-    
-    console.log('=== End Debug ===')
-}
 
-// Gọi debug khi click nút
-function debugEmployeesModal() {
-    showEmployeesList()
-    setTimeout(() => {
-        debugModal('employeesModal')
-    }, 200)
-}
 

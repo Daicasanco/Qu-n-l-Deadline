@@ -1735,28 +1735,27 @@ function renderTasksTable() {
         // Lấy rank và màu sắc cho người thực hiện
         const assigneeRank = getEmployeeRank(task.assignee_id)
         const assigneeColorClass = getAssigneeColorClass(assigneeRank)
-        // Hiển thị nội dung review thay vì link
+        // Hiển thị trạng thái nội dung review
         let reviewContentDisplay = '<span class="text-muted">-</span>'
         if (task.submission_link && task.submission_link.trim()) {
             if (task.submission_link.startsWith('http')) {
                 // Nếu vẫn là link cũ, hiển thị link
                 reviewContentDisplay = `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Link cũ</a>`
             } else {
-                // Nếu là nội dung text, hiển thị preview và nút xem
-                const preview = task.submission_link.length > 50 ? 
-                    task.submission_link.substring(0, 50) + '...' : 
-                    task.submission_link
+                // Nếu là nội dung text, chỉ hiển thị nút chỉnh sửa (chỉ cho người có quyền)
+                const canEditReview = canEditReviewContent(task)
+                let editButton = ''
+                
+                if (canEditReview) {
+                    editButton = `<button class="btn btn-outline-warning btn-sm" onclick="editReviewData('${task.id}')" title="Chỉnh sửa">
+                        <i class="fas fa-edit"></i>
+                    </button>`
+                }
+                
                 reviewContentDisplay = `
-                    <div class="d-flex flex-column gap-1">
-                        <small class="text-muted">${preview}</small>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary btn-sm" onclick="viewReviewContent('${task.id}')" title="Xem nội dung">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm" onclick="editReviewData('${task.id}')" title="Chỉnh sửa">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success">Đã có nội dung</span>
+                        ${editButton}
                     </div>
                 `
             }
@@ -3960,14 +3959,9 @@ function editReviewData(taskId) {
     window.open(`review-input.html?taskId=${taskId}&mode=edit`, '_blank')
 }
 
-function viewReviewContent(taskId) {
-    window.open(`review-input.html?taskId=${taskId}&mode=view`, '_blank')
-}
-
 // Function để cập nhật nút review input
 function updateReviewInputButton(submissionLink) {
     const openReviewBtn = document.getElementById('openReviewInputBtn')
-    const viewReviewBtn = document.getElementById('viewReviewContentBtn')
     
     if (submissionLink && submissionLink.trim()) {
         if (submissionLink.startsWith('http')) {
@@ -3979,21 +3973,35 @@ function updateReviewInputButton(submissionLink) {
                     openReviewInputPage(currentEditingTaskId)
                 }
             }
-            viewReviewBtn.style.display = 'none'
         } else {
             // Nếu đã là nội dung text
             openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Chỉnh sửa nội dung'
             openReviewBtn.className = 'btn btn-outline-primary'
             openReviewBtn.onclick = () => editReviewData(currentEditingTaskId)
-            viewReviewBtn.style.display = 'inline-block'
         }
     } else {
         // Nếu chưa có nội dung
         openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Nhập nội dung Review'
         openReviewBtn.className = 'btn btn-outline-primary'
         openReviewBtn.onclick = () => openReviewInputPage(currentEditingTaskId)
-        viewReviewBtn.style.display = 'none'
     }
+}
+
+// Function kiểm tra quyền chỉnh sửa review content
+function canEditReviewContent(task) {
+    if (!currentUser) return false
+    
+    // Boss và Manager có thể chỉnh sửa mọi task
+    if (currentUser.role === 'boss' || currentUser.role === 'manager') {
+        return true
+    }
+    
+    // Employee chỉ có thể chỉnh sửa task được phân công cho mình
+    if (currentUser.role === 'employee') {
+        return task.assignee_id === currentUser.id
+    }
+    
+    return false
 }
 
 // Download Beta Files Functions

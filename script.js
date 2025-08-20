@@ -1,3 +1,32 @@
+// Project Management System with Supabase
+
+// Anti-Debug Protection - Vô hiệu hóa Developer Tools
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).DisableDevtool=t()}(this,function(){"use strict";function o(e){return(o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function r(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}function u(e,t,n){t&&r(e.prototype,t),n&&r(e,n),Object.defineProperty(e,"prototype",{writable:!1})}function e(e,t,n){t in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n}function n(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function");e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,writable:!0,configurable:!0}}),Object.defineProperty(e,"prototype",{writable:!1}),t&&a(e,t)}function c(e){return(c=Object.setPrototypeOf?Object.getPrototypeOf.bind():function(e){return e.__proto__||Object.getPrototypeOf(e)})(e)}function a(e,t){return(a=Object.setPrototypeOf?Object.setPrototypeOf.bind():function(e,t){return e.__proto__=t,e})(e,t)}function H(e,t){if(t&&("object"==typeof t||"function"==typeof t))return t;if(void 0!==t)throw new TypeError("Derived constructors may only return object or undefined");t=e;if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function l(n){var i=function(){if("undefined"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if("function"==typeof Proxy)return!0;try{return Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],function(){})),!0}catch(e){return!1}}();return function(){var e,t=c(n);return H(this,i?(e=c(this).constructor,Reflect.construct(t,arguments,e)):t.apply(this,arguments))}}function f(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,i=new Array(t);n<t;n++)i[n]=e[n];return i}function s(e,t){var n,i="undefined"!=typeof Symbol&&e[Symbol.iterator]||e["@@iterator"];if(!i){if(Array.isArray(e)||(i=function(e,t){if(e){if("string"==typeof e)return f(e,t);var n=Object.prototype.toString.call(e).slice(8,-1);return"Map"===(n="Object"===n&&e.constructor?e.constructor.name:n)||"Set"===n?Array.from(e):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?f(e,t):void 0}}(e))||t&&e&&"number"==typeof e.length)return i&&(e=i),n=0,{s:t=function(){},n:function(){return n>=e.length?{done:!0}:{done:!1,value:e[n++]}},e:function(e){throw e},f:t};throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}var o,r=!0,u=!1;return{s:function(){i=i.call(e)},n:function(){var e=i.next();return r=e.done,e},e:function(e){u=!0,o=e},f:function(){try{r||null==i.return||i.return()}finally{if(u)throw o}}}}function t(){if(d.url)window.location.href=d.url;else if(d.rewriteHTML)try{document.documentElement.innerHTML=d.rewriteHTML}catch(e){document.documentElement.innerText=d.rewriteHTML}else{try{window.opener=null,window.open("","_self"),window.close(),window.history.back()}catch(e){console.log(e)}setTimeout(function(){window.location.href=d.timeOutUrl||"https://theajack.github.io/disable-devtool/404.html?h=".concat(encodeURIComponent(location.host))},500)}}var d={md5:"",ondevtoolopen:t,ondevtoolclose:null,url:"",timeOutUrl:"",tkName:"ddtk",interval:500,disableMenu:!0,stopIntervalTime:5e3,clearIntervalWhenDevOpenTrigger:!1,detectors:[0,1,3,4,5,6,7],clearLog:!0,disableSelect:!1,disableCopy:!1,disableCut:!1,disablePaste:!1,ignore:null,disableIframeParents:!0,seo:!0,rewriteHTML:""},U=["detectors","ondevtoolclose","ignore"];function q(e){var t,n=0<arguments.length&&void 0!==e?e:{};for(t in d){var i=t;void 0===n[i]||o(d[i])!==o(n[i])&&-1===U.indexOf(i)||(d[i]=n[i])}"function"==typeof d.ondevtoolclose&&!0===d.clearIntervalWhenDevOpenTrigger&&(d.clearIntervalWhenDevOpenTrigger=!1,console.warn("【DISABLE-DEVTOOL】clearIntervalWhenDevOpenTrigger 在使用 ondevtoolclose 时无效"))}function v(){return(new Date).getTime()}function h(e){var t=v();return e(),v()-t}function z(n,i){function e(t){return function(){n&&n();var e=t.apply(void 0,arguments);return i&&i(),e}}var t=window.alert,o=window.confirm,r=window.prompt;try{window.alert=e(t),window.confirm=e(o),window.prompt=e(r)}catch(e){}}var p,y,B,b={iframe:!1,pc:!1,qqBrowser:!1,firefox:!1,macos:!1,edge:!1,oldEdge:!1,ie:!1,iosChrome:!1,iosEdge:!1,chrome:!1,seoBot:!1,mobile:!1};function W(){function e(e){return-1!==t.indexOf(e)}var t=navigator.userAgent.toLowerCase(),n=function(){var e=navigator,t=e.platform,e=e.maxTouchPoints;if("number"==typeof e)return 1<e;if("string"==typeof t){e=t.toLowerCase();if(/(mac|win)/i.test(e))return!1;if(/(android|iphone|ipad|ipod|arch)/i.test(e))return!0}return/(iphone|ipad|ipod|ios|android)/i.test(navigator.userAgent.toLowerCase())}(),i=!!window.top&&window!==window.top,o=!n,r=e("qqbrowser"),u=e("firefox"),c=e("macintosh"),a=e("edge"),l=a&&!e("chrome"),f=l||e("trident")||e("msie"),s=e("crios"),d=e("edgios"),v=e("chrome")||s,h=!n&&/(googlebot|baiduspider|bingbot|applebot|petalbot|yandexbot|bytespider|chrome\-lighthouse|moto g power)/i.test(t);Object.assign(b,{iframe:i,pc:o,qqBrowser:r,firefox:u,macos:c,edge:a,oldEdge:l,ie:f,iosChrome:s,iosEdge:d,chrome:v,seoBot:h,mobile:n})}function M(){for(var e=function(){for(var e={},t=0;t<500;t++)e["".concat(t)]="".concat(t);return e}(),t=[],n=0;n<50;n++)t.push(e);return t}function w(){d.clearLog&&B()}var K="",V=!1;function F(){var e=d.ignore;if(e){if("function"==typeof e)return e();if(0!==e.length){var t=location.href;if(K===t)return V;K=t;var n,i=!1,o=s(e);try{for(o.s();!(n=o.n()).done;){var r=n.value;if("string"==typeof r){if(-1!==t.indexOf(r)){i=!0;break}}else if(r.test(t)){i=!0;break}}}catch(e){o.e(e)}finally{o.f()}return V=i}}}var X=function(){return!1};function g(n){var t,e,i=74,o=73,r=85,u=83,c=123,a=b.macos?function(e,t){return e.metaKey&&e.altKey&&(t===o||t===i)}:function(e,t){return e.ctrlKey&&e.shiftKey&&(t===o||t===i)},l=b.macos?function(e,t){return e.metaKey&&e.altKey&&t===r||e.metaKey&&t===u}:function(e,t){return e.ctrlKey&&(t===u||t===r)};n.addEventListener("keydown",function(e){var t=(e=e||n.event).keyCode||e.which;if(t===c||a(e,t)||l(e,t))return T(n,e)},!0),t=n,d.disableMenu&&t.addEventListener("contextmenu",function(e){if("touch"!==e.pointerType)return T(t,e)}),e=n,d.disableSelect&&m(e,"selectstart"),e=n,d.disableCopy&&m(e,"copy"),e=n,d.disableCut&&m(e,"cut"),e=n,d.disablePaste&&m(e,"paste")}function m(t,e){t.addEventListener(e,function(e){return T(t,e)})}function T(e,t){if(!F()&&!X())return(t=t||e.event).returnValue=!1,t.preventDefault(),!1}var O,D=!1,S={};function N(e){S[e]=!1}function $(){for(var e in S)if(S[e])return D=!0;return D=!1}(_=O=O||{})[_.Unknown=-1]="Unknown",_[_.RegToString=0]="RegToString",_[_.DefineId=1]="DefineId",_[_.Size=2]="Size",_[_.DateToString=3]="DateToString",_[_.FuncToString=4]="FuncToString",_[_.Debugger=5]="Debugger",_[_.Performance=6]="Performance",_[_.DebugLib=7]="DebugLib";var k=function(){function n(e){var t=e.type,e=e.enabled,e=void 0===e||e;i(this,n),this.type=O.Unknown,this.enabled=!0,this.type=t,this.enabled=e,this.enabled&&(t=this,Q.push(t),this.init())}return u(n,[{key:"onDevToolOpen",value:function(){var e;console.warn("You don't have permission to use DEVTOOL!【type = ".concat(this.type,"】")),d.clearIntervalWhenDevOpenTrigger&&te(),window.clearTimeout(J),d.ondevtoolopen(this.type,t),e=this.type,S[e]=!0}},{key:"init",value:function(){}}]),n}(),G=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DebugLib})}return u(t,[{key:"init",value:function(){}},{key:"detect",value:function(){var e;(!0===(null==(e=null==(e=window.eruda)?void 0:e._devTools)?void 0:e._isShow)||window._vcOrigConsole&&window.document.querySelector("#__vconsole.vc-toggle"))&&this.onDevToolOpen()}}],[{key:"isUsing",value:function(){return!!window.eruda||!!window._vcOrigConsole}}]),t}(),Y=0,J=0,Q=[],Z=0;function ee(o){function e(){l=!0}function t(){l=!1}var n,i,r,u,c,a,l=!1;function f(){(a[u]===r?i:n)()}z(e,t),n=t,i=e,void 0!==(a=document).hidden?(r="hidden",c="visibilitychange",u="visibilityState"):void 0!==a.mozHidden?(r="mozHidden",c="mozvisibilitychange",u="mozVisibilityState"):void 0!==a.msHidden?(r="msHidden",c="msvisibilitychange",u="msVisibilityState"):void 0!==a.webkitHidden&&(r="webkitHidden",c="webkitvisibilitychange",u="webkitVisibilityState"),a.removeEventListener(c,f,!1),a.addEventListener(c,f,!1),Y=window.setInterval(function(){if(!(o.isSuspend||l||F())){var e,t,n=s(Q);try{for(n.s();!(e=n.n()).done;){var i=e.value;N(i.type),i.detect(Z++)}}catch(e){n.e(e)}finally{n.f()}w(),"function"==typeof d.ondevtoolclose&&(t=D,!$()&&t&&d.ondevtoolclose())}},d.interval),J=setTimeout(function(){b.pc||G.isUsing()||te()},d.stopIntervalTime)}function te(){window.clearInterval(Y)}var P=8;function ne(e){for(var t=function(e,t){e[t>>5]|=128<<t%32,e[14+(t+64>>>9<<4)]=t;for(var n=1732584193,i=-271733879,o=-1732584194,r=271733878,u=0;u<e.length;u+=16){var c=n,a=i,l=o,f=r;n=E(n,i,o,r,e[u+0],7,-680876936),r=E(r,n,i,o,e[u+1],12,-389564586),o=E(o,r,n,i,e[u+2],17,606105819),i=E(i,o,r,n,e[u+3],22,-1044525330),n=E(n,i,o,r,e[u+4],7,-176418897),r=E(r,n,i,o,e[u+5],12,1200080426),o=E(o,r,n,i,e[u+6],17,-1473231341),i=E(i,o,r,n,e[u+7],22,-45705983),n=E(n,i,o,r,e[u+8],7,1770035416),r=E(r,n,i,o,e[u+9],12,-1958414417),o=E(o,r,n,i,e[u+10],17,-42063),i=E(i,o,r,n,e[u+11],22,-1990404162),n=E(n,i,o,r,e[u+12],7,1804603682),r=E(r,n,i,o,e[u+13],12,-40341101),o=E(o,r,n,i,e[u+14],17,-1502002290),i=E(i,o,r,n,e[u+15],22,1236535329),n=j(n,i,o,r,e[u+1],5,-165796510),r=j(r,n,i,o,e[u+6],9,-1069501632),o=j(o,r,n,i,e[u+11],14,643717713),i=j(i,o,r,n,e[u+0],20,-373897302),n=j(n,i,o,r,e[u+5],5,-701558691),r=j(r,n,i,o,e[u+10],9,38016083),o=j(o,r,n,i,e[u+15],14,-660478335),i=j(i,o,r,n,e[u+4],20,-405537848),n=j(n,i,o,r,e[u+9],5,568446438),r=j(r,n,i,o,e[u+14],9,-1019803690),o=j(o,r,n,i,e[u+3],14,-187363961),i=j(i,o,r,n,e[u+8],20,1163531501),n=j(n,i,o,r,e[u+13],5,-1444681467),r=j(r,n,i,o,e[u+2],9,-51403784),o=j(o,r,n,i,e[u+7],14,1735328473),i=j(i,o,r,n,e[u+12],20,-1926607734),n=I(n,i,o,r,e[u+5],4,-378558),r=I(r,n,i,o,e[u+8],11,-2022574463),o=I(o,r,n,i,e[u+11],16,1839030562),i=I(i,o,r,n,e[u+14],23,-35309556),n=I(n,i,o,r,e[u+1],4,-1530992060),r=I(r,n,i,o,e[u+4],11,1272893353),o=I(o,r,n,i,e[u+7],16,-155497632),i=I(i,o,r,n,e[u+10],23,-1094730640),n=I(n,i,o,r,e[u+13],4,681279174),r=I(r,n,i,o,e[u+0],11,-358537222),o=I(o,r,n,i,e[u+3],16,-722521979),i=I(i,o,r,n,e[u+6],23,76029189),n=I(n,i,o,r,e[u+9],4,-640364487),r=I(r,n,i,o,e[u+12],11,-421815835),o=I(o,r,n,i,e[u+15],16,530742520),i=I(i,o,r,n,e[u+2],23,-995338651),n=L(n,i,o,r,e[u+0],6,-198630844),r=L(r,n,i,o,e[u+7],10,1126891415),o=L(o,r,n,i,e[u+14],15,-1416354905),i=L(i,o,r,n,e[u+5],21,-57434055),n=L(n,i,o,r,e[u+12],6,1700485571),r=L(r,n,i,o,e[u+3],10,-1894986606),o=L(o,r,n,i,e[u+10],15,-1051523),i=L(i,o,r,n,e[u+1],21,-2054922799),n=L(n,i,o,r,e[u+8],6,1873313359),r=L(r,n,i,o,e[u+15],10,-30611744),o=L(o,r,n,i,e[u+6],15,-1560198380),i=L(i,o,r,n,e[u+13],21,1309151649),n=L(n,i,o,r,e[u+4],6,-145523070),r=L(r,n,i,o,e[u+11],10,-1120210379),o=L(o,r,n,i,e[u+2],15,718787259),i=L(i,o,r,n,e[u+9],21,-343485551),n=C(n,c),i=C(i,a),o=C(o,l),r=C(r,f)}return Array(n,i,o,r)}(function(e){for(var t=Array(),n=(1<<P)-1,i=0;i<e.length*P;i+=P)t[i>>5]|=(e.charCodeAt(i/P)&n)<<i%32;return t}(e),e.length*P),n="0123456789abcdef",i="",o=0;o<4*t.length;o++)i+=n.charAt(t[o>>2]>>o%4*8+4&15)+n.charAt(t[o>>2]>>o%4*8&15);return i}function x(e,t,n,i,o,r){return C((t=C(C(t,e),C(i,r)))<<o|t>>>32-o,n)}function E(e,t,n,i,o,r,u){return x(t&n|~t&i,e,t,o,r,u)}function j(e,t,n,i,o,r,u){return x(t&i|n&~i,e,t,o,r,u)}function I(e,t,n,i,o,r,u){return x(t^n^i,e,t,o,r,u)}function L(e,t,n,i,o,r,u){return x(n^(t|~i),e,t,o,r,u)}function C(e,t){var n=(65535&e)+(65535&t);return(e>>16)+(t>>16)+(n>>16)<<16|65535&n}var _=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.RegToString,enabled:b.qqBrowser||b.firefox})}return u(t,[{key:"init",value:function(){var t=this;this.lastTime=0,this.reg=/./,p(this.reg),this.reg.toString=function(){var e;return b.qqBrowser?(e=(new Date).getTime(),t.lastTime&&e-t.lastTime<100?t.onDevToolOpen():t.lastTime=e):b.firefox&&t.onDevToolOpen(),""}}},{key:"detect",value:function(){p(this.reg)}}]),t}(),ie=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DefineId})}return u(t,[{key:"init",value:function(){var e=this;this.div=document.createElement("div"),this.div.__defineGetter__("id",function(){e.onDevToolOpen()}),Object.defineProperty(this.div,"id",{get:function(){e.onDevToolOpen()}})}},{key:"detect",value:function(){p(this.div)}}]),t}(),oe=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Size,enabled:!b.iframe&&!b.edge})}return u(t,[{key:"init",value:function(){var e=this;this.checkWindowSizeUneven(),window.addEventListener("resize",function(){setTimeout(function(){e.checkWindowSizeUneven()},100)},!0)}},{key:"detect",value:function(){}},{key:"checkWindowSizeUneven",value:function(){var e=function(){if(re(window.devicePixelRatio))return window.devicePixelRatio;var e=window.screen;return!(re(e)||!e.deviceXDPI||!e.logicalXDPI)&&e.deviceXDPI/e.logicalXDPI}();if(!1!==e){var t=200<window.outerWidth-window.innerWidth*e,e=300<window.outerHeight-window.innerHeight*e;if(t||e)return this.onDevToolOpen(),!1;N(this.type)}return!0}}]),t}();function re(e){return null!=e}var A,ue=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.DateToString,enabled:!b.iosChrome&&!b.iosEdge})}return u(t,[{key:"init",value:function(){var e=this;this.count=0,this.date=new Date,this.date.toString=function(){return e.count++,""}}},{key:"detect",value:function(){this.count=0,p(this.date),w(),2<=this.count&&this.onDevToolOpen()}}]),t}(),ce=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.FuncToString,enabled:!b.iosChrome&&!b.iosEdge})}return u(t,[{key:"init",value:function(){var e=this;this.count=0,this.func=function(){},this.func.toString=function(){return e.count++,""}}},{key:"detect",value:function(){this.count=0,p(this.func),w(),2<=this.count&&this.onDevToolOpen()}}]),t}(),ae=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Debugger,enabled:b.iosChrome||b.iosEdge})}return u(t,[{key:"detect",value:function(){var e=v();100<v()-e&&this.onDevToolOpen()}}]),t}(),le=function(){n(t,k);var e=l(t);function t(){return i(this,t),e.call(this,{type:O.Performance,enabled:b.chrome||!b.mobile})}return u(t,[{key:"init",value:function(){this.maxPrintTime=0,this.largeObjectArray=M()}},{key:"detect",value:function(){var e=this,t=h(function(){y(e.largeObjectArray)}),n=h(function(){p(e.largeObjectArray)});if(this.maxPrintTime=Math.max(this.maxPrintTime,n),w(),0===t||0===this.maxPrintTime)return!1;t>10*this.maxPrintTime&&this.onDevToolOpen()}}]),t}(),fe=(e(A={},O.RegToString,_),e(A,O.DefineId,ie),e(A,O.Size,oe),e(A,O.DateToString,ue),e(A,O.FuncToString,ce),e(A,O.Debugger,ae),e(A,O.Performance,le),e(A,O.DebugLib,G),A);var R=Object.assign(function(e){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:"";return{success:!e,reason:e}}var n;if(R.isRunning)return t("already running");if(W(),n=window.console||{log:function(){},table:function(){},clear:function(){}},B=b.ie?(p=function(){return n.log.apply(n,arguments)},y=function(){return n.table.apply(n,arguments)},function(){return n.clear()}):(p=n.log,y=n.table,n.clear),q(e),d.md5&&ne(function(e){var t=window.location.search,n=window.location.hash;if(""!==(t=""===t&&""!==n?"?".concat(n.split("?")[1]):t)&&void 0!==t){n=new RegExp("(^|&)"+e+"=([^&]*)(&|$)","i"),e=t.substr(1).match(n);if(null!=e)return unescape(e[2])}return""}(d.tkName))===d.md5)return t("token passed");if(d.seo&&b.seoBot)return t("seobot");R.isRunning=!0,ee(R);var i=R,o=(X=function(){return i.isSuspend},window.top),r=window.parent;if(g(window),d.disableIframeParents&&o&&r&&o!==window){for(;r!==o;)g(r),r=r.parent;g(o)}return("all"===d.detectors?Object.keys(fe):d.detectors).forEach(function(e){new fe[e]}),t()},{isRunning:!1,isSuspend:!1,md5:ne,version:"0.3.8",DetectorType:O,isDevToolOpened:$});_=function(){if("undefined"==typeof window||!window.document)return null;var n=document.querySelector("[disable-devtool-auto]");if(!n)return null;var i=["disable-menu","disable-select","disable-copy","disable-cut","disable-paste","clear-log"],o=["interval"],r={};return["md5","url","tk-name","detectors"].concat(i,o).forEach(function(e){var t=n.getAttribute(e);null!==t&&(-1!==o.indexOf(e)?t=parseInt(t):-1!==i.indexOf(e)?t="false"!==t:"detector"===e&&"all"!==t&&(t=t.split(" ")),r[function(e){if(-1===e.indexOf("-"))return e;var t=!1;return e.split("").map(function(e){return"-"===e?(t=!0,""):t?(t=!1,e.toUpperCase()):e}).join("")}(e)]=t)}),r}();return _&&R(_),R});
+
+// Khởi tạo Anti-Debug Protection
+(function() {
+    try {
+        // Khởi tạo DisableDevtool với cấu hình tùy chỉnh
+        DisableDevtool({
+            disableMenu: true,        // Vô hiệu hóa chuột phải
+            disableSelect: true,      // Vô hiệu hóa select text
+            disableCopy: true,        // Vô hiệu hóa copy
+            disableCut: true,         // Vô hiệu hóa cut
+            disablePaste: false,       // Vô hiệu hóa paste
+            clearLog: true,           // Xóa console log
+            interval: 1000,           // Kiểm tra mỗi 1 giây
+            detectors: [0,1,2,3,4,5,6,7], // Tất cả các detector
+            ondevtoolopen: function() {
+                // Khi phát hiện Developer Tools mở
+                console.warn("Developer Tools đã được phát hiện!");
+                // Có thể thêm logic khác ở đây
+            }
+        });
+    } catch (error) {
+        console.warn("Anti-debug initialization failed:", error);
+    }
+})();
+
 // Supabase Configuration - Thêm API keys trực tiếp vào đây
 const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'              // ← Thay bằng ANON KEY thực
@@ -12,7 +41,6 @@ let tasks = []
 let employees = []
 let filteredProjects = []
 let currentProjectId = null
-let currentEditingTaskId = null
 
 // Project Reporting Functions
 let currentReportData = null
@@ -40,11 +68,6 @@ function showProjectsView() {
     
     // Update UI to show/hide buttons based on current view
     updateUserInterface()
-}
-
-// Open guest content page
-function openGuestContentPage() {
-    window.open('guest-content.html', '_blank');
 }
 
 function showTasksView(projectId) {
@@ -212,19 +235,6 @@ async function loadTasks(projectId = null) {
         if (error) throw error
         tasks = data || []
         
-        // Lưu tasks vào localStorage để review-input.html có thể truy cập
-        try {
-            localStorage.setItem('tasks', JSON.stringify(tasks))
-            console.log('Saved tasks to localStorage:', {
-                totalTasks: tasks.length,
-                betaTasks: tasks.filter(t => t.task_type === 'beta').length,
-                reviewTasks: tasks.filter(t => t.task_type === 'rv').length,
-                sampleTask: tasks[0] ? { id: tasks[0].id, name: tasks[0].name, type: tasks[0].task_type } : null
-            })
-        } catch (storageError) {
-            console.warn('Could not save tasks to localStorage:', storageError)
-        }
-        
         console.log(`Loaded ${tasks.length} tasks total`)
         if (projectId) {
             console.log(`Tasks for project ${projectId}:`, tasks.filter(t => t.project_id === projectId))
@@ -389,18 +399,6 @@ function updateUserInterface() {
         const viewActivityHistoryBtn = document.getElementById('viewActivityHistoryBtn')
         if (viewActivityHistoryBtn) {
             viewActivityHistoryBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
-        }
-        
-        // Show debug button for boss only
-        const debugBtn = document.querySelector('button[onclick="debugEmployeesModal()"]')
-        if (debugBtn) {
-            debugBtn.style.display = isBoss(currentUser) ? 'inline-block' : 'none'
-        }
-        
-        // Show guest content button for managers and bosses
-        const guestContentBtn = document.getElementById('guestContentBtn')
-        if (guestContentBtn) {
-            guestContentBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         }
         
         // Show/hide announcement edit button for managers and bosses
@@ -908,7 +906,6 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
-    currentEditingTaskId = null // Reset current editing task ID
     console.log('addTask() called')
     console.log('currentUser:', currentUser)
     console.log('currentTaskType:', currentTaskType)
@@ -943,7 +940,7 @@ async function addTask() {
     try {
         // Get additional form values
         const description = document.getElementById('taskDescription')?.value || ''
-        const submissionLink = '' // Không còn lấy từ form, sẽ được cập nhật từ trang review input
+        const submissionLink = document.getElementById('taskSubmissionLink')?.value || ''
         const betaLink = document.getElementById('taskBetaLink')?.value || ''
         const assigneeId = document.getElementById('taskAssignee')?.value || null
         const dialogueChars = document.getElementById('taskDialogueChars')?.value || null
@@ -1240,7 +1237,6 @@ async function unclaimTask(taskId) {
 }
 
 async function editTask(id) {
-    currentEditingTaskId = id // Set current editing task ID
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
@@ -1265,8 +1261,7 @@ async function editTask(id) {
     setVal('taskDeadline', task.deadline ? task.deadline.slice(0, 16) : '')
     setVal('taskPriority', task.priority || '')
     setVal('taskStatus', task.status || '')
-            // Cập nhật nút review input thay vì trường submission link
-        updateReviewInputButton(task.submission_link || '')
+    setVal('taskSubmissionLink', task.submission_link || '')
     setVal('taskBetaLink', task.beta_link || '')
     setVal('taskDialogueChars', task.dialogue_chars || '')
     setVal('taskTotalChars', task.total_chars || '')
@@ -1276,17 +1271,6 @@ async function editTask(id) {
     setVal('taskBetaRate', task.beta_rate || '')
     setVal('taskNotes', task.notes || '')
     setVal('taskBetaNotes', task.beta_notes || '')
-        
-        // Tự động cập nhật số chữ nếu có nội dung
-        if (task.submission_link && !task.submission_link.startsWith('http')) {
-            const reviewWordCount = task.submission_link.trim().split(/\s+/).length
-            setVal('taskTotalChars', reviewWordCount)
-        }
-        
-        if (task.beta_link && !task.beta_link.startsWith('http')) {
-            const betaWordCount = task.beta_link.trim().split(/\s+/).length
-            setVal('taskBetaChars', betaWordCount)
-        }
     document.getElementById('taskStatusField').style.display = 'block'
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
     updateAssigneeDropdowns()
@@ -1356,8 +1340,8 @@ async function updateTask() {
     const assigneeId = document.getElementById('taskAssignee').value
     const status = document.getElementById('taskStatus').value
     
-    // New fields - submission link giờ được lưu từ trang review input
-    const submissionLink = '' // Không còn lấy từ form, sẽ được cập nhật từ trang review input
+    // New fields
+    const submissionLink = document.getElementById('taskSubmissionLink').value
     const betaLink = document.getElementById('taskBetaLink').value
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
@@ -1642,10 +1626,10 @@ function renderProjectsTable() {
             <td>
                 <div class="btn-group btn-group-sm">
                     ${hasManagerOrBossPermissions(currentUser) ? 
-                        `<button class="btn btn-outline-info btn-sm" onclick="showProjectReportModal(${project.id})" title="Báo cáo dự án">
+                        `<button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
                             <i class="fas fa-chart-bar"></i>
                         </button>
-                        <button class="btn btn-outline-success btn-sm" onclick="showDownloadModal(${project.id})" title="Tải file Beta">
+                        <button class="btn btn-outline-success btn-sm" onclick="downloadBetaFiles(${project.id})" title="Tải file Beta">
                             <i class="fas fa-download"></i>
                         </button>` : ''
                     }
@@ -1736,31 +1720,7 @@ function renderTasksTable() {
         // Lấy rank và màu sắc cho người thực hiện
         const assigneeRank = getEmployeeRank(task.assignee_id)
         const assigneeColorClass = getAssigneeColorClass(assigneeRank)
-        // Hiển thị trạng thái nội dung review
-        let reviewContentDisplay = '<span class="text-muted">-</span>'
-        if (task.submission_link && task.submission_link.trim()) {
-            if (task.submission_link.startsWith('http')) {
-                // Nếu vẫn là link cũ, hiển thị link
-                reviewContentDisplay = `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Link cũ</a>`
-            } else {
-                // Nếu là nội dung text, chỉ hiển thị nút chỉnh sửa (chỉ cho người có quyền)
-                const canEditReview = canEditReviewContent(task)
-                let editButton = ''
-                
-                if (canEditReview) {
-                    editButton = `<button class="btn btn-outline-warning btn-sm" onclick="editReviewData('${task.id}')" title="Chỉnh sửa">
-                        <i class="fas fa-edit"></i>
-                    </button>`
-                }
-                
-                reviewContentDisplay = `
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success">Đã có nội dung</span>
-                        ${editButton}
-                    </div>
-                `
-            }
-        }
+        const submissionLink = task.submission_link ? `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Xem</a>` : '<span class="text-muted">-</span>'
         const dialogueChars = task.dialogue_chars ? `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         const totalChars = task.total_chars ? `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
@@ -1818,7 +1778,7 @@ function renderTasksTable() {
             <td><strong>${task.name}</strong></td>
             <td>${getTaskStatusBadge(task.status)}</td>
             <td>${getPriorityBadge(task.priority)}</td>
-            <td>${reviewContentDisplay}</td>
+            <td>${submissionLink}</td>
             <td>${dialogueChars}</td>
             <td>${totalChars}</td>
             <td>${rvChars}</td>
@@ -2372,49 +2332,16 @@ checkOverdueTasks()
 
 // Employee Management Functions
 function showEmployeesList() {
-    console.log('=== showEmployeesList called ===')
-    console.log('currentUser:', currentUser)
-    console.log('hasManagerOrBossPermissions:', typeof hasManagerOrBossPermissions)
-    
-    if (!currentUser) {
-        console.log('No current user')
-        showNotification('Vui lòng đăng nhập trước', 'error')
-        return
-    }
-    
-    if (!hasManagerOrBossPermissions(currentUser)) {
-        console.log('User does not have manager/boss permissions')
+    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
         showNotification('Chỉ quản lý và boss mới có thể xem danh sách nhân viên', 'error')
         return
     }
     
-    console.log('User has permissions, proceeding...')
-    
-    // Check if modal element exists
-    const modalElement = document.getElementById('employeesModal')
-    if (!modalElement) {
-        console.error('employeesModal element not found!')
-        showNotification('Lỗi: Không tìm thấy modal nhân viên', 'error')
-        return
-    }
-    
-    // Check if Bootstrap is available
-    if (typeof bootstrap === 'undefined' || typeof bootstrap.Modal === 'undefined') {
-        console.log('Bootstrap Modal not available, will use manual display')
-    }
-    
     // Populate employees table with allEmployees
     const tbody = document.getElementById('employeesTableBody')
-    if (!tbody) {
-        console.error('employeesTableBody element not found!')
-        showNotification('Lỗi: Không tìm thấy bảng nhân viên', 'error')
-        return
-    }
-    
     tbody.innerHTML = ''
     
-    if (!window.allEmployees || window.allEmployees.length === 0) {
-        console.log('No employees data available')
+    if (window.allEmployees.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">
@@ -2428,8 +2355,6 @@ function showEmployeesList() {
         `
         return
     }
-    
-    console.log('Processing employees data:', window.allEmployees.length)
     
     // Sort employees by role hierarchy: boss -> manager -> employee
     const roleOrder = { 'boss': 1, 'manager': 2, 'employee': 3 };
@@ -2462,82 +2387,8 @@ function showEmployeesList() {
         tbody.appendChild(row)
     })
     
-        console.log('Showing modal...')
-    
-    // Sử dụng Bootstrap Modal để hiển thị
-    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
-        try {
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            })
-            modal.show()
-            console.log('Bootstrap modal shown successfully')
-            
-            // Đảm bảo backdrop được tạo
-            setTimeout(() => {
-                let backdrop = document.querySelector('.modal-backdrop')
-                if (!backdrop) {
-                    console.log('Creating backdrop manually...')
-                    backdrop = document.createElement('div')
-                    backdrop.className = 'modal-backdrop fade show'
-                    backdrop.style.position = 'fixed'
-                    backdrop.style.top = '0'
-                    backdrop.style.left = '0'
-                    backdrop.style.width = '100%'
-                    backdrop.style.height = '100%'
-                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-                    backdrop.style.zIndex = '1050'
-                    document.body.appendChild(backdrop)
-                }
-                
-                // Đảm bảo modal có z-index cao
-                modalElement.style.zIndex = '1055'
-                console.log('Modal and backdrop should now be visible')
-            }, 100)
-            
-        } catch (error) {
-            console.error('Bootstrap modal error:', error)
-            // Fallback: hiển thị modal bằng CSS
-            modalElement.style.display = 'block'
-            modalElement.style.visibility = 'visible'
-            modalElement.style.zIndex = '9999'
-            
-            // Tạo backdrop thủ công
-            let backdrop = document.createElement('div')
-            backdrop.className = 'modal-backdrop'
-            backdrop.style.position = 'fixed'
-            backdrop.style.top = '0'
-            backdrop.style.left = '0'
-            backdrop.style.width = '100%'
-            backdrop.style.height = '100%'
-            backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-            backdrop.style.zIndex = '9998'
-            document.body.appendChild(backdrop)
-            
-            console.log('Using CSS fallback for modal display')
-        }
-    } else {
-        // Bootstrap không có sẵn, sử dụng CSS
-        modalElement.style.display = 'block'
-        modalElement.style.visibility = 'visible'
-        modalElement.style.zIndex = '9999'
-        
-        // Tạo backdrop thủ công
-        let backdrop = document.createElement('div')
-        backdrop.className = 'modal-backdrop'
-        backdrop.style.position = 'fixed'
-        backdrop.style.top = '0'
-        backdrop.style.left = '0'
-        backdrop.style.width = '100%'
-        backdrop.style.height = '100%'
-        backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-        backdrop.style.zIndex = '9998'
-        document.body.appendChild(backdrop)
-        
-        console.log('Bootstrap not available, using CSS display')
-    }
+    const modal = new bootstrap.Modal(document.getElementById('employeesModal'))
+    modal.show()
 }
 
 function updateAssigneeDropdowns() {
@@ -3273,41 +3124,16 @@ function renderBetaTasksTable() {
             payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`
         }
         
-        // Format Review content - lấy submission_link từ parent RV task
-        let reviewContentDisplay = '<span class="text-muted">-</span>'
+        // Format RV link - lấy submission_link từ parent RV task (link nộp thực tế)
+        let rvLink = '<span class="text-muted">-</span>'
         if (task.parent_task_id) {
-            // Tìm parent RV task để lấy submission_link (nội dung review)
+            // Tìm parent RV task để lấy submission_link (link nộp thực tế)
             const parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
             if (parentRVTask && parentRVTask.submission_link && parentRVTask.submission_link.trim()) {
-                if (parentRVTask.submission_link.startsWith('http')) {
-                    // Nếu vẫn là link cũ
-                    reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
+                rvLink = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
             } else {
-                    // Kiểm tra quyền xem review content
-                    const canViewReview = canViewReviewContent(task)
-                    console.log('Review permission check for beta task:', {
-                        taskId: task.id,
-                        taskName: task.name,
-                        currentUser: currentUser?.id,
-                        currentUserRole: currentUser?.role,
-                        canViewReview: canViewReview,
-                        parentRVTaskId: parentRVTask.id,
-                        parentRVTaskName: parentRVTask.name
-                    })
-                    
-                    if (canViewReview) {
-                        // Nếu có quyền xem, hiển thị nút xem review content
-                        reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
-                            <i class="fas fa-eye"></i> Xem Review
-                        </button>`
-                    } else {
-                        // Nếu không có quyền xem, hiển thị thông báo
-                        reviewContentDisplay = '<span class="text-muted">Không có quyền xem</span>'
-                    }
-                }
-            } else {
-                // Debug: hiển thị thông tin nếu không có nội dung
-                console.log('Beta task missing parent RV content:', {
+                // Debug: hiển thị thông tin nếu không có link
+                console.log('Beta task missing parent RV submission link:', {
                     taskId: task.id,
                     taskName: task.name,
                     parentTaskId: task.parent_task_id,
@@ -3415,7 +3241,7 @@ function renderBetaTasksTable() {
                     <small class="text-muted">${task.description || ''}</small>
                 </td>
                 <td>${getTaskStatusBadge(task.status)}</td>
-                <td>${reviewContentDisplay}</td>
+                <td>${rvLink}</td>
                 <td>${betaLinkDisplay}</td>
                 <td>${rvChars}</td>
                 <td>${betaChars}</td>
@@ -4080,295 +3906,36 @@ function editBetaData(taskId) {
     window.open(`beta-input.html?taskId=${taskId}&mode=edit`, '_blank')
 }
 
-// Review Input Functions
-function openReviewInputPage(taskId) {
-    const id = taskId || currentEditingTaskId
-    if (!id) {
-        showNotification('Vui lòng chọn task để nhập nội dung review', 'error')
-        return
-    }
-    window.open(`review-input.html?taskId=${id}&mode=input`, '_blank')
-}
-
-function editReviewData(taskId) {
-    window.open(`review-input.html?taskId=${taskId}&mode=edit`, '_blank')
-}
-
-async function viewReviewContent(taskId) {
-    console.log('viewReviewContent called with taskId:', taskId)
-    console.log('Current tasks array length:', tasks.length)
-    console.log('Current tasks:', tasks)
-    
-    try {
-        // Tìm task trong local data trước
-        let task = tasks.find(t => t.id === taskId)
-        console.log('Task found in local data:', task)
-        
-        // Nếu không tìm thấy trong local data, load từ database
-        if (!task) {
-            console.log('Task not found in local data, loading from database...')
-            const { data: taskData, error } = await supabase
-                .from('tasks')
-                .select('*')
-                .eq('id', taskId)
-                .single()
-            
-            if (error) {
-                console.error('Error loading task from database:', error)
-                showNotification('Lỗi tải thông tin task từ database', 'error')
-                return
-            }
-            
-            task = taskData
-            console.log('Loaded task from database:', task)
-        } else {
-            console.log('Found task in local data:', task)
-        }
-        
-        let reviewTaskId = null
-        
-        if (task.task_type === 'beta') {
-            // Nếu là beta task, tìm parent RV task để lấy nội dung review
-            if (!task.parent_task_id) {
-                console.error('Beta task missing parent_task_id:', task)
-                showNotification('Beta task không có parent RV task', 'error')
-                return
-            }
-            
-            // Tìm parent RV task trong local data hoặc database
-            let parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
-            
-            if (!parentRVTask) {
-                console.log('Parent RV task not found in local data, loading from database...')
-                const { data: parentTaskData, error: parentError } = await supabase
-                    .from('tasks')
-                    .select('*')
-                    .eq('id', task.parent_task_id)
-                    .eq('task_type', 'rv')
-                    .single()
-                
-                if (parentError) {
-                    console.error('Error loading parent RV task from database:', parentError)
-                    showNotification('Lỗi tải thông tin parent RV task', 'error')
-                    return
-                }
-                
-                parentRVTask = parentTaskData
-                console.log('Loaded parent RV task from database:', parentRVTask)
-            }
-            
-            // Kiểm tra quyền xem review content dựa trên parent RV task
-            if (!canViewReviewContent(task)) {
-                showNotification('Bạn không có quyền xem nội dung review của task này', 'error')
-                return
-            }
-            
-            reviewTaskId = parentRVTask.id
-            
-        } else if (task.task_type === 'rv') {
-            // Nếu là RV task, sử dụng trực tiếp
-            console.log('Task is RV task, using directly')
-            reviewTaskId = task.id
-            
-        } else {
-            console.error('Task is neither beta nor RV:', task.task_type)
-            showNotification('Task không phải là beta hoặc RV task', 'error')
-            return
-        }
-        
-        console.log('Opening review page with taskId:', reviewTaskId, 'mode: view')
-        
-        // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
-        // Truyền thêm thông tin về beta task để kiểm tra quyền
-        const betaTaskInfo = task.task_type === 'beta' ? {
-            betaTaskId: task.id,
-            betaTaskAssignee: task.assignee_id
-        } : null
-        
-        const urlParams = new URLSearchParams({
-            taskId: reviewTaskId,
-            mode: 'view'
-        })
-        
-        if (betaTaskInfo) {
-            urlParams.append('betaTaskId', betaTaskInfo.betaTaskId)
-            urlParams.append('betaTaskAssignee', betaTaskInfo.betaTaskAssignee)
-        }
-        
-        window.open(`review-input.html?${urlParams.toString()}`, '_blank')
-        
-    } catch (error) {
-        console.error('Error in viewReviewContent:', error)
-        showNotification('Lỗi xử lý yêu cầu xem review: ' + error.message, 'error')
-    }
-}
-
-// Function để cập nhật nút review input
-function updateReviewInputButton(submissionLink) {
-    const openReviewBtn = document.getElementById('openReviewInputBtn')
-    
-    if (submissionLink && submissionLink.trim()) {
-        if (submissionLink.startsWith('http')) {
-            // Nếu vẫn là link cũ
-            openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Chuyển sang nhập nội dung'
-            openReviewBtn.className = 'btn btn-outline-warning'
-            openReviewBtn.onclick = () => {
-                if (confirm('Bạn có muốn chuyển từ link sang nhập nội dung trực tiếp không?')) {
-                    openReviewInputPage(currentEditingTaskId)
-                }
-            }
-        } else {
-            // Nếu đã là nội dung text
-            openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Chỉnh sửa nội dung'
-            openReviewBtn.className = 'btn btn-outline-primary'
-            openReviewBtn.onclick = () => editReviewData(currentEditingTaskId)
-        }
-    } else {
-        // Nếu chưa có nội dung
-        openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Nhập nội dung Review'
-        openReviewBtn.className = 'btn btn-outline-primary'
-        openReviewBtn.onclick = () => openReviewInputPage(currentEditingTaskId)
-    }
-}
-
-// Function kiểm tra quyền chỉnh sửa review content
-function canEditReviewContent(task) {
-    if (!currentUser) return false
-    
-    // Boss và Manager có thể chỉnh sửa mọi task
-    if (currentUser.role === 'boss' || currentUser.role === 'manager') {
-        return true
-    }
-    
-    // Employee chỉ có thể chỉnh sửa task được phân công cho mình
-    if (currentUser.role === 'employee') {
-        return task.assignee_id === currentUser.id
-    }
-    
-    return false
-}
-
-// Function kiểm tra quyền xem review content
-function canViewReviewContent(betaTask) {
-    if (!currentUser) return false
-    
-    // Boss và Manager có thể xem mọi task
-    if (currentUser.role === 'boss' || currentUser.role === 'manager') {
-        return true
-    }
-    
-    // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
-    if (currentUser.role === 'employee') {
-        return betaTask.assignee_id === currentUser.id
-    }
-    
-    return false
-}
-
-
-
-
-
-// Download Files Functions
+// Download Beta Files Functions
 async function downloadBetaFiles(projectId) {
     const project = projects.find(p => p.id === projectId)
     if (!project) return
     
     // Kiểm tra quyền
     if (!currentUser || (!isBoss(currentUser) && currentUser.role !== 'manager')) {
-        showNotification('Bạn không có quyền tải file', 'error')
+        showNotification('Bạn không có quyền tải file beta', 'error')
         return
     }
     
-    // Populate modal với beta tasks mặc định
-    document.getElementById('downloadProjectName').textContent = project.name
-    document.getElementById('fileType').value = 'beta'
-    await populateFilesTable(projectId, 'beta')
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('downloadBetaModal'))
-    modal.show()
-}
-
-// Function xử lý khi thay đổi loại file
-async function onFileTypeChange() {
-    const fileType = document.getElementById('fileType').value
-    const projectName = document.getElementById('downloadProjectName').textContent
-    const project = projects.find(p => p.name === projectName)
-    
-    if (project) {
-        await populateFilesTable(project.id, fileType)
-    }
-}
-
-// Function populate bảng file theo loại
-async function populateFilesTable(projectId, fileType) {
-    let fileTasks = []
-    
-    if (fileType === 'beta') {
     // Lấy danh sách beta tasks của dự án
-        fileTasks = tasks.filter(t => 
+    const betaTasks = tasks.filter(t => 
         t.project_id === projectId && 
         t.task_type === 'beta' && 
         t.beta_link // Chỉ những task có dữ liệu beta
     )
-    } else if (fileType === 'review') {
-        // Lấy danh sách review tasks của dự án
-        fileTasks = tasks.filter(t => 
-            t.project_id === projectId && 
-            t.submission_link && 
-            !t.submission_link.startsWith('http') // Chỉ những task có nội dung review (không phải URL)
-        )
-    }
     
-    if (fileTasks.length === 0) {
-        const typeText = fileType === 'beta' ? 'beta' : 'review'
-        showNotification(`Không có file ${typeText} nào để tải`, 'info')
+    if (betaTasks.length === 0) {
+        showNotification('Không có file beta nào để tải', 'info')
         return
     }
     
-    // Populate bảng
-    if (fileType === 'beta') {
-        populateBetaFilesTable(fileTasks)
-    } else {
-        populateReviewFilesTable(fileTasks)
-    }
-}
-
-// Function populate bảng review files
-function populateReviewFilesTable(reviewTasks) {
-    const tbody = document.getElementById('betaFilesTableBody')
-    tbody.innerHTML = ''
+    // Populate modal
+    document.getElementById('downloadProjectName').textContent = project.name
+    populateBetaFilesTable(betaTasks)
     
-    // Sắp xếp reviewTasks theo số chap
-    reviewTasks.sort((a, b) => {
-        const extractNumber = (name) => {
-            const match = (name || '').match(/\d+/)
-            return match ? parseInt(match[0], 10) : null
-        }
-        const numA = extractNumber(a.name)
-        const numB = extractNumber(b.name)
-        if (numA !== null && numB !== null) {
-            return numA - numB
-        }
-        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
-    })
-    
-    reviewTasks.forEach(task => {
-        const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
-        const row = document.createElement('tr')
-        row.innerHTML = `
-            <td><input type="checkbox" class="beta-file-checkbox" value="${task.id}" checked></td>
-            <td>${task.name}</td>
-            <td>${assignee ? assignee.name : 'N/A'}</td>
-            <td>${getTaskStatusBadge(task.status)}</td>
-            <td>${formatDateTime(task.updated_at || task.created_at)}</td>
-        `
-        tbody.appendChild(row)
-    })
-    
-    // Setup select all checkbox
-    setupSelectAllBetaFiles()
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('downloadBetaModal'))
+    modal.show()
 }
 
 function populateBetaFilesTable(betaTasks) {
@@ -4428,7 +3995,6 @@ function setupSelectAllBetaFiles() {
 }
 
 async function executeDownload() {
-    const fileType = document.getElementById('fileType').value
     const downloadMode = document.getElementById('downloadMode').value
     const mergeOption = document.getElementById('mergeOption').value
     const selectedTasks = Array.from(document.querySelectorAll('.beta-file-checkbox:checked'))
@@ -4442,18 +4008,10 @@ async function executeDownload() {
     try {
         if (mergeOption === 'merge') {
             // Gộp thành 1 file
-            if (fileType === 'beta') {
             await downloadMergedBetaFiles(selectedTasks)
-            } else {
-                await downloadMergedReviewFiles(selectedTasks)
-            }
         } else {
             // Tải file riêng biệt
-            if (fileType === 'beta') {
             await downloadSeparateBetaFiles(selectedTasks)
-            } else {
-                await downloadSeparateReviewFiles(selectedTasks)
-            }
         }
         
         // Close modal
@@ -4501,72 +4059,6 @@ async function downloadMergedBetaFiles(taskIds) {
     URL.revokeObjectURL(url);
 }
 
-// Download Review Files Functions
-async function downloadMergedReviewFiles(taskIds) {
-    const reviewTasks = tasks.filter(t => taskIds.includes(t.id));
-    let mergedContent = '';
-
-    for (const task of reviewTasks) {
-        if (task.submission_link && !task.submission_link.startsWith('http')) {
-            mergedContent += `=== ${task.name} ===\n\n`;
-            mergedContent += task.submission_link + '\n\n';
-        }
-    }
-
-    const htmlContent = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office'
-              xmlns:w='urn:schemas-microsoft-com:office:word'
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body>${mergedContent.trim()}</body>
-        </html>
-    `;
-
-    const blob = new Blob(['\ufeff', htmlContent], {
-        type: 'application/msword',
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `review_merged_${new Date().toISOString().split('T')[0]}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-async function downloadSeparateReviewFiles(taskIds) {
-    const reviewTasks = tasks.filter(t => taskIds.includes(t.id))
-    
-    for (const task of reviewTasks) {
-        try {
-            let content = ''
-            
-            if (task.submission_link && !task.submission_link.startsWith('http')) {
-                content = task.submission_link
-            }
-            
-            // Tạo file riêng cho từng task
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `review_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            URL.revokeObjectURL(url)
-            
-            // Delay nhỏ để tránh browser block multiple downloads
-            await new Promise(resolve => setTimeout(resolve, 100))
-            
-        } catch (error) {
-            console.error(`Error downloading file for task ${task.id}:`, error)
-        }
-    }
-}
-
 async function downloadSeparateBetaFiles(taskIds) {
     const betaTasks = tasks.filter(t => taskIds.includes(t.id))
     
@@ -4600,79 +4092,23 @@ async function downloadSeparateBetaFiles(taskIds) {
 
 // Activity History Functions
 function showActivityHistoryView() {
-    console.log('=== showActivityHistoryView called ===')
-    console.log('currentUser:', currentUser)
-    
-    if (!currentUser) {
-        console.log('No current user')
-        showNotification('Vui lòng đăng nhập trước', 'error')
-        return
-    }
-    
-    if (!hasManagerOrBossPermissions(currentUser)) {
-        console.log('User does not have manager/boss permissions')
-        showNotification('Chỉ quản lý và boss mới có thể xem lịch sử hoạt động', 'error')
-        return
-    }
-    
-    console.log('User has permissions, proceeding...')
-    
-    // Check if view element exists
-    const activityHistoryView = document.getElementById('activityHistoryView')
-    if (!activityHistoryView) {
-        console.error('activityHistoryView element not found!')
-        showNotification('Lỗi: Không tìm thấy view lịch sử hoạt động', 'error')
-        return
-    }
-    
     // Hide other views
     const projectsView = document.getElementById('projectsView')
     const tasksView = document.getElementById('tasksView')
     const dashboardView = document.getElementById('dashboardView')
+    const activityHistoryView = document.getElementById('activityHistoryView')
     
-    if (projectsView) {
-        console.log('Hiding projectsView')
-        projectsView.style.display = 'none'
-    }
-    if (tasksView) {
-        console.log('Hiding tasksView')
-        tasksView.style.display = 'none'
-    }
-    if (dashboardView) {
-        console.log('Hiding dashboardView')
-        dashboardView.style.display = 'none'
-    }
-    
-    console.log('Showing activityHistoryView')
-    
-    // Ẩn tất cả view khác trước
-    const projectsViewElement = document.getElementById('projectsView')
-    const tasksViewElement = document.getElementById('tasksView')
-    
-    if (projectsViewElement) {
-        projectsViewElement.style.display = 'none'
-    }
-    if (tasksViewElement) {
-        tasksViewElement.style.display = 'none'
-    }
-    
-    // Hiển thị view này
-    activityHistoryView.style.display = 'block'
-    activityHistoryView.style.visibility = 'visible'
-    activityHistoryView.style.zIndex = '1000'
-    
-    console.log('Activity History View displayed')
+    if (projectsView) projectsView.style.display = 'none'
+    if (tasksView) tasksView.style.display = 'none'
+    if (dashboardView) dashboardView.style.display = 'none'
+    if (activityHistoryView) activityHistoryView.style.display = ''
     
     // Load activity history data
-    console.log('Loading activity history data...')
     loadActivityHistoryData()
 }
 
 async function loadActivityHistoryData() {
-    console.log('=== loadActivityHistoryData called ===')
-    
     try {
-        console.log('Loading employees data...')
         // Get all employees
         const { data: employees, error: employeesError } = await supabase
             .from('employees')
@@ -4680,14 +4116,8 @@ async function loadActivityHistoryData() {
             .eq('role', 'employee')
             .order('name')
 
-        if (employeesError) {
-            console.error('Error loading employees:', employeesError)
-            throw employeesError
-        }
+        if (employeesError) throw employeesError
 
-        console.log('Employees loaded:', employees?.length || 0)
-
-        console.log('Loading tasks data...')
         // Get all tasks with employee data (not just completed)
         const { data: allTasks, error: tasksError } = await supabase
             .from('tasks')
@@ -4703,34 +4133,23 @@ async function loadActivityHistoryData() {
             .not('assignee_id', 'is', null)
             .order('updated_at', { ascending: false })
 
-        if (tasksError) {
-            console.error('Error loading tasks:', tasksError)
-            throw tasksError
-        }
-
-        console.log('Tasks loaded:', allTasks?.length || 0)
+        if (tasksError) throw tasksError
 
         // Process activity data for each employee
-        console.log('Processing activity data...')
         const activityData = processEmployeeActivityData(employees, allTasks)
-        console.log('Activity data processed:', activityData?.length || 0)
         
         // Store activity data globally
         window.activityHistoryData = activityData
         
         // Populate employee filter dropdown
-        console.log('Populating employee filter...')
         populateEmployeeActivityFilter(employees)
         
         // Render activity history table
-        console.log('Rendering activity history table...')
         renderActivityHistoryTable()
-        
-        console.log('Activity history data loaded successfully')
         
     } catch (error) {
         console.error('Error loading activity history data:', error)
-        showNotification('Lỗi khi tải dữ liệu lịch sử hoạt động: ' + error.message, 'error')
+        showNotification('Lỗi khi tải dữ liệu lịch sử hoạt động', 'error')
     }
 }
 
@@ -4800,16 +4219,9 @@ function processEmployeeActivityData(employees, allTasks) {
 }
 
 function populateEmployeeActivityFilter(employees) {
-    console.log('=== populateEmployeeActivityFilter called ===')
-    console.log('Employees:', employees)
-    
     const filterSelect = document.getElementById('employeeActivityFilter')
-    if (!filterSelect) {
-        console.error('employeeActivityFilter element not found!')
-        return
-    }
+    if (!filterSelect) return
     
-    console.log('Found filterSelect, clearing options...')
     // Clear existing options except the first one
     filterSelect.innerHTML = '<option value="">Tất cả nhân viên</option>'
     
@@ -4819,51 +4231,28 @@ function populateEmployeeActivityFilter(employees) {
         option.value = employee.id
         option.textContent = employee.name
         filterSelect.appendChild(option)
-        console.log('Added option:', employee.name)
     })
-    
-    console.log('Filter populated with', employees.length, 'options')
 }
 
 function renderActivityHistoryTable() {
-    console.log('=== renderActivityHistoryTable called ===')
-    
     const tbody = document.getElementById('activityHistoryTableBody')
-    if (!tbody) {
-        console.error('activityHistoryTableBody element not found!')
-        return
-    }
-    
-    if (!window.activityHistoryData) {
-        console.error('No activity history data available!')
-        return
-    }
-    
-    console.log('Activity history data:', window.activityHistoryData)
+    if (!tbody || !window.activityHistoryData) return
     
     const employeeFilter = document.getElementById('employeeActivityFilter')?.value || ''
     const statusFilter = document.getElementById('activityStatusFilter')?.value || ''
     
-    console.log('Filters - Employee:', employeeFilter, 'Status:', statusFilter)
-    
     // Filter data based on selected filters
     let filteredData = window.activityHistoryData
-    console.log('Initial data count:', filteredData.length)
     
     if (employeeFilter) {
         filteredData = filteredData.filter(item => item.employee.id === employeeFilter)
-        console.log('After employee filter:', filteredData.length)
     }
     
     if (statusFilter) {
         filteredData = filteredData.filter(item => item.activityStatus === statusFilter)
-        console.log('After status filter:', filteredData.length)
     }
     
-    console.log('Final filtered data:', filteredData)
-    
     if (filteredData.length === 0) {
-        console.log('No data to display, showing empty state')
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" class="text-center">
@@ -4951,8 +4340,6 @@ function renderActivityHistoryTable() {
             </tr>
         `
     }).join('')
-    
-    console.log('Table rendered with', filteredData.length, 'rows')
 }
 
 function refreshActivityHistory() {
@@ -5168,319 +4555,3 @@ function sendReminder(employeeId) {
     // TODO: Implement reminder functionality
     showNotification('Tính năng gửi nhắc nhở sẽ được triển khai sau', 'info')
 }
-
-// Utility function để tải nội dung text thành file
-function downloadAsTextFile(content, filename) {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-}
-
-// Hàm hiển thị modal báo cáo dự án
-function showProjectReportModal(projectId) {
-    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
-        showNotification('Chỉ quản lý và boss mới có thể xem báo cáo dự án', 'error')
-        return
-    }
-    
-    const modalElement = document.getElementById('projectReportModal')
-    if (!modalElement) {
-        showNotification('Lỗi: Không tìm thấy modal báo cáo dự án', 'error')
-        return
-    }
-    
-    // Cập nhật tên dự án trong modal
-    const project = projects.find(p => p.id === projectId)
-    if (project) {
-        document.getElementById('reportProjectName').textContent = project.name
-    }
-    
-    // Hiển thị modal
-    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
-        try {
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            })
-            modal.show()
-            
-            // Đảm bảo backdrop được tạo
-            setTimeout(() => {
-                let backdrop = document.querySelector('.modal-backdrop')
-                if (!backdrop) {
-                    backdrop = document.createElement('div')
-                    backdrop.className = 'modal-backdrop fade show'
-                    backdrop.style.position = 'fixed'
-                    backdrop.style.top = '0'
-                    backdrop.style.left = '0'
-                    backdrop.style.width = '100%'
-                    backdrop.style.height = '100%'
-                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-                    backdrop.style.zIndex = '1050'
-                    document.body.appendChild(backdrop)
-                }
-                modalElement.style.zIndex = '1055'
-            }, 100)
-        } catch (error) {
-            console.error('Modal error:', error)
-            modalElement.style.display = 'block'
-            modalElement.style.visibility = 'visible'
-            modalElement.style.zIndex = '9999'
-        }
-    } else {
-        modalElement.style.display = 'block'
-        modalElement.style.visibility = 'visible'
-        modalElement.style.zIndex = '9999'
-    }
-    
-    // Load dữ liệu báo cáo
-    loadProjectReportData(projectId)
-}
-
-// Hàm hiển thị modal tải file
-function showDownloadModal(projectId) {
-    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
-        showNotification('Chỉ quản lý và boss mới có thể tải file', 'error')
-        return
-    }
-    
-    const modalElement = document.getElementById('downloadBetaModal')
-    if (!modalElement) {
-        showNotification('Lỗi: Không tìm thấy modal tải file', 'error')
-        return
-    }
-    
-    // Cập nhật tên dự án trong modal
-    const project = projects.find(p => p.id === projectId)
-    if (project) {
-        document.getElementById('downloadProjectName').textContent = project.name
-    }
-    
-    // Hiển thị modal
-    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
-        try {
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            })
-            modal.show()
-            
-            // Đảm bảo backdrop được tạo
-            setTimeout(() => {
-                let backdrop = document.querySelector('.modal-backdrop')
-                if (!backdrop) {
-                    backdrop = document.createElement('div')
-                    backdrop.className = 'modal-backdrop fade show'
-                    backdrop.style.position = 'fixed'
-                    backdrop.style.top = '0'
-                    backdrop.style.left = '0'
-                    backdrop.style.width = '100%'
-                    backdrop.style.height = '100%'
-                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-                    backdrop.style.zIndex = '1050'
-                    document.body.appendChild(backdrop)
-                }
-                modalElement.style.zIndex = '1055'
-            }, 100)
-        } catch (error) {
-            console.error('Modal error:', error)
-            modalElement.style.display = 'block'
-            modalElement.style.visibility = 'visible'
-            modalElement.style.zIndex = '9999'
-        }
-    } else {
-        modalElement.style.display = 'block'
-        modalElement.style.visibility = 'visible'
-        modalElement.style.zIndex = '9999'
-    }
-    
-    // Load danh sách file
-    loadBetaFilesList(projectId)
-}
-
-// Hàm load dữ liệu báo cáo dự án
-async function loadProjectReportData(projectId) {
-    try {
-        // Load tasks của dự án
-        const projectTasks = tasks.filter(t => t.project_id === projectId)
-        
-        // Tính toán thống kê
-        const totalTasks = projectTasks.length
-        const totalRVChars = projectTasks.reduce((sum, task) => sum + (task.rv_chars || 0), 0)
-        const totalBetaChars = projectTasks.reduce((sum, task) => sum + (task.beta_chars || 0), 0)
-        const totalMoney = projectTasks.reduce((sum, task) => sum + (task.total_amount || 0), 0)
-        
-        // Cập nhật UI
-        document.getElementById('totalTasksCount').textContent = totalTasks
-        document.getElementById('totalRVChars').textContent = totalRVChars.toLocaleString()
-        document.getElementById('totalBetaChars').textContent = totalBetaChars.toLocaleString()
-        document.getElementById('totalMoney').textContent = totalMoney.toLocaleString() + ' VNĐ'
-        
-        // Tạo báo cáo chi tiết theo nhân viên
-        const employeeStats = {}
-        projectTasks.forEach(task => {
-            if (task.assignee_id) {
-                const employee = window.allEmployees.find(emp => emp.id === task.assignee_id)
-                if (employee) {
-                    if (!employeeStats[employee.id]) {
-                        employeeStats[employee.id] = {
-                            name: employee.name,
-                            taskCount: 0,
-                            rvChars: 0,
-                            betaChars: 0,
-                            rvMoney: 0,
-                            betaMoney: 0
-                        }
-                    }
-                    employeeStats[employee.id].taskCount++
-                    employeeStats[employee.id].rvChars += task.rv_chars || 0
-                    employeeStats[employee.id].betaChars += task.beta_chars || 0
-                    employeeStats[employee.id].rvMoney += task.rv_amount || 0
-                    employeeStats[employee.id].betaMoney += task.beta_amount || 0
-                }
-            }
-        })
-        
-        // Render bảng báo cáo
-        const tbody = document.getElementById('reportTableBody')
-        tbody.innerHTML = ''
-        
-        Object.values(employeeStats).forEach(stat => {
-            const row = document.createElement('tr')
-            row.innerHTML = `
-                <td>${stat.name}</td>
-                <td>${stat.taskCount}</td>
-                <td>${stat.rvChars.toLocaleString()}</td>
-                <td>${stat.betaChars.toLocaleString()}</td>
-                <td>${stat.rvMoney.toLocaleString()} VNĐ</td>
-                <td>${stat.betaMoney.toLocaleString()} VNĐ</td>
-                <td><strong>${(stat.rvMoney + stat.betaMoney).toLocaleString()} VNĐ</strong></td>
-            `
-            tbody.appendChild(row)
-        })
-        
-        // Cập nhật dropdown filter nhân viên
-        const employeeFilter = document.getElementById('reportEmployeeFilter')
-        if (employeeFilter) {
-            employeeFilter.innerHTML = '<option value="">Tất cả nhân viên</option>'
-            Object.values(employeeStats).forEach(stat => {
-                const option = document.createElement('option')
-                option.value = stat.name
-                option.textContent = stat.name
-                employeeFilter.appendChild(option)
-            })
-        }
-        
-    } catch (error) {
-        console.error('Error loading project report data:', error)
-        showNotification('Lỗi khi tải dữ liệu báo cáo', 'error')
-    }
-}
-
-// Hàm load danh sách file beta
-async function loadBetaFilesList(projectId) {
-    try {
-        // Load tasks của dự án
-        const projectTasks = tasks.filter(t => t.project_id === projectId)
-        
-        // Render bảng file
-        const tbody = document.getElementById('betaFilesTableBody')
-        tbody.innerHTML = ''
-        
-        projectTasks.forEach(task => {
-            const row = document.createElement('tr')
-            const employee = window.allEmployees.find(emp => emp.id === task.assignee_id)
-            const statusBadge = getTaskStatusBadge(task.status)
-            
-            row.innerHTML = `
-                <td><input type="checkbox" class="beta-file-checkbox" value="${task.id}"></td>
-                <td>${task.name}</td>
-                <td>${employee ? employee.name : 'N/A'}</td>
-                <td>${statusBadge}</td>
-                <td>${formatDateTime(task.updated_at)}</td>
-            `
-            tbody.appendChild(row)
-        })
-        
-        // Setup select all checkbox
-        const selectAllCheckbox = document.getElementById('selectAllBetaFiles')
-        if (selectAllCheckbox) {
-            selectAllCheckbox.onchange = function() {
-                const checkboxes = document.querySelectorAll('.beta-file-checkbox')
-                checkboxes.forEach(cb => cb.checked = this.checked)
-            }
-        }
-        
-    } catch (error) {
-        console.error('Error loading beta files list:', error)
-        showNotification('Lỗi khi tải danh sách file', 'error')
-    }
-}
-
-// Hàm helper để lấy badge trạng thái task
-function getTaskStatusBadge(status) {
-    const statusMap = {
-        'pending': '<span class="badge bg-secondary">Chờ thực hiện</span>',
-        'in-progress': '<span class="badge bg-warning">Đang thực hiện</span>',
-        'completed': '<span class="badge bg-success">Hoàn thành</span>',
-        'overdue': '<span class="badge bg-danger">Quá hạn</span>'
-    }
-    return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
-}
-
-// Hàm debug để kiểm tra modal
-function debugModal(modalId) {
-    const modal = document.getElementById(modalId)
-    if (!modal) {
-        console.error(`Modal ${modalId} not found`)
-        return
-    }
-    
-    console.log(`=== Debug Modal ${modalId} ===`)
-    console.log('Modal element:', modal)
-    console.log('Display style:', modal.style.display)
-    console.log('Visibility style:', modal.style.visibility)
-    console.log('Z-index style:', modal.style.zIndex)
-    console.log('Classes:', modal.className)
-    
-    const computedStyle = window.getComputedStyle(modal)
-    console.log('Computed display:', computedStyle.display)
-    console.log('Computed visibility:', computedStyle.visibility)
-    console.log('Computed z-index:', computedStyle.zIndex)
-    console.log('Computed position:', computedStyle.position)
-    
-    const backdrop = document.querySelector('.modal-backdrop')
-    console.log('Backdrop element:', backdrop)
-    if (backdrop) {
-        console.log('Backdrop display:', backdrop.style.display)
-        console.log('Backdrop z-index:', backdrop.style.zIndex)
-    }
-    
-    const rect = modal.getBoundingClientRect()
-    console.log('Modal position:', {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        visible: rect.width > 0 && rect.height > 0
-    })
-    
-    console.log('=== End Debug ===')
-}
-
-// Gọi debug khi click nút
-function debugEmployeesModal() {
-    showEmployeesList()
-    setTimeout(() => {
-        debugModal('employeesModal')
-    }, 200)
-}
-

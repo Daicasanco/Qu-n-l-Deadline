@@ -241,6 +241,13 @@ async function loadTasks(projectId = null) {
         if (error) throw error
         tasks = data || []
         
+        // Lưu tasks vào localStorage để review-input.html có thể truy cập
+        try {
+            localStorage.setItem('tasks', JSON.stringify(tasks))
+        } catch (storageError) {
+            console.warn('Could not save tasks to localStorage:', storageError)
+        }
+        
         console.log(`Loaded ${tasks.length} tasks total`)
         if (projectId) {
             console.log(`Tasks for project ${projectId}:`, tasks.filter(t => t.project_id === projectId))
@@ -3184,10 +3191,17 @@ function renderBetaTasksTable() {
                     // Nếu vẫn là link cũ
                     reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
                 } else {
-                    // Nếu là nội dung text, hiển thị nút xem review content
-                    reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
-                        <i class="fas fa-eye"></i> Xem Review
-                    </button>`
+                    // Kiểm tra quyền xem review content
+                    const canViewReview = canViewReviewContent(task)
+                    if (canViewReview) {
+                        // Nếu có quyền xem, hiển thị nút xem review content
+                        reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
+                            <i class="fas fa-eye"></i> Xem Review
+                        </button>`
+                    } else {
+                        // Nếu không có quyền xem, hiển thị thông báo
+                        reviewContentDisplay = '<span class="text-muted">Không có quyền xem</span>'
+                    }
                 }
             } else {
                 // Debug: hiển thị thông tin nếu không có nội dung
@@ -4009,6 +4023,14 @@ async function viewReviewContent(taskId) {
             console.log('Found task in local data:', task)
         }
         
+        // Kiểm tra quyền xem review content
+        if (task.task_type === 'beta') {
+            if (!canViewReviewContent(task)) {
+                showNotification('Bạn không có quyền xem nội dung review của task này', 'error')
+                return
+            }
+        }
+        
         let reviewTaskId = null
         
         if (task.task_type === 'beta') {
@@ -4105,6 +4127,23 @@ function canEditReviewContent(task) {
     // Employee chỉ có thể chỉnh sửa task được phân công cho mình
     if (currentUser.role === 'employee') {
         return task.assignee_id === currentUser.id
+    }
+    
+    return false
+}
+
+// Function kiểm tra quyền xem review content
+function canViewReviewContent(betaTask) {
+    if (!currentUser) return false
+    
+    // Boss và Manager có thể xem mọi task
+    if (currentUser.role === 'boss' || currentUser.role === 'manager') {
+        return true
+    }
+    
+    // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
+    if (currentUser.role === 'employee') {
+        return betaTask.assignee_id === currentUser.id
     }
     
     return false

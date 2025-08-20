@@ -461,8 +461,49 @@
             return false
         }
         
+        // Function kiểm tra quyền xem review content (cho mode view)
+        function canViewReviewContent(task) {
+            if (!currentUser) return false
+            
+            // Boss và Manager có thể xem mọi task
+            if (currentUser.role === 'boss' || currentUser.role === 'manager') {
+                return true
+            }
+            
+            // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
+            if (currentUser.role === 'employee') {
+                // Tìm task beta có parent_task_id trỏ đến task review này
+                // Lấy tasks từ localStorage hoặc window object
+                let betaTasks = []
+                try {
+                    // Thử lấy từ window object trước (nếu được truyền từ trang chính)
+                    if (window.tasks && Array.isArray(window.tasks)) {
+                        betaTasks = window.tasks
+                    } else {
+                        // Nếu không có, thử lấy từ localStorage
+                        const savedTasks = localStorage.getItem('tasks')
+                        if (savedTasks) {
+                            betaTasks = JSON.parse(savedTasks)
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error loading tasks for permission check:', error)
+                }
+                
+                const relatedBetaTask = betaTasks.find(t => 
+                    t.task_type === 'beta' && 
+                    t.parent_task_id === task.id && 
+                    t.assignee_id === currentUser.id
+                )
+                return !!relatedBetaTask
+            }
+            
+            return false
+        }
+        
         function setEditMode() {
             const canEdit = canEditTask()
+            const canView = mode === 'view' ? canViewReviewContent(currentTask) : false
             const container = document.querySelector('.review-input-container')
             const contentEditor = document.getElementById('reviewContent')
             const textToolbar = document.getElementById('textToolbar')
@@ -471,6 +512,13 @@
             const contentTitle = document.getElementById('contentTitle')
             
             if (mode === 'view') {
+                // Kiểm tra quyền xem trước
+                if (!canView) {
+                    showNotification('Bạn không có quyền xem nội dung review này', 'error')
+                    setTimeout(() => goBack(), 2000)
+                    return
+                }
+                
                 // Mode xem: chỉ hiển thị nội dung, không cho phép chỉnh sửa
                 container.classList.add('readonly-mode')
                 contentEditor.readOnly = true
@@ -480,7 +528,7 @@
                 
                 modeBadge.textContent = 'Chế độ xem'
                 modeBadge.className = 'badge bg-secondary'
-                contentTitle.textContent = 'Xem nội dung  Review'
+                contentTitle.textContent = 'Xem nội dung Review'
                 
                 // Thêm nút copy content
                 addCopyButton()

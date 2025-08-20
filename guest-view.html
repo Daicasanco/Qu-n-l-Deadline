@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập nội dung Task Review - Garden Moon</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .content-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 20px auto;
+            max-width: 1000px;
+            overflow: hidden;
+        }
+        
+        .content-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .content-body {
+            padding: 40px;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        
+        .content-text {
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            text-align: justify;
+        }
+        
+        .key-input-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 10px 5px;
+            display: inline-block;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            color: white;
+        }
+        
+        .print-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+            color: white;
+        }
+        
+        .content-editor {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            min-height: 400px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            width: 100%;
+        }
+        
+        .content-editor:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .word-count {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .text-toolbar {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .text-toolbar .form-group {
+            margin-bottom: 10px;
+        }
+        
+        .text-toolbar label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .text-toolbar select,
+        .text-toolbar input {
+            font-size: 12px;
+        }
+        
+        .toolbar-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-item {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .content-container {
+                box-shadow: none;
+                margin: 0;
+            }
+            
+            body {
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Key Input Section (shown when no key is provided) -->
+    <div id="keyInputSection" class="key-input-section">
+        <div class="mb-4">
+            <i class="fas fa-lock fa-3x text-primary mb-3"></i>
+            <h3>Nhập key để truy cập</h3>
+            <p class="text-muted">Vui lòng nhập key được cung cấp để truy cập task review</p>
+        </div>
+        
+        <form id="keyForm" onsubmit="validateKey(event)">
+            <div class="mb-3">
+                <input type="text" 
+                       class="form-control form-control-lg text-center" 
+                       id="keyInput" 
+                       placeholder="Nhập key của bạn..." 
+                       required
+                       maxlength="8"
+                       style="font-size: 18px; letter-spacing: 2px;">
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                <span id="submitText">Xác nhận</span>
+                <span id="submitSpinner" class="loading-spinner ms-2" style="display: none;"></span>
+            </button>
+        </form>
+        
+        <div id="keyError" class="error-message" style="display: none;">
+            <!-- Error messages will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Content Section (shown when key is valid) -->
+    <div id="contentSection" class="content-container" style="display: none;">
+        <!-- Content Header -->
+        <div class="content-header">
+            <h2 id="contentTitle">Task Review</h2>
+            <p id="contentDescription" class="mb-0">Nhập nội dung cho task review</p>
+            
+            <div class="mt-3">
+                <span class="info-badge">
+                    <i class="fas fa-eye me-1"></i>
+                    Lượt xem: <span id="viewCount">0</span>/<span id="maxViews">0</span>
+                </span>
+                <span class="info-badge">
+                    <i class="fas fa-clock me-1"></i>
+                    Hết hạn: <span id="expiryDate">--</span>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Content Body -->
+        <div class="content-body">
+            <!-- Text Editing Toolbar -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paint-brush me-2"></i>
+                        Công cụ chỉnh sửa văn bản
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-toolbar">
+                        <div class="toolbar-row">
+                            <div class="toolbar-item">
+                                <label for="fontFamily">Font chữ:</label>
+                                <select class="form-control form-control-sm" id="fontFamily">
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="Times New Roman, serif">Times New Roman</option>
+                                    <option value="Courier New, monospace" selected>Courier New</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="Verdana, sans-serif">Verdana</option>
+                                    <option value="Tahoma, sans-serif">Tahoma</option>
+                                    <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+                                    <option value="Impact, sans-serif">Impact</option>
+                                </select>
+                            </div>
+                            <div class="toolbar-item">
+                                <label for="fontSize">Cỡ chữ:</label>
+                                <select class="form-control form-control-sm" id="fontSize">
+                                    <option value="12">12px</option>
+                                    <option value="14" selected>14px</option>
+                                    <option value="16">16px</option>
+                                    <option value="18">18px</option>
+                                    <option value="20">20px</option>
+                                    <option value="24">24px</option>
+                                    <option value="28">28px</option>
+                                    <option value="32">32px</option>
+                                </select>
+                            </div>
+                            <div class="toolbar-item">
+                                <label for="lineHeight">Khoảng cách dòng:</label>
+                                <select class="form-control form-control-sm" id="lineHeight">
+                                    <option value="1.2">1.2</option>
+                                    <option value="1.4">1.4</option>
+                                    <option value="1.6" selected>1.6</option>
+                                    <option value="1.8">1.8</option>
+                                    <option value="2.0">2.0</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="toolbar-row">
+                            <div class="toolbar-item">
+                                <label>Chức năng:</label>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-outline-primary action-btn" onclick="splitByPeriods()">
+                                        <i class="fas fa-cut me-1"></i>Tách dòng
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-outline-info action-btn" onclick="formatText()">
+                                        <i class="fas fa-magic me-1"></i>Định dạng
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary action-btn" onclick="clearFormatting()">
+                                        <i class="fas fa-eraser me-1"></i>Gộp dòng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Editor -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Nội dung Task Review
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <textarea 
+                        class="form-control content-editor" 
+                        id="reviewContent" 
+                        placeholder="Nhập nội dung task review tại đây..."
+                        rows="20"
+                    ></textarea>
+                    
+                    <div class="word-count">
+                        <i class="fas fa-text-width me-1"></i>
+                        Số ký tự: <span id="charCount">0</span> | 
+                        Số từ: <span id="wordCount">0</span> |
+                        Số dòng: <span id="lineCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4 no-print">
+                <button class="btn btn-outline-secondary me-2" onclick="clearContent()">
+                    <i class="fas fa-eraser me-2"></i>
+                    Xóa nội dung
+                </button>
+                <button class="btn save-btn" id="saveButton" onclick="saveReviewContent()">
+                    <i class="fas fa-save me-2"></i>
+                    <span id="saveBtnText">Lưu nội dung</span>
+                    <span class="loading-spinner ms-2" id="saveSpinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer no-print">
+        <p>&copy; 2024 Garden Moon. Tất cả quyền được bảo lưu.</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        let supabase = null;
+        let currentKey = null;
+        let contentData = null;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        // Initialize Supabase
+        async function initializeApp() {
+            try {
+                // Initialize Supabase directly
+                supabase = window.supabase.createClient(
+                    'https://blkkgtjsebkjmhqqtrwh.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'
+                );
+
+                // Check if key is provided in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const keyFromUrl = urlParams.get('key');
+                
+                if (keyFromUrl) {
+                    document.getElementById('keyInput').value = keyFromUrl;
+                    validateKeyFromUrl(keyFromUrl);
+                }
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError('Lỗi khởi tạo ứng dụng');
+            }
+        }
+
+        // Validate key from URL
+        async function validateKeyFromUrl(key) {
+            await validateKeyData(key);
+        }
+
+        // Validate key form submission
+        async function validateKey(event) {
+            event.preventDefault();
+            
+            const key = document.getElementById('keyInput').value.trim().toUpperCase();
+            if (!key) {
+                showError('Vui lòng nhập key');
+                return;
+            }
+
+            await validateKeyData(key);
+        }
+
+        // Validate key data
+        async function validateKeyData(key) {
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const keyError = document.getElementById('keyError');
+
+            try {
+                // Show loading state
+                submitText.style.display = 'none';
+                submitSpinner.style.display = 'inline-block';
+                keyError.style.display = 'none';
+
+                // Query database for key
+                const { data, error } = await supabase
+                    .from('guest_keys')
+                    .select('*')
+                    .eq('key', key)
+                    .single();
+
+                if (error || !data) {
+                    showError('Key không hợp lệ hoặc không tồn tại');
+                    return;
+                }
+
+                // Check if key is expired
+                const now = new Date();
+                const expiryDate = new Date(data.expiry_date);
+                
+                if (now > expiryDate) {
+                    showError('Key đã hết hạn');
+                    return;
+                }
+
+                // Check if max views reached
+                if (data.current_views >= data.max_views) {
+                    showError('Đã đạt giới hạn số lần xem');
+                    return;
+                }
+
+                // Update view count
+                await updateViewCount(key, data.current_views + 1);
+
+                // Store data and show content
+                currentKey = key;
+                contentData = data;
+                showContent(data);
+
+            } catch (error) {
+                console.error('Error validating key:', error);
+                showError('Lỗi xác thực key');
+            } finally {
+                // Hide loading state
+                submitText.style.display = 'inline';
+                submitSpinner.style.display = 'none';
+            }
+        }
+
+        // Update view count
+        async function updateViewCount(key, newCount) {
+            try {
+                const { error } = await supabase
+                    .from('guest_keys')
+                    .update({ current_views: newCount })
+                    .eq('key', key);
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error updating view count:', error);
+            }
+        }
+
+        // Show content
+        function showContent(data) {
+            // Hide key input section
+            document.getElementById('keyInputSection').style.display = 'none';
+            
+            // Show content section
+            const contentSection = document.getElementById('contentSection');
+            contentSection.style.display = 'block';
+            
+            // Update content
+            document.getElementById('contentTitle').textContent = data.title || 'Task Review';
+            document.getElementById('contentDescription').textContent = data.description || 'Nhập nội dung cho task review';
+            document.getElementById('viewCount').textContent = data.current_views + 1;
+            document.getElementById('maxViews').textContent = data.max_views;
+            document.getElementById('expiryDate').textContent = new Date(data.expiry_date).toLocaleDateString('vi-VN');
+            
+            // Update page title
+            document.title = (data.title || 'Task Review') + ' - Garden Moon';
+            
+            // Setup event listeners for content editor
+            setupContentEditor();
+            
+            // Load existing content if available
+            if (data.content) {
+                document.getElementById('reviewContent').value = data.content;
+                updateWordCount();
+            }
+        }
+
+        // Setup content editor
+        function setupContentEditor() {
+            const contentEditor = document.getElementById('reviewContent');
+            
+            // Word count update
+            contentEditor.addEventListener('input', updateWordCount);
+            
+            // Text formatting event listeners
+            document.getElementById('fontFamily').addEventListener('change', applyTextFormatting);
+            document.getElementById('fontSize').addEventListener('change', applyTextFormatting);
+            document.getElementById('lineHeight').addEventListener('change', applyTextFormatting);
+            
+            // Apply initial formatting
+            applyTextFormatting();
+        }
+
+        // Apply text formatting
+        function applyTextFormatting() {
+            const contentEditor = document.getElementById('reviewContent');
+            const fontFamily = document.getElementById('fontFamily').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const lineHeight = document.getElementById('lineHeight').value;
+            
+            contentEditor.style.fontFamily = fontFamily;
+            contentEditor.style.fontSize = fontSize + 'px';
+            contentEditor.style.lineHeight = lineHeight;
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const content = document.getElementById('reviewContent').value;
+            const charCount = content.length;
+            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            const lineCount = content.split('\n').length;
+            
+            document.getElementById('charCount').textContent = charCount.toLocaleString();
+            document.getElementById('wordCount').textContent = wordCount.toLocaleString();
+            document.getElementById('lineCount').textContent = lineCount.toLocaleString();
+        }
+
+        // Text formatting functions
+        function splitByPeriods() {
+            const contentEditor = document.getElementById('reviewContent');
+            let content = contentEditor.value;
+            
+            // Split content by periods, remove spaces before newlines, and join with newlines
+            content = content.replace(/\.\s*/g, '.\n');
+            
+            // Remove extra newlines
+            content = content.replace(/\n\s*\n/g, '\n');
+            
+            contentEditor.value = content;
+            updateWordCount();
+            showSuccess('Đã tách dòng theo dấu chấm');
+        }
+
+        function formatText() {
+            const contentEditor = document.getElementById('reviewContent');
+            let content = contentEditor.value;
+            
+            // Capitalize first letter after periods
+            content = content.replace(/\.\s*([a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])/gi, (match, letter) => {
+                return '. ' + letter.toUpperCase();
+            });
+            
+            // Capitalize first letter at the beginning of lines
+            content = content.replace(/^([a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])/gm, (match, letter) => {
+                return letter.toUpperCase();
+            });
+            
+            // Add periods at the end of sentences if missing
+            content = content.replace(/([a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])\s*$/gm, '$1.');
+            
+            // Basic text formatting
+            content = content
+                .replace(/\s+/g, ' ') // Remove extra spaces
+                .replace(/\n\s*\n/g, '\n\n') // Normalize line breaks
+                .replace(/^\s+|\s+$/gm, '') // Trim lines
+                .replace(/\.\s*\./g, '.') // Remove double periods
+                .replace(/,\s*,/g, ','); // Remove double commas
+            
+            contentEditor.value = content;
+            updateWordCount();
+            showSuccess('Đã định dạng văn bản');
+        }
+
+        function clearFormatting() {
+            const contentEditor = document.getElementById('reviewContent');
+            let content = contentEditor.value;
+            
+            // Remove all formatting
+            content = content
+                .replace(/\s+/g, ' ') // Normalize spaces
+                .replace(/\n+/g, '\n') // Normalize line breaks
+                .trim();
+            
+            contentEditor.value = content;
+            updateWordCount();
+            showSuccess('Đã gộp dòng');
+        }
+
+        // Save review content
+        async function saveReviewContent() {
+            const content = document.getElementById('reviewContent').value.trim();
+            
+            if (!content) {
+                showError('Vui lòng nhập nội dung task review');
+                return;
+            }
+            
+            // Show loading state
+            const saveBtn = document.getElementById('saveButton');
+            const saveBtnText = document.getElementById('saveBtnText');
+            const saveSpinner = document.getElementById('saveSpinner');
+            
+            saveBtn.disabled = true;
+            saveBtnText.textContent = 'Đang lưu...';
+            saveSpinner.style.display = 'inline-block';
+            
+            try {
+                // Update guest_keys table with the content
+                const { error } = await supabase
+                    .from('guest_keys')
+                    .update({
+                        content: content,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('key', currentKey);
+
+                if (error) throw error;
+                
+                showSuccess('Lưu nội dung task review thành công!');
+                
+                // Update save button text
+                saveBtnText.textContent = 'Đã lưu';
+                
+                // Update contentData
+                contentData.content = content;
+                
+            } catch (error) {
+                console.error('Error saving review content:', error);
+                showError('Lỗi lưu nội dung: ' + error.message);
+            } finally {
+                // Reset button state
+                saveBtn.disabled = false;
+                saveBtnText.textContent = 'Lưu nội dung';
+                saveSpinner.style.display = 'none';
+            }
+        }
+
+        // Clear content
+        function clearContent() {
+            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ nội dung?')) {
+                document.getElementById('reviewContent').value = '';
+                updateWordCount();
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const keyError = document.getElementById('keyError');
+            keyError.textContent = message;
+            keyError.style.display = 'block';
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            // Create a temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            
+            // Insert after the content editor
+            const contentEditor = document.getElementById('reviewContent');
+            contentEditor.parentNode.insertBefore(successDiv, contentEditor.nextSibling);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        // Auto-format key input
+        document.getElementById('keyInput').addEventListener('input', function(e) {
+            // Convert to uppercase and remove non-alphanumeric characters
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    </script>
+</body>
+</html>

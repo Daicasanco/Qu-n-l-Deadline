@@ -480,7 +480,7 @@
                 
                 modeBadge.textContent = 'Chế độ xem'
                 modeBadge.className = 'badge bg-secondary'
-                contentTitle.textContent = 'Xem nội dung Task Review'
+                contentTitle.textContent = 'Xem nội dung  Review'
                 
                 // Thêm nút copy content
                 addCopyButton()
@@ -496,11 +496,11 @@
                 if (mode === 'edit') {
                     modeBadge.textContent = 'Chế độ chỉnh sửa'
                     modeBadge.className = 'badge bg-warning'
-                    contentTitle.textContent = 'Chỉnh sửa nội dung Task Review'
+                    contentTitle.textContent = 'Chỉnh sửa nội dung Review'
                 } else {
                     modeBadge.textContent = 'Chế độ nhập'
                     modeBadge.className = 'badge bg-info'
-                    contentTitle.textContent = 'Nhập nội dung Task Review'
+                    contentTitle.textContent = 'Nhập nội dung Review'
                 }
             } else {
                 // Không có quyền chỉnh sửa - chuyển về trang chính
@@ -741,14 +741,14 @@
             let contentTitle = ''
             
             if (mode === 'view') {
-                title = 'Xem nội dung Task Review - Garden Moon'
-                contentTitle = 'Xem nội dung Task Review'
+                title = 'Xem nội dung Review - Garden Moon'
+                contentTitle = 'Xem nội dung Review'
             } else if (mode === 'edit') {
-                title = 'Chỉnh sửa nội dung Task Review - Garden Moon'
+                title = 'Chỉnh sửa nội dung Review - Garden Moon'
                 contentTitle = 'Chỉnh sửa nội dung Task Review'
             } else {
-                title = 'Nhập nội dung Task Review - Garden Moon'
-                contentTitle = 'Nhập nội dung Task Review'
+                title = 'Nhập nội dung Review - Garden Moon'
+                contentTitle = 'Nhập nội dung Review'
             }
             
             document.title = title

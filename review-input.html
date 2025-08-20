@@ -357,6 +357,7 @@
         let currentTask = null
         let taskId = null
         let mode = 'input' // 'input' hoặc 'edit'
+        let betaTaskInfo = null // Thông tin về beta task nếu có
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -368,6 +369,17 @@
             const urlParams = new URLSearchParams(window.location.search)
             taskId = urlParams.get('taskId')
             mode = urlParams.get('mode') || 'input'
+            
+            // Lấy thông tin beta task nếu có
+            const betaTaskId = urlParams.get('betaTaskId')
+            const betaTaskAssignee = urlParams.get('betaTaskAssignee')
+            if (betaTaskId && betaTaskAssignee) {
+                betaTaskInfo = {
+                    id: betaTaskId,
+                    assignee_id: betaTaskAssignee
+                }
+                console.log('Beta task info from URL:', betaTaskInfo)
+            }
             
             if (!taskId) {
                 showNotification('Không tìm thấy thông tin task', 'error')
@@ -472,7 +484,17 @@
             
             // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
             if (currentUser.role === 'employee') {
-                // Tìm task beta có parent_task_id trỏ đến task review này
+                // Nếu có thông tin beta task từ URL parameters, sử dụng trực tiếp
+                if (betaTaskInfo && betaTaskInfo.assignee_id === currentUser.id) {
+                    console.log('Permission granted via URL parameters:', {
+                        currentUser: currentUser.id,
+                        betaTaskAssignee: betaTaskInfo.assignee_id,
+                        betaTaskId: betaTaskInfo.id
+                    })
+                    return true
+                }
+                
+                // Fallback: Tìm task beta có parent_task_id trỏ đến task review này
                 // Lấy tasks từ localStorage hoặc window object
                 let betaTasks = []
                 try {
@@ -490,11 +512,22 @@
                     console.warn('Error loading tasks for permission check:', error)
                 }
                 
+                // Tìm task beta có parent_task_id trỏ đến task review này
                 const relatedBetaTask = betaTasks.find(t => 
                     t.task_type === 'beta' && 
                     t.parent_task_id === task.id && 
                     t.assignee_id === currentUser.id
                 )
+                
+                console.log('Permission check for review content:', {
+                    currentUser: currentUser.id,
+                    reviewTaskId: task.id,
+                    betaTasks: betaTasks.length,
+                    relatedBetaTask: relatedBetaTask,
+                    hasPermission: !!relatedBetaTask,
+                    betaTaskInfo: betaTaskInfo
+                })
+                
                 return !!relatedBetaTask
             }
             

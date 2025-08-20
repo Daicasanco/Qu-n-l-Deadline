@@ -244,6 +244,12 @@ async function loadTasks(projectId = null) {
         // Lưu tasks vào localStorage để review-input.html có thể truy cập
         try {
             localStorage.setItem('tasks', JSON.stringify(tasks))
+            console.log('Saved tasks to localStorage:', {
+                totalTasks: tasks.length,
+                betaTasks: tasks.filter(t => t.task_type === 'beta').length,
+                reviewTasks: tasks.filter(t => t.task_type === 'rv').length,
+                sampleTask: tasks[0] ? { id: tasks[0].id, name: tasks[0].name, type: tasks[0].task_type } : null
+            })
         } catch (storageError) {
             console.warn('Could not save tasks to localStorage:', storageError)
         }
@@ -3193,6 +3199,16 @@ function renderBetaTasksTable() {
                 } else {
                     // Kiểm tra quyền xem review content
                     const canViewReview = canViewReviewContent(task)
+                    console.log('Review permission check for beta task:', {
+                        taskId: task.id,
+                        taskName: task.name,
+                        currentUser: currentUser?.id,
+                        currentUserRole: currentUser?.role,
+                        canViewReview: canViewReview,
+                        parentRVTaskId: parentRVTask.id,
+                        parentRVTaskName: parentRVTask.name
+                    })
+                    
                     if (canViewReview) {
                         // Nếu có quyền xem, hiển thị nút xem review content
                         reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
@@ -4023,14 +4039,6 @@ async function viewReviewContent(taskId) {
             console.log('Found task in local data:', task)
         }
         
-        // Kiểm tra quyền xem review content
-        if (task.task_type === 'beta') {
-            if (!canViewReviewContent(task)) {
-                showNotification('Bạn không có quyền xem nội dung review của task này', 'error')
-                return
-            }
-        }
-        
         let reviewTaskId = null
         
         if (task.task_type === 'beta') {
@@ -4063,6 +4071,12 @@ async function viewReviewContent(taskId) {
                 console.log('Loaded parent RV task from database:', parentRVTask)
             }
             
+            // Kiểm tra quyền xem review content dựa trên parent RV task
+            if (!canViewReviewContent(task)) {
+                showNotification('Bạn không có quyền xem nội dung review của task này', 'error')
+                return
+            }
+            
             reviewTaskId = parentRVTask.id
             
         } else if (task.task_type === 'rv') {
@@ -4079,7 +4093,23 @@ async function viewReviewContent(taskId) {
         console.log('Opening review page with taskId:', reviewTaskId, 'mode: view')
         
         // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
-        window.open(`review-input.html?taskId=${reviewTaskId}&mode=view`, '_blank')
+        // Truyền thêm thông tin về beta task để kiểm tra quyền
+        const betaTaskInfo = task.task_type === 'beta' ? {
+            betaTaskId: task.id,
+            betaTaskAssignee: task.assignee_id
+        } : null
+        
+        const urlParams = new URLSearchParams({
+            taskId: reviewTaskId,
+            mode: 'view'
+        })
+        
+        if (betaTaskInfo) {
+            urlParams.append('betaTaskId', betaTaskInfo.betaTaskId)
+            urlParams.append('betaTaskAssignee', betaTaskInfo.betaTaskAssignee)
+        }
+        
+        window.open(`review-input.html?${urlParams.toString()}`, '_blank')
         
     } catch (error) {
         console.error('Error in viewReviewContent:', error)

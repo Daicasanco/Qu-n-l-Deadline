@@ -2464,6 +2464,41 @@ function showEmployeesList() {
         const modal = new bootstrap.Modal(modalElement)
         modal.show()
         console.log('Modal shown successfully')
+        
+        // Debug: Kiểm tra trạng thái modal
+        setTimeout(() => {
+            const modalBackdrop = document.querySelector('.modal-backdrop')
+            const modalElement = document.getElementById('employeesModal')
+            
+            console.log('Modal element:', modalElement)
+            console.log('Modal display style:', modalElement.style.display)
+            console.log('Modal visibility:', modalElement.style.visibility)
+            console.log('Modal z-index:', modalElement.style.zIndex)
+            console.log('Modal backdrop:', modalBackdrop)
+            
+            if (modalBackdrop) {
+                console.log('Backdrop z-index:', modalBackdrop.style.zIndex)
+                console.log('Backdrop display:', modalBackdrop.style.display)
+            }
+            
+            // Kiểm tra xem modal có thực sự visible không
+            const rect = modalElement.getBoundingClientRect()
+            console.log('Modal position:', {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+                visible: rect.width > 0 && rect.height > 0
+            })
+            
+            // Kiểm tra viewport
+            console.log('Viewport:', {
+                width: window.innerWidth,
+                height: window.innerHeight
+            })
+            
+        }, 100)
+        
     } catch (error) {
         console.error('Error showing modal:', error)
         showNotification('Lỗi khi hiển thị modal: ' + error.message, 'error')
@@ -4575,6 +4610,37 @@ function showActivityHistoryView() {
     
     console.log('Showing activityHistoryView')
     activityHistoryView.style.display = ''
+    
+    // Debug: Kiểm tra trạng thái view
+    setTimeout(() => {
+        const rect = activityHistoryView.getBoundingClientRect()
+        console.log('Activity History View position:', {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            visible: rect.width > 0 && rect.height > 0
+        })
+        
+        console.log('Activity History View styles:', {
+            display: activityHistoryView.style.display,
+            visibility: activityHistoryView.style.visibility,
+            opacity: activityHistoryView.style.opacity,
+            position: activityHistoryView.style.position,
+            zIndex: activityHistoryView.style.zIndex
+        })
+        
+        // Kiểm tra xem có bị che bởi element khác không
+        const computedStyle = window.getComputedStyle(activityHistoryView)
+        console.log('Computed styles:', {
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity,
+            position: computedStyle.position,
+            zIndex: computedStyle.zIndex
+        })
+        
+    }, 100)
     
     // Load activity history data
     console.log('Loading activity history data...')

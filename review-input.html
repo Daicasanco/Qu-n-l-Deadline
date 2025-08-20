@@ -374,22 +374,23 @@
             const betaTaskId = urlParams.get('betaTaskId')
             const betaTaskAssignee = urlParams.get('betaTaskAssignee')
             
-            console.log('URL parameters:', {
-                taskId: taskId,
-                mode: mode,
-                betaTaskId: betaTaskId,
-                betaTaskAssignee: betaTaskAssignee,
-                fullUrl: window.location.href
-            })
+            console.log('=== URL PARAMETERS ===')
+            console.log('Full URL:', window.location.href)
+            console.log('Task ID:', taskId)
+            console.log('Mode:', mode)
+            console.log('Beta Task ID:', betaTaskId)
+            console.log('Beta Task Assignee:', betaTaskAssignee)
+            console.log('========================')
             
             if (betaTaskId && betaTaskAssignee) {
                 betaTaskInfo = {
                     id: betaTaskId,
                     assignee_id: betaTaskAssignee
                 }
-                console.log('Beta task info from URL:', betaTaskInfo)
+                console.log('✅ Beta task info loaded from URL:', betaTaskInfo)
             } else {
-                console.log('No beta task info found in URL')
+                console.log('❌ No beta task info found in URL')
+                console.log('This might be the issue!')
             }
             
             if (!taskId) {
@@ -444,39 +445,52 @@
                 
                 currentTask = taskData
                 
-                console.log('Task info loaded:', {
-                    taskId: currentTask.id,
-                    taskName: currentTask.name,
-                    taskType: currentTask.task_type,
-                    assigneeId: currentTask.assignee_id,
-                    mode: mode,
-                    betaTaskInfo: betaTaskInfo,
-                    currentUser: currentUser?.id
-                })
+                console.log('=== TASK INFO LOADED ===')
+                console.log('Task ID:', currentTask.id)
+                console.log('Task Name:', currentTask.name)
+                console.log('Task Type:', currentTask.task_type)
+                console.log('Task Assignee ID:', currentTask.assignee_id)
+                console.log('Mode:', mode)
+                console.log('Beta Task Info:', betaTaskInfo)
+                console.log('Current User ID:', currentUser?.id)
+                console.log('============================')
                 
-                // Check permissions
-                const hasAccess = canAccessTask(currentTask)
-                console.log('Access check result:', {
-                    hasAccess: hasAccess,
-                    canViewReview: mode === 'view' ? canViewReviewContent(currentTask) : 'N/A'
-                })
-                
-                if (!hasAccess) {
-                    showNotification('Bạn không có quyền truy cập task này', 'error')
-                    setTimeout(() => goBack(), 2000)
-                    return
-                }
-                
-                // Update UI with task information
-                updateTaskInfoUI(currentTask)
-                
-                // Load existing content if in edit mode or view mode
-                if ((mode === 'edit' || mode === 'view') && currentTask.submission_link) {
-                    await loadExistingContent()
-                }
-                
-                // Set edit mode based on permissions
-                setEditMode()
+                        // Check permissions
+        const hasAccess = canAccessTask(currentTask)
+        const canViewReview = mode === 'view' ? canViewReviewContent(currentTask) : 'N/A'
+        
+        console.log('=== ACCESS CHECK RESULT ===')
+        console.log('Task ID:', currentTask.id)
+        console.log('Task Name:', currentTask.name)
+        console.log('Task Type:', currentTask.task_type)
+        console.log('Task Assignee ID:', currentTask.assignee_id)
+        console.log('Current User ID:', currentUser?.id)
+        console.log('Current User Role:', currentUser?.role)
+        console.log('Mode:', mode)
+        console.log('Beta Task Info:', betaTaskInfo)
+        console.log('Has Access:', hasAccess)
+        console.log('Can View Review:', canViewReview)
+        console.log('Final Result:', hasAccess ? '✅ ACCESS GRANTED' : '❌ ACCESS DENIED')
+        console.log('================================')
+        
+        if (!hasAccess) {
+            showNotification('Bạn không có quyền truy cập task này', 'error')
+            // Tắt logic thoát trang để debug
+            // setTimeout(() => goBack(), 2000)
+            // return
+            console.log('ACCESS DENIED - but staying on page for debugging')
+        }
+        
+        // Update UI with task information
+        updateTaskInfoUI(currentTask)
+        
+        // Load existing content if in edit mode or view mode
+        if ((mode === 'edit' || mode === 'view') && currentTask.submission_link) {
+            await loadExistingContent()
+        }
+        
+        // Set edit mode based on permissions
+        setEditMode()
                 
             } catch (error) {
                 console.error('Error loading task info:', error)
@@ -485,54 +499,76 @@
         }
         
         function canAccessTask(task) {
-            if (!currentUser) return false
+            console.log('=== canAccessTask called ===')
+            console.log('Current User:', currentUser)
+            console.log('Task:', task)
+            console.log('Mode:', mode)
+            console.log('Beta Task Info:', betaTaskInfo)
+            
+            if (!currentUser) {
+                console.log('No current user - returning false')
+                return false
+            }
             
             // Boss và Manager có thể truy cập mọi task
             if (currentUser.role === 'boss' || currentUser.role === 'manager') {
+                console.log('User is Boss/Manager - returning true')
                 return true
             }
             
             // Employee chỉ có thể truy cập task được phân công cho mình
             if (currentUser.role === 'employee') {
+                console.log('User is Employee - checking permissions...')
+                
                 // Nếu là mode view và có thông tin beta task, kiểm tra quyền xem review content
                 if (mode === 'view' && betaTaskInfo) {
-                    return canViewReviewContent(task)
+                    console.log('Mode is view and has beta task info - calling canViewReviewContent')
+                    const result = canViewReviewContent(task)
+                    console.log('canViewReviewContent result:', result)
+                    return result
                 }
                 
                 // Nếu không phải mode view, kiểm tra quyền chỉnh sửa (task được phân công cho mình)
-                return task.assignee_id === currentUser.id
+                const isAssignee = task.assignee_id === currentUser.id
+                console.log('Checking if user is assignee:', {
+                    taskAssigneeId: task.assignee_id,
+                    currentUserId: currentUser.id,
+                    isAssignee: isAssignee
+                })
+                return isAssignee
             }
             
+            console.log('User role not recognized - returning false')
             return false
         }
         
         // Function kiểm tra quyền xem review content (cho mode view)
         function canViewReviewContent(task) {
-            console.log('canViewReviewContent called with:', {
-                task: task,
-                currentUser: currentUser,
-                mode: mode,
-                betaTaskInfo: betaTaskInfo
-            })
+            console.log('=== canViewReviewContent called ===')
+            console.log('Task:', task)
+            console.log('Current User:', currentUser)
+            console.log('Mode:', mode)
+            console.log('Beta Task Info:', betaTaskInfo)
             
             if (!currentUser) {
-                console.log('No current user')
+                console.log('No current user - returning false')
                 return false
             }
             
             // Boss và Manager có thể xem mọi task
             if (currentUser.role === 'boss' || currentUser.role === 'manager') {
-                console.log('Permission granted: Boss/Manager')
+                console.log('Permission granted: Boss/Manager - returning true')
                 return true
             }
             
             // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
             if (currentUser.role === 'employee') {
-                console.log('Checking permission for employee:', currentUser.id)
+                console.log('User is Employee - checking beta task permissions...')
+                console.log('Current User ID:', currentUser.id)
                 
                 // Nếu có thông tin beta task từ URL parameters, sử dụng trực tiếp
                 if (betaTaskInfo && betaTaskInfo.assignee_id === currentUser.id) {
-                    console.log('Permission granted via URL parameters:', {
+                    console.log('✅ Permission granted via URL parameters:', {
                         currentUser: currentUser.id,
                         betaTaskAssignee: betaTaskInfo.assignee_id,
                         betaTaskId: betaTaskInfo.id
@@ -540,7 +576,14 @@
                     return true
                 }
                 
-                console.log('No permission via URL parameters, checking fallback...')
+                console.log('❌ No permission via URL parameters, checking fallback...')
+                console.log('Beta Task Info check:', {
+                    hasBetaTaskInfo: !!betaTaskInfo,
+                    betaTaskInfo: betaTaskInfo,
+                    betaTaskAssignee: betaTaskInfo?.assignee_id,
+                    currentUserId: currentUser.id,
+                    match: betaTaskInfo?.assignee_id === currentUser.id
+                })
                 
                 // Fallback: Tìm task beta có parent_task_id trỏ đến task review này
                 // Lấy tasks từ localStorage hoặc window object
@@ -571,7 +614,7 @@
                     t.assignee_id === currentUser.id
                 )
                 
-                console.log('Permission check for review content:', {
+                console.log('Fallback permission check:', {
                     currentUser: currentUser.id,
                     reviewTaskId: task.id,
                     betaTasks: betaTasks.length,
@@ -580,10 +623,16 @@
                     betaTaskInfo: betaTaskInfo
                 })
                 
+                if (relatedBetaTask) {
+                    console.log('✅ Permission granted via fallback method')
+                } else {
+                    console.log('❌ No permission via fallback method')
+                }
+                
                 return !!relatedBetaTask
             }
             
-            console.log('No permission: not employee')
+            console.log('No permission: user is not employee - returning false')
             return false
         }
         
@@ -601,8 +650,10 @@
                 // Kiểm tra quyền xem trước
                 if (!canView) {
                     showNotification('Bạn không có quyền xem nội dung review này', 'error')
-                    setTimeout(() => goBack(), 2000)
-                    return
+                    // Tắt logic thoát trang để debug
+                    // setTimeout(() => goBack(), 2000)
+                    // return
+                    console.log('VIEW PERMISSION DENIED - but staying on page for debugging')
                 }
                 
                 // Mode xem: chỉ hiển thị nội dung, không cho phép chỉnh sửa
@@ -639,7 +690,9 @@
             } else {
                 // Không có quyền chỉnh sửa - chuyển về trang chính
                 showNotification('Bạn không có quyền truy cập nội dung này', 'error')
-                setTimeout(() => goBack(), 2000)
+                // Tắt logic thoát trang để debug
+                // setTimeout(() => goBack(), 2000)
+                console.log('EDIT PERMISSION DENIED - but staying on page for debugging')
             }
         }
         

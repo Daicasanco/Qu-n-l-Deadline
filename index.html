@@ -375,7 +375,6 @@
                                                     <th>Thành tiền</th>
                                                     <th>Người thực hiện</th>
                                                     <th>Ghi chú</th>
-                                                    <th>Tải nội dung</th>
                                                     <th>Thao tác</th>
                                                 </tr>
                                             </thead>
@@ -933,20 +932,27 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tải File Beta - <span id="downloadProjectName"></span></h5>
+                    <h5 class="modal-title">Tải File - <span id="downloadProjectName"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Tùy chọn tải -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label">Loại file:</label>
+                            <select class="form-select" id="fileType" onchange="onFileTypeChange()">
+                                <option value="beta">Tải file Beta</option>
+                                <option value="review">Tải file Review</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">Chế độ tải:</label>
                             <select class="form-select" id="downloadMode">
                                 <option value="batch">Tải hàng loạt (tất cả)</option>
                                 <option value="individual">Tải từng file lẻ</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Tùy chọn gộp file:</label>
                             <select class="form-select" id="mergeOption">
                                 <option value="merge">Gộp thành 1 file</option>

@@ -1835,7 +1835,6 @@ function renderTasksTable() {
             <td>${payment}</td>
             <td><span class="${task.assignee_id ? assigneeColorClass : 'text-muted'}">${assigneeName}</span></td>
             <td>${notesDisplay}</td>
-            <td>${getDownloadContentButtons(task)}</td>
             <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
     })
@@ -4016,68 +4015,110 @@ function canEditReviewContent(task) {
     return false
 }
 
-// Function tạo nút tải nội dung
-function getDownloadContentButtons(task) {
-    if (!currentUser || !(currentUser.role === 'boss' || currentUser.role === 'manager')) {
-        return '<span class="text-muted">-</span>'
-    }
-    
-    let buttons = `<div class="btn-group btn-group-sm">`
-    
-    // Nút tải nội dung Review
-    if (task.submission_link && !task.submission_link.startsWith('http')) {
-        buttons += `<button class="btn btn-outline-primary btn-sm" onclick="downloadReviewContent('${task.id}')" title="Tải nội dung Review">
-            <i class="fas fa-download"></i> Review
-        </button>`
-    }
-    
-    // Nút tải nội dung Beta
-    if (task.beta_link && !task.beta_link.startsWith('http')) {
-        buttons += `<button class="btn btn-outline-info btn-sm" onclick="downloadBetaContent('${task.id}')" title="Tải nội dung Beta">
-            <i class="fas fa-download"></i> Beta
-        </button>`
-    }
-    
-    if (buttons === `<div class="btn-group btn-group-sm">`) {
-        return '<span class="text-muted">-</span>'
-    }
-    
-    buttons += `</div>`
-    return buttons
-}
 
 
 
-// Download Beta Files Functions
+
+// Download Files Functions
 async function downloadBetaFiles(projectId) {
     const project = projects.find(p => p.id === projectId)
     if (!project) return
     
     // Kiểm tra quyền
     if (!currentUser || (!isBoss(currentUser) && currentUser.role !== 'manager')) {
-        showNotification('Bạn không có quyền tải file beta', 'error')
+        showNotification('Bạn không có quyền tải file', 'error')
         return
     }
     
-    // Lấy danh sách beta tasks của dự án
-    const betaTasks = tasks.filter(t => 
-        t.project_id === projectId && 
-        t.task_type === 'beta' && 
-        t.beta_link // Chỉ những task có dữ liệu beta
-    )
-    
-    if (betaTasks.length === 0) {
-        showNotification('Không có file beta nào để tải', 'info')
-        return
-    }
-    
-    // Populate modal
+    // Populate modal với beta tasks mặc định
     document.getElementById('downloadProjectName').textContent = project.name
-    populateBetaFilesTable(betaTasks)
+    document.getElementById('fileType').value = 'beta'
+    await populateFilesTable(projectId, 'beta')
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('downloadBetaModal'))
     modal.show()
+}
+
+// Function xử lý khi thay đổi loại file
+async function onFileTypeChange() {
+    const fileType = document.getElementById('fileType').value
+    const projectName = document.getElementById('downloadProjectName').textContent
+    const project = projects.find(p => p.name === projectName)
+    
+    if (project) {
+        await populateFilesTable(project.id, fileType)
+    }
+}
+
+// Function populate bảng file theo loại
+async function populateFilesTable(projectId, fileType) {
+    let fileTasks = []
+    
+    if (fileType === 'beta') {
+        // Lấy danh sách beta tasks của dự án
+        fileTasks = tasks.filter(t => 
+            t.project_id === projectId && 
+            t.task_type === 'beta' && 
+            t.beta_link // Chỉ những task có dữ liệu beta
+        )
+    } else if (fileType === 'review') {
+        // Lấy danh sách review tasks của dự án
+        fileTasks = tasks.filter(t => 
+            t.project_id === projectId && 
+            t.submission_link && 
+            !t.submission_link.startsWith('http') // Chỉ những task có nội dung review (không phải URL)
+        )
+    }
+    
+    if (fileTasks.length === 0) {
+        const typeText = fileType === 'beta' ? 'beta' : 'review'
+        showNotification(`Không có file ${typeText} nào để tải`, 'info')
+        return
+    }
+    
+    // Populate bảng
+    if (fileType === 'beta') {
+        populateBetaFilesTable(fileTasks)
+    } else {
+        populateReviewFilesTable(fileTasks)
+    }
+}
+
+// Function populate bảng review files
+function populateReviewFilesTable(reviewTasks) {
+    const tbody = document.getElementById('betaFilesTableBody')
+    tbody.innerHTML = ''
+    
+    // Sắp xếp reviewTasks theo số chap
+    reviewTasks.sort((a, b) => {
+        const extractNumber = (name) => {
+            const match = (name || '').match(/\d+/)
+            return match ? parseInt(match[0], 10) : null
+        }
+        const numA = extractNumber(a.name)
+        const numB = extractNumber(b.name)
+        if (numA !== null && numB !== null) {
+            return numA - numB
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+    })
+    
+    reviewTasks.forEach(task => {
+        const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
+        const row = document.createElement('tr')
+        row.innerHTML = `
+            <td><input type="checkbox" class="beta-file-checkbox" value="${task.id}" checked></td>
+            <td>${task.name}</td>
+            <td>${assignee ? assignee.name : 'N/A'}</td>
+            <td>${getTaskStatusBadge(task.status)}</td>
+            <td>${formatDateTime(task.updated_at || task.created_at)}</td>
+        `
+        tbody.appendChild(row)
+    })
+    
+    // Setup select all checkbox
+    setupSelectAllBetaFiles()
 }
 
 function populateBetaFilesTable(betaTasks) {
@@ -4137,6 +4178,7 @@ function setupSelectAllBetaFiles() {
 }
 
 async function executeDownload() {
+    const fileType = document.getElementById('fileType').value
     const downloadMode = document.getElementById('downloadMode').value
     const mergeOption = document.getElementById('mergeOption').value
     const selectedTasks = Array.from(document.querySelectorAll('.beta-file-checkbox:checked'))
@@ -4150,10 +4192,18 @@ async function executeDownload() {
     try {
         if (mergeOption === 'merge') {
             // Gộp thành 1 file
-            await downloadMergedBetaFiles(selectedTasks)
+            if (fileType === 'beta') {
+                await downloadMergedBetaFiles(selectedTasks)
+            } else {
+                await downloadMergedReviewFiles(selectedTasks)
+            }
         } else {
             // Tải file riêng biệt
-            await downloadSeparateBetaFiles(selectedTasks)
+            if (fileType === 'beta') {
+                await downloadSeparateBetaFiles(selectedTasks)
+            } else {
+                await downloadSeparateReviewFiles(selectedTasks)
+            }
         }
         
         // Close modal
@@ -4199,6 +4249,72 @@ async function downloadMergedBetaFiles(taskIds) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+// Download Review Files Functions
+async function downloadMergedReviewFiles(taskIds) {
+    const reviewTasks = tasks.filter(t => taskIds.includes(t.id));
+    let mergedContent = '';
+
+    for (const task of reviewTasks) {
+        if (task.submission_link && !task.submission_link.startsWith('http')) {
+            mergedContent += `=== ${task.name} ===\n\n`;
+            mergedContent += task.submission_link + '\n\n';
+        }
+    }
+
+    const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head>
+        <body>${mergedContent.trim()}</body>
+        </html>
+    `;
+
+    const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/msword',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `review_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function downloadSeparateReviewFiles(taskIds) {
+    const reviewTasks = tasks.filter(t => taskIds.includes(t.id))
+    
+    for (const task of reviewTasks) {
+        try {
+            let content = ''
+            
+            if (task.submission_link && !task.submission_link.startsWith('http')) {
+                content = task.submission_link
+            }
+            
+            // Tạo file riêng cho từng task
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `review_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+            
+            // Delay nhỏ để tránh browser block multiple downloads
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+        } catch (error) {
+            console.error(`Error downloading file for task ${task.id}:`, error)
+        }
+    }
 }
 
 async function downloadSeparateBetaFiles(taskIds) {
@@ -4698,38 +4814,16 @@ function sendReminder(employeeId) {
     showNotification('Tính năng gửi nhắc nhở sẽ được triển khai sau', 'info')
 }
 
-// Download Review Content Function
-function downloadReviewContent(taskId) {
-    const task = tasks.find(t => t.id === taskId)
-    if (!task || !task.submission_link) {
-        showNotification('Không tìm thấy nội dung review để tải', 'error')
-        return
-    }
-    
-    // Check if it's a direct content or URL
-    if (task.submission_link.startsWith('http')) {
-        // If it's a URL, open in new tab
-        window.open(task.submission_link, '_blank')
-    } else {
-        // If it's direct content, download as text file
-        downloadAsTextFile(task.submission_link, `review_${task.name}_${taskId}.txt`)
-    }
+// Utility function để tải nội dung text thành file
+function downloadAsTextFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
 }
 
-// Download Beta Content Function (for tasks table)
-function downloadBetaContent(taskId) {
-    const task = tasks.find(t => t.id === taskId)
-    if (!task || !task.beta_link) {
-        showNotification('Không tìm thấy nội dung beta để tải', 'error')
-        return
-    }
-    
-    // Check if it's a direct content or URL
-    if (task.beta_link.startsWith('http')) {
-        // If it's a URL, open in new tab
-        window.open(task.beta_link, '_blank')
-    } else {
-        // If it's direct content, download as text file
-        downloadAsTextFile(task.beta_link, `beta_${task.name}_${taskId}.txt`)
-    }
-}

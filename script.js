@@ -4038,6 +4038,22 @@ async function onFileTypeChange() {
     }
 }
 
+// Hàm helper sắp xếp task theo thứ tự chap
+function sortTasksByChapter(tasks) {
+    return tasks.sort((a, b) => {
+        const extractNumber = (name) => {
+            const match = (name || '').match(/\d+/)
+            return match ? parseInt(match[0], 10) : null
+        }
+        const numA = extractNumber(a.name)
+        const numB = extractNumber(b.name)
+        if (numA !== null && numB !== null) {
+            return numA - numB
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+    })
+}
+
 // Function populate bảng file theo loại
 async function populateFilesTable(projectId, fileType) {
     let fileTasks = []
@@ -4078,18 +4094,7 @@ function populateReviewFilesTable(reviewTasks) {
     tbody.innerHTML = ''
     
     // Sắp xếp reviewTasks theo số chap
-    reviewTasks.sort((a, b) => {
-        const extractNumber = (name) => {
-            const match = (name || '').match(/\d+/)
-            return match ? parseInt(match[0], 10) : null
-        }
-        const numA = extractNumber(a.name)
-        const numB = extractNumber(b.name)
-        if (numA !== null && numB !== null) {
-            return numA - numB
-        }
-        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
-    })
+    sortTasksByChapter(reviewTasks)
     
     reviewTasks.forEach(task => {
         const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
@@ -4113,18 +4118,7 @@ function populateBetaFilesTable(betaTasks) {
     tbody.innerHTML = ''
     
     // Sắp xếp betaTasks theo số chap
-    betaTasks.sort((a, b) => {
-        const extractNumber = (name) => {
-            const match = (name || '').match(/\d+/)
-            return match ? parseInt(match[0], 10) : null
-        }
-        const numA = extractNumber(a.name)
-        const numB = extractNumber(b.name)
-        if (numA !== null && numB !== null) {
-            return numA - numB
-        }
-        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
-    })
+    sortTasksByChapter(betaTasks)
     
     betaTasks.forEach(task => {
         const assignee = window.allEmployees.find(e => e.id === task.assignee_id)
@@ -4208,12 +4202,15 @@ async function executeDownload() {
 
 async function downloadMergedBetaFiles(taskIds, fileFormat = 'doc') {
     const betaTasks = tasks.filter(t => taskIds.includes(t.id));
+    
+    // Sắp xếp task theo thứ tự chap trước khi gộp
+    sortTasksByChapter(betaTasks)
+    
     let mergedContent = '';
 
     for (const task of betaTasks) {
         if (task.beta_link) {
             if (fileFormat === 'txt') {
-                mergedContent += `=== ${task.name} ===\n\n`;
                 mergedContent += task.beta_link + '\n\n';
             } else {
                 mergedContent += task.beta_link + '<br><br>';
@@ -4259,11 +4256,14 @@ async function downloadMergedBetaFiles(taskIds, fileFormat = 'doc') {
 // Download Review Files Functions
 async function downloadMergedReviewFiles(taskIds, fileFormat = 'doc') {
     const reviewTasks = tasks.filter(t => taskIds.includes(t.id));
+    
+    // Sắp xếp task theo thứ tự chap trước khi gộp
+    sortTasksByChapter(reviewTasks)
+    
     let mergedContent = '';
 
     for (const task of reviewTasks) {
         if (task.submission_link && !task.submission_link.startsWith('http')) {
-            mergedContent += `=== ${task.name} ===\n\n`;
             mergedContent += task.submission_link + '\n\n';
         }
     }
@@ -4305,6 +4305,9 @@ async function downloadMergedReviewFiles(taskIds, fileFormat = 'doc') {
 
 async function downloadSeparateReviewFiles(taskIds, fileFormat = 'doc') {
     const reviewTasks = tasks.filter(t => taskIds.includes(t.id))
+    
+    // Sắp xếp task theo thứ tự chap trước khi tải
+    sortTasksByChapter(reviewTasks)
     
     for (const task of reviewTasks) {
         try {
@@ -4353,6 +4356,20 @@ async function downloadSeparateReviewFiles(taskIds, fileFormat = 'doc') {
 
 async function downloadSeparateBetaFiles(taskIds, fileFormat = 'doc') {
     const betaTasks = tasks.filter(t => taskIds.includes(t.id))
+    
+    // Sắp xếp task theo thứ tự chap trước khi tải
+    betaTasks.sort((a, b) => {
+        const extractNumber = (name) => {
+            const match = (name || '').match(/\d+/)
+            return match ? parseInt(match[0], 10) : null
+        }
+        const numA = extractNumber(a.name)
+        const numB = extractNumber(b.name)
+        if (numA !== null && numB !== null) {
+            return numA - numB
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+    })
     
     for (const task of betaTasks) {
         try {

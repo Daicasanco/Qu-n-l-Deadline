@@ -280,7 +280,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="fas fa-edit me-2"></i>
-                    Nội dung Task Review
+                    <span id="contentTitle">Nội dung Review</span>
                 </h5>
                 <div id="editModeIndicator">
                     <span class="badge bg-info" id="modeBadge">Chế độ nhập</span>
@@ -375,6 +375,9 @@
                 return
             }
             
+            // Cập nhật tiêu đề trang theo mode
+            updatePageTitle()
+            
             // Check authentication
             await checkAuthentication()
             
@@ -465,6 +468,7 @@
             const textToolbar = document.getElementById('textToolbar')
             const saveButton = document.getElementById('saveButton')
             const modeBadge = document.getElementById('modeBadge')
+            const contentTitle = document.getElementById('contentTitle')
             
             if (mode === 'view') {
                 // Mode xem: chỉ hiển thị nội dung, không cho phép chỉnh sửa
@@ -476,6 +480,7 @@
                 
                 modeBadge.textContent = 'Chế độ xem'
                 modeBadge.className = 'badge bg-secondary'
+                contentTitle.textContent = 'Xem nội dung Task Review'
                 
                 // Thêm nút copy content
                 addCopyButton()
@@ -491,9 +496,11 @@
                 if (mode === 'edit') {
                     modeBadge.textContent = 'Chế độ chỉnh sửa'
                     modeBadge.className = 'badge bg-warning'
+                    contentTitle.textContent = 'Chỉnh sửa nội dung Task Review'
                 } else {
                     modeBadge.textContent = 'Chế độ nhập'
                     modeBadge.className = 'badge bg-info'
+                    contentTitle.textContent = 'Nhập nội dung Task Review'
                 }
             } else {
                 // Không có quyền chỉnh sửa - chuyển về trang chính
@@ -726,6 +733,30 @@
             if (confirm('Bạn có chắc chắn muốn xóa toàn bộ nội dung?')) {
                 document.getElementById('reviewContent').value = ''
                 updateWordCount()
+            }
+        }
+        
+        function updatePageTitle() {
+            let title = ''
+            let contentTitle = ''
+            
+            if (mode === 'view') {
+                title = 'Xem nội dung Task Review - Garden Moon'
+                contentTitle = 'Xem nội dung Task Review'
+            } else if (mode === 'edit') {
+                title = 'Chỉnh sửa nội dung Task Review - Garden Moon'
+                contentTitle = 'Chỉnh sửa nội dung Task Review'
+            } else {
+                title = 'Nhập nội dung Task Review - Garden Moon'
+                contentTitle = 'Nhập nội dung Task Review'
+            }
+            
+            document.title = title
+            
+            // Cập nhật tiêu đề nội dung nếu element đã tồn tại
+            const contentTitleEl = document.getElementById('contentTitle')
+            if (contentTitleEl) {
+                contentTitleEl.textContent = contentTitle
             }
         }
         

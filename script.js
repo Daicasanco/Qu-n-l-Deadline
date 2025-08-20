@@ -3979,27 +3979,53 @@ function editReviewData(taskId) {
 }
 
 function viewReviewContent(taskId) {
-    // Tìm beta task
-    const betaTask = tasks.find(t => t.id === taskId && t.task_type === 'beta')
-    if (!betaTask) {
-        showNotification('Không tìm thấy beta task', 'error')
+    console.log('viewReviewContent called with taskId:', taskId)
+    
+    // Tìm task (có thể là beta task hoặc RV task)
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+        console.error('Task not found:', taskId)
+        showNotification('Không tìm thấy task', 'error')
         return
     }
     
-    // Tìm parent RV task để lấy nội dung review
-    if (!betaTask.parent_task_id) {
-        showNotification('Beta task không có parent RV task', 'error')
+    console.log('Found task:', task)
+    
+    let reviewTaskId = null
+    
+    if (task.task_type === 'beta') {
+        // Nếu là beta task, tìm parent RV task để lấy nội dung review
+        if (!task.parent_task_id) {
+            console.error('Beta task missing parent_task_id:', task)
+            showNotification('Beta task không có parent RV task', 'error')
+            return
+        }
+        
+        const parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
+        if (!parentRVTask) {
+            console.error('Parent RV task not found:', task.parent_task_id)
+            showNotification('Không tìm thấy parent RV task', 'error')
+            return
+        }
+        
+        console.log('Found parent RV task:', parentRVTask)
+        reviewTaskId = parentRVTask.id
+        
+    } else if (task.task_type === 'rv') {
+        // Nếu là RV task, sử dụng trực tiếp
+        console.log('Task is RV task, using directly')
+        reviewTaskId = task.id
+        
+    } else {
+        console.error('Task is neither beta nor RV:', task.task_type)
+        showNotification('Task không phải là beta hoặc RV task', 'error')
         return
     }
     
-    const parentRVTask = tasks.find(t => t.id === betaTask.parent_task_id && t.task_type === 'rv')
-    if (!parentRVTask) {
-        showNotification('Không tìm thấy parent RV task', 'error')
-        return
-    }
+    console.log('Opening review page with taskId:', reviewTaskId, 'mode: view')
     
     // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
-    window.open(`review-input.html?taskId=${parentRVTask.id}&mode=view`, '_blank')
+    window.open(`review-input.html?taskId=${reviewTaskId}&mode=view`, '_blank')
 }
 
 // Function để cập nhật nút review input

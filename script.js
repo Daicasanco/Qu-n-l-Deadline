@@ -3174,16 +3174,24 @@ function renderBetaTasksTable() {
             payment = `<span class="badge badge-money">${money.toLocaleString('vi-VN')}đ</span>`
         }
         
-        // Format RV link - lấy submission_link từ parent RV task (link nộp thực tế)
-        let rvLink = '<span class="text-muted">-</span>'
+        // Format Review content - lấy submission_link từ parent RV task
+        let reviewContentDisplay = '<span class="text-muted">-</span>'
         if (task.parent_task_id) {
-            // Tìm parent RV task để lấy submission_link (link nộp thực tế)
+            // Tìm parent RV task để lấy submission_link (nội dung review)
             const parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
             if (parentRVTask && parentRVTask.submission_link && parentRVTask.submission_link.trim()) {
-                rvLink = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
+                if (parentRVTask.submission_link.startsWith('http')) {
+                    // Nếu vẫn là link cũ
+                    reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
+                } else {
+                    // Nếu là nội dung text, hiển thị nút xem review content
+                    reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}')" title="Xem nội dung Review">
+                        <i class="fas fa-eye"></i> Xem Review
+                    </button>`
+                }
             } else {
-                // Debug: hiển thị thông tin nếu không có link
-                console.log('Beta task missing parent RV submission link:', {
+                // Debug: hiển thị thông tin nếu không có nội dung
+                console.log('Beta task missing parent RV content:', {
                     taskId: task.id,
                     taskName: task.name,
                     parentTaskId: task.parent_task_id,
@@ -3291,7 +3299,7 @@ function renderBetaTasksTable() {
                     <small class="text-muted">${task.description || ''}</small>
                 </td>
                 <td>${getTaskStatusBadge(task.status)}</td>
-                <td>${rvLink}</td>
+                <td>${reviewContentDisplay}</td>
                 <td>${betaLinkDisplay}</td>
                 <td>${rvChars}</td>
                 <td>${betaChars}</td>
@@ -3968,6 +3976,30 @@ function openReviewInputPage(taskId) {
 
 function editReviewData(taskId) {
     window.open(`review-input.html?taskId=${taskId}&mode=edit`, '_blank')
+}
+
+function viewReviewContent(taskId) {
+    // Tìm beta task
+    const betaTask = tasks.find(t => t.id === taskId && t.task_type === 'beta')
+    if (!betaTask) {
+        showNotification('Không tìm thấy beta task', 'error')
+        return
+    }
+    
+    // Tìm parent RV task để lấy nội dung review
+    if (!betaTask.parent_task_id) {
+        showNotification('Beta task không có parent RV task', 'error')
+        return
+    }
+    
+    const parentRVTask = tasks.find(t => t.id === betaTask.parent_task_id && t.task_type === 'rv')
+    if (!parentRVTask) {
+        showNotification('Không tìm thấy parent RV task', 'error')
+        return
+    }
+    
+    // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
+    window.open(`review-input.html?taskId=${parentRVTask.id}&mode=view`, '_blank')
 }
 
 // Function để cập nhật nút review input

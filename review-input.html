@@ -89,6 +89,17 @@
             display: inline-block;
         }
         
+        .readonly-mode .content-editor {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+        }
+        
+        .readonly-mode .text-toolbar {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
         .text-toolbar {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -417,8 +428,8 @@
                 // Update UI with task information
                 updateTaskInfoUI(currentTask)
                 
-                // Load existing content if in edit mode
-                if (mode === 'edit' && currentTask.submission_link) {
+                // Load existing content if in edit mode or view mode
+                if ((mode === 'edit' || mode === 'view') && currentTask.submission_link) {
                     await loadExistingContent()
                 }
                 
@@ -455,7 +466,22 @@
             const saveButton = document.getElementById('saveButton')
             const modeBadge = document.getElementById('modeBadge')
             
-            if (canEdit) {
+            if (mode === 'view') {
+                // Mode xem: chỉ hiển thị nội dung, không cho phép chỉnh sửa
+                container.classList.add('readonly-mode')
+                contentEditor.readOnly = true
+                textToolbar.style.pointerEvents = 'none'
+                textToolbar.style.opacity = '0.5'
+                saveButton.style.display = 'none'
+                
+                modeBadge.textContent = 'Chế độ xem'
+                modeBadge.className = 'badge bg-secondary'
+                
+                // Thêm nút copy content
+                addCopyButton()
+                
+            } else if (canEdit) {
+                // Mode chỉnh sửa hoặc nhập
                 container.classList.remove('readonly-mode')
                 contentEditor.readOnly = false
                 textToolbar.style.pointerEvents = 'auto'
@@ -700,6 +726,36 @@
             if (confirm('Bạn có chắc chắn muốn xóa toàn bộ nội dung?')) {
                 document.getElementById('reviewContent').value = ''
                 updateWordCount()
+            }
+        }
+        
+        function addCopyButton() {
+            // Thêm nút copy content vào sau textarea
+            const contentEditor = document.getElementById('reviewContent')
+            const copyButton = document.createElement('button')
+            copyButton.className = 'btn btn-outline-primary mt-3'
+            copyButton.innerHTML = '<i class="fas fa-copy me-2"></i>Copy nội dung'
+            copyButton.onclick = copyContentToClipboard
+            
+            // Chèn nút copy vào sau content editor
+            contentEditor.parentNode.insertBefore(copyButton, contentEditor.nextSibling)
+        }
+        
+        function copyContentToClipboard() {
+            const content = document.getElementById('reviewContent').value
+            if (content) {
+                navigator.clipboard.writeText(content).then(() => {
+                    showNotification('Đã copy nội dung vào clipboard!', 'success')
+                }).catch(() => {
+                    // Fallback cho các trình duyệt cũ
+                    const textArea = document.createElement('textarea')
+                    textArea.value = content
+                    document.body.appendChild(textArea)
+                    textArea.select()
+                    document.execCommand('copy')
+                    document.body.removeChild(textArea)
+                    showNotification('Đã copy nội dung vào clipboard!', 'success')
+                })
             }
         }
         

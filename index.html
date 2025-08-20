@@ -935,25 +935,32 @@
                   <div class="modal-body">
                       <!-- Tùy chọn tải -->
                       <div class="row mb-3">
-                          <div class="col-md-4">
+                          <div class="col-md-3">
                               <label class="form-label">Loại file:</label>
                               <select class="form-select" id="fileType" onchange="onFileTypeChange()">
                                   <option value="beta">Tải file Beta</option>
                                   <option value="review">Tải file Review</option>
                               </select>
                           </div>
-                          <div class="col-md-4">
+                          <div class="col-md-3">
                               <label class="form-label">Chế độ tải:</label>
                               <select class="form-select" id="downloadMode">
                                   <option value="batch">Tải hàng loạt (tất cả)</option>
                                   <option value="individual">Tải từng file lẻ</option>
                               </select>
                           </div>
-                          <div class="col-md-4">
+                          <div class="col-md-3">
                               <label class="form-label">Tùy chọn gộp file:</label>
                               <select class="form-select" id="mergeOption">
                                   <option value="merge">Gộp thành 1 file</option>
                                   <option value="separate">Tải file riêng biệt</option>
+                              </select>
+                          </div>
+                          <div class="col-md-3">
+                              <label class="form-label">Định dạng file:</label>
+                              <select class="form-select" id="fileFormat">
+                                  <option value="doc">Word (.doc)</option>
+                                  <option value="txt">Text (.txt)</option>
                               </select>
                           </div>
                       </div>

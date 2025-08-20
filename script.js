@@ -4030,6 +4030,9 @@ async function onFileTypeChange() {
     const projectName = document.getElementById('downloadProjectName').textContent
     const project = projects.find(p => p.name === projectName)
     
+    // Reset định dạng file về Word khi thay đổi loại file
+    document.getElementById('fileFormat').value = 'doc'
+    
     if (project) {
         await populateFilesTable(project.id, fileType)
     }
@@ -4165,6 +4168,7 @@ async function executeDownload() {
     const fileType = document.getElementById('fileType').value
     const downloadMode = document.getElementById('downloadMode').value
     const mergeOption = document.getElementById('mergeOption').value
+    const fileFormat = document.getElementById('fileFormat').value
     const selectedTasks = Array.from(document.querySelectorAll('.beta-file-checkbox:checked'))
         .map(cb => parseInt(cb.value))
     
@@ -4177,16 +4181,16 @@ async function executeDownload() {
         if (mergeOption === 'merge') {
             // Gộp thành 1 file
             if (fileType === 'beta') {
-            await downloadMergedBetaFiles(selectedTasks)
+                await downloadMergedBetaFiles(selectedTasks, fileFormat)
             } else {
-                await downloadMergedReviewFiles(selectedTasks)
+                await downloadMergedReviewFiles(selectedTasks, fileFormat)
             }
         } else {
             // Tải file riêng biệt
             if (fileType === 'beta') {
-            await downloadSeparateBetaFiles(selectedTasks)
+                await downloadSeparateBetaFiles(selectedTasks, fileFormat)
             } else {
-                await downloadSeparateReviewFiles(selectedTasks)
+                await downloadSeparateReviewFiles(selectedTasks, fileFormat)
             }
         }
         
@@ -4202,33 +4206,50 @@ async function executeDownload() {
     }
 }
 
-async function downloadMergedBetaFiles(taskIds) {
+async function downloadMergedBetaFiles(taskIds, fileFormat = 'doc') {
     const betaTasks = tasks.filter(t => taskIds.includes(t.id));
     let mergedContent = '';
 
     for (const task of betaTasks) {
         if (task.beta_link) {
-            mergedContent += task.beta_link + '<br><br>';
+            if (fileFormat === 'txt') {
+                mergedContent += `=== ${task.name} ===\n\n`;
+                mergedContent += task.beta_link + '\n\n';
+            } else {
+                mergedContent += task.beta_link + '<br><br>';
+            }
         }
     }
 
-    const htmlContent = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office'
-              xmlns:w='urn:schemas-microsoft-com:office:word'
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body>${mergedContent.trim()}</body>
-        </html>
-    `;
-
-    const blob = new Blob(['\ufeff', htmlContent], {
-        type: 'application/msword',
-    });
+    let blob, fileName;
+    
+    if (fileFormat === 'txt') {
+        // Tạo file txt
+        blob = new Blob(['\ufeff', mergedContent.trim()], {
+            type: 'text/plain;charset=utf-8',
+        });
+        fileName = `beta_merged_${new Date().toISOString().split('T')[0]}.txt`;
+    } else {
+        // Tạo file doc
+        const htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'></head>
+            <body>${mergedContent.trim()}</body>
+            </html>
+        `;
+        
+        blob = new Blob(['\ufeff', htmlContent], {
+            type: 'application/msword',
+        });
+        fileName = `beta_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    }
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `beta_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -4236,7 +4257,7 @@ async function downloadMergedBetaFiles(taskIds) {
 }
 
 // Download Review Files Functions
-async function downloadMergedReviewFiles(taskIds) {
+async function downloadMergedReviewFiles(taskIds, fileFormat = 'doc') {
     const reviewTasks = tasks.filter(t => taskIds.includes(t.id));
     let mergedContent = '';
 
@@ -4247,46 +4268,75 @@ async function downloadMergedReviewFiles(taskIds) {
         }
     }
 
-    const htmlContent = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office'
-              xmlns:w='urn:schemas-microsoft-com:office:word'
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head>
-        <body>${mergedContent.trim()}</body>
-        </html>
-    `;
-
-    const blob = new Blob(['\ufeff', htmlContent], {
-        type: 'application/msword',
-    });
+    let blob, fileName;
+    
+    if (fileFormat === 'txt') {
+        // Tạo file txt
+        blob = new Blob(['\ufeff', mergedContent.trim()], {
+            type: 'text/plain;charset=utf-8',
+        });
+        fileName = `review_merged_${new Date().toISOString().split('T')[0]}.txt`;
+    } else {
+        // Tạo file doc
+        const htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'></head>
+            <body>${mergedContent.trim()}</body>
+            </html>
+        `;
+        
+        blob = new Blob(['\ufeff', htmlContent], {
+            type: 'application/msword',
+        });
+        fileName = `review_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    }
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `review_merged_${new Date().toISOString().split('T')[0]}.doc`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
-async function downloadSeparateReviewFiles(taskIds) {
+async function downloadSeparateReviewFiles(taskIds, fileFormat = 'doc') {
     const reviewTasks = tasks.filter(t => taskIds.includes(t.id))
     
     for (const task of reviewTasks) {
         try {
             let content = ''
+            let fileName, blob
             
             if (task.submission_link && !task.submission_link.startsWith('http')) {
                 content = task.submission_link
             }
             
-            // Tạo file riêng cho từng task
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            if (fileFormat === 'txt') {
+                // Tạo file txt
+                blob = new Blob(['\ufeff', content], { type: 'text/plain;charset=utf-8' })
+                fileName = `review_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            } else {
+                // Tạo file doc
+                const htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                          xmlns:w='urn:schemas-microsoft-com:office:word'
+                          xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><meta charset='utf-8'></head>
+                    <body>${content}</body>
+                    </html>
+                `
+                blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' })
+                fileName = `review_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.doc`
+            }
+            
             const url = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `review_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            a.download = fileName
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
@@ -4301,23 +4351,40 @@ async function downloadSeparateReviewFiles(taskIds) {
     }
 }
 
-async function downloadSeparateBetaFiles(taskIds) {
+async function downloadSeparateBetaFiles(taskIds, fileFormat = 'doc') {
     const betaTasks = tasks.filter(t => taskIds.includes(t.id))
     
     for (const task of betaTasks) {
         try {
             let content = ''
+            let fileName, blob
             
             if (task.beta_link) {
                 content = task.beta_link
             }
             
-            // Tạo file riêng cho từng task
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            if (fileFormat === 'txt') {
+                // Tạo file txt
+                blob = new Blob(['\ufeff', content], { type: 'text/plain;charset=utf-8' })
+                fileName = `beta_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            } else {
+                // Tạo file doc
+                                const htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                          xmlns:w='urn:schemas-microsoft-com:office:word'
+                          xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'></head>
+                <body>${content}</body>
+                </html>
+                `
+                blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' })
+                fileName = `beta_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.doc`
+            }
+            
             const url = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `beta_${task.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`
+            a.download = fileName
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)

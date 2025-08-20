@@ -1,4 +1,3 @@
-
 // Supabase Configuration - Thêm API keys trực tiếp vào đây
 const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'              // ← Thay bằng ANON KEY thực
@@ -1637,10 +1636,10 @@ function renderProjectsTable() {
             <td>
                 <div class="btn-group btn-group-sm">
                     ${hasManagerOrBossPermissions(currentUser) ? 
-                        `<button class="btn btn-outline-info btn-sm" onclick="showProjectReport(${project.id})" title="Báo cáo dự án">
+                        `<button class="btn btn-outline-info btn-sm" onclick="showProjectReportModal(${project.id})" title="Báo cáo dự án">
                             <i class="fas fa-chart-bar"></i>
                         </button>
-                        <button class="btn btn-outline-success btn-sm" onclick="downloadBetaFiles(${project.id})" title="Tải file Beta">
+                        <button class="btn btn-outline-success btn-sm" onclick="showDownloadModal(${project.id})" title="Tải file Beta">
                             <i class="fas fa-download"></i>
                         </button>` : ''
                     }
@@ -2395,9 +2394,7 @@ function showEmployeesList() {
     
     // Check if Bootstrap is available
     if (typeof bootstrap === 'undefined' || typeof bootstrap.Modal === 'undefined') {
-        console.error('Bootstrap Modal not available!')
-        showNotification('Lỗi: Bootstrap Modal không khả dụng', 'error')
-        return
+        console.log('Bootstrap Modal not available, will use manual display')
     }
     
     // Populate employees table with allEmployees
@@ -2460,86 +2457,27 @@ function showEmployeesList() {
     })
     
         console.log('Showing modal...')
-    try {
-        // Đảm bảo modal hiển thị đúng cách
+    
+    // Sử dụng Bootstrap Modal để hiển thị
+    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
+        try {
+            const modal = new bootstrap.Modal(modalElement)
+            modal.show()
+            console.log('Bootstrap modal shown successfully')
+        } catch (error) {
+            console.error('Bootstrap modal error:', error)
+            // Fallback: hiển thị modal bằng CSS
+            modalElement.style.display = 'block'
+            modalElement.style.visibility = 'visible'
+            modalElement.style.zIndex = '9999'
+            console.log('Using CSS fallback for modal display')
+        }
+    } else {
+        // Bootstrap không có sẵn, sử dụng CSS
         modalElement.style.display = 'block'
         modalElement.style.visibility = 'visible'
-        modalElement.style.opacity = '1'
         modalElement.style.zIndex = '9999'
-        
-        // Tạo modal instance và hiển thị
-        const modal = new bootstrap.Modal(modalElement, {
-            backdrop: true,
-            keyboard: true,
-            focus: true
-        })
-        
-        modal.show()
-        console.log('Modal shown successfully')
-        
-        // Đảm bảo modal hiển thị sau khi Bootstrap xử lý
-        setTimeout(() => {
-            // Kiểm tra và sửa CSS nếu cần
-            const computedStyle = window.getComputedStyle(modalElement)
-            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
-                console.log('Modal still hidden, forcing display...')
-                modalElement.style.display = 'block !important'
-                modalElement.style.visibility = 'visible !important'
-                modalElement.style.opacity = '1 !important'
-                modalElement.style.zIndex = '9999 !important'
-            }
-            
-            // Kiểm tra backdrop
-            let backdrop = document.querySelector('.modal-backdrop')
-            if (!backdrop) {
-                console.log('Creating backdrop manually...')
-                backdrop = document.createElement('div')
-                backdrop.className = 'modal-backdrop fade show'
-                backdrop.style.position = 'fixed'
-                backdrop.style.top = '0'
-                backdrop.style.left = '0'
-                backdrop.style.width = '100%'
-                backdrop.style.height = '100%'
-                backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-                backdrop.style.zIndex = '9998'
-                document.body.appendChild(backdrop)
-            }
-            
-            console.log('Modal should now be visible')
-            
-        }, 200)
-        
-    } catch (error) {
-        console.error('Error showing modal:', error)
-        showNotification('Lỗi khi hiển thị modal: ' + error.message, 'error')
-        
-        // Fallback: hiển thị modal bằng CSS thuần
-        console.log('Using CSS fallback...')
-        modalElement.style.display = 'block'
-        modalElement.style.visibility = 'visible'
-        modalElement.style.opacity = '1'
-        modalElement.style.zIndex = '9999'
-        modalElement.style.position = 'fixed'
-        modalElement.style.top = '50%'
-        modalElement.style.left = '50%'
-        modalElement.style.transform = 'translate(-50%, -50%)'
-        modalElement.style.backgroundColor = 'white'
-        modalElement.style.border = '2px solid #007bff'
-        modalElement.style.borderRadius = '8px'
-        modalElement.style.padding = '20px'
-        modalElement.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)'
-        
-        // Tạo backdrop
-        let backdrop = document.createElement('div')
-        backdrop.className = 'modal-backdrop'
-        backdrop.style.position = 'fixed'
-        backdrop.style.top = '0'
-        backdrop.style.left = '0'
-        backdrop.style.width = '100%'
-        backdrop.style.height = '100%'
-        backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
-        backdrop.style.zIndex = '9998'
-        document.body.appendChild(backdrop)
+        console.log('Bootstrap not available, using CSS display')
     }
 }
 
@@ -4654,60 +4592,17 @@ function showActivityHistoryView() {
     
     if (projectsViewElement) {
         projectsViewElement.style.display = 'none'
-        console.log('Hidden projectsView')
     }
     if (tasksViewElement) {
         tasksViewElement.style.display = 'none'
-        console.log('Hidden tasksView')
     }
     
-    // Hiển thị view này với CSS đảm bảo
+    // Hiển thị view này
     activityHistoryView.style.display = 'block'
     activityHistoryView.style.visibility = 'visible'
-    activityHistoryView.style.opacity = '1'
     activityHistoryView.style.zIndex = '1000'
-    activityHistoryView.style.position = 'relative'
     
-    console.log('Activity History View displayed with CSS override')
-    
-    // Debug: Kiểm tra trạng thái view
-    setTimeout(() => {
-        const rect = activityHistoryView.getBoundingClientRect()
-        console.log('Activity History View position:', {
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            visible: rect.width > 0 && rect.height > 0
-        })
-        
-        console.log('Activity History View styles:', {
-            display: activityHistoryView.style.display,
-            visibility: activityHistoryView.style.visibility,
-            opacity: activityHistoryView.style.opacity,
-            position: activityHistoryView.style.position,
-            zIndex: activityHistoryView.style.zIndex
-        })
-        
-        // Kiểm tra xem có bị che bởi element khác không
-        const computedStyle = window.getComputedStyle(activityHistoryView)
-        console.log('Computed styles:', {
-            display: computedStyle.display,
-            visibility: computedStyle.visibility,
-            opacity: computedStyle.opacity,
-            position: computedStyle.position,
-            zIndex: computedStyle.zIndex
-        })
-        
-        // Đảm bảo view hiển thị
-        if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
-            console.log('View still hidden, forcing display...')
-            activityHistoryView.style.display = 'block !important'
-            activityHistoryView.style.visibility = 'visible !important'
-            activityHistoryView.style.opacity = '1 !important'
-        }
-        
-    }, 100)
+    console.log('Activity History View displayed')
     
     // Load activity history data
     console.log('Loading activity history data...')
@@ -5226,5 +5121,201 @@ function downloadAsTextFile(content, filename) {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+}
+
+// Hàm hiển thị modal báo cáo dự án
+function showProjectReportModal(projectId) {
+    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Chỉ quản lý và boss mới có thể xem báo cáo dự án', 'error')
+        return
+    }
+    
+    const modalElement = document.getElementById('projectReportModal')
+    if (!modalElement) {
+        showNotification('Lỗi: Không tìm thấy modal báo cáo dự án', 'error')
+        return
+    }
+    
+    // Cập nhật tên dự án trong modal
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+        document.getElementById('reportProjectName').textContent = project.name
+    }
+    
+    // Hiển thị modal
+    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
+        const modal = new bootstrap.Modal(modalElement)
+        modal.show()
+    } else {
+        modalElement.style.display = 'block'
+        modalElement.style.visibility = 'visible'
+        modalElement.style.zIndex = '9999'
+    }
+    
+    // Load dữ liệu báo cáo
+    loadProjectReportData(projectId)
+}
+
+// Hàm hiển thị modal tải file
+function showDownloadModal(projectId) {
+    if (!currentUser || !hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Chỉ quản lý và boss mới có thể tải file', 'error')
+        return
+    }
+    
+    const modalElement = document.getElementById('downloadBetaModal')
+    if (!modalElement) {
+        showNotification('Lỗi: Không tìm thấy modal tải file', 'error')
+        return
+    }
+    
+    // Cập nhật tên dự án trong modal
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+        document.getElementById('downloadProjectName').textContent = project.name
+    }
+    
+    // Hiển thị modal
+    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
+        const modal = new bootstrap.Modal(modalElement)
+        modal.show()
+    } else {
+        modalElement.style.display = 'block'
+        modalElement.style.visibility = 'visible'
+        modalElement.style.zIndex = '9999'
+    }
+    
+    // Load danh sách file
+    loadBetaFilesList(projectId)
+}
+
+// Hàm load dữ liệu báo cáo dự án
+async function loadProjectReportData(projectId) {
+    try {
+        // Load tasks của dự án
+        const projectTasks = tasks.filter(t => t.project_id === projectId)
+        
+        // Tính toán thống kê
+        const totalTasks = projectTasks.length
+        const totalRVChars = projectTasks.reduce((sum, task) => sum + (task.rv_chars || 0), 0)
+        const totalBetaChars = projectTasks.reduce((sum, task) => sum + (task.beta_chars || 0), 0)
+        const totalMoney = projectTasks.reduce((sum, task) => sum + (task.total_amount || 0), 0)
+        
+        // Cập nhật UI
+        document.getElementById('totalTasksCount').textContent = totalTasks
+        document.getElementById('totalRVChars').textContent = totalRVChars.toLocaleString()
+        document.getElementById('totalBetaChars').textContent = totalBetaChars.toLocaleString()
+        document.getElementById('totalMoney').textContent = totalMoney.toLocaleString() + ' VNĐ'
+        
+        // Tạo báo cáo chi tiết theo nhân viên
+        const employeeStats = {}
+        projectTasks.forEach(task => {
+            if (task.assignee_id) {
+                const employee = window.allEmployees.find(emp => emp.id === task.assignee_id)
+                if (employee) {
+                    if (!employeeStats[employee.id]) {
+                        employeeStats[employee.id] = {
+                            name: employee.name,
+                            taskCount: 0,
+                            rvChars: 0,
+                            betaChars: 0,
+                            rvMoney: 0,
+                            betaMoney: 0
+                        }
+                    }
+                    employeeStats[employee.id].taskCount++
+                    employeeStats[employee.id].rvChars += task.rv_chars || 0
+                    employeeStats[employee.id].betaChars += task.beta_chars || 0
+                    employeeStats[employee.id].rvMoney += task.rv_amount || 0
+                    employeeStats[employee.id].betaMoney += task.beta_amount || 0
+                }
+            }
+        })
+        
+        // Render bảng báo cáo
+        const tbody = document.getElementById('reportTableBody')
+        tbody.innerHTML = ''
+        
+        Object.values(employeeStats).forEach(stat => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
+                <td>${stat.name}</td>
+                <td>${stat.taskCount}</td>
+                <td>${stat.rvChars.toLocaleString()}</td>
+                <td>${stat.betaChars.toLocaleString()}</td>
+                <td>${stat.rvMoney.toLocaleString()} VNĐ</td>
+                <td>${stat.betaMoney.toLocaleString()} VNĐ</td>
+                <td><strong>${(stat.rvMoney + stat.betaMoney).toLocaleString()} VNĐ</strong></td>
+            `
+            tbody.appendChild(row)
+        })
+        
+        // Cập nhật dropdown filter nhân viên
+        const employeeFilter = document.getElementById('reportEmployeeFilter')
+        if (employeeFilter) {
+            employeeFilter.innerHTML = '<option value="">Tất cả nhân viên</option>'
+            Object.values(employeeStats).forEach(stat => {
+                const option = document.createElement('option')
+                option.value = stat.name
+                option.textContent = stat.name
+                employeeFilter.appendChild(option)
+            })
+        }
+        
+    } catch (error) {
+        console.error('Error loading project report data:', error)
+        showNotification('Lỗi khi tải dữ liệu báo cáo', 'error')
+    }
+}
+
+// Hàm load danh sách file beta
+async function loadBetaFilesList(projectId) {
+    try {
+        // Load tasks của dự án
+        const projectTasks = tasks.filter(t => t.project_id === projectId)
+        
+        // Render bảng file
+        const tbody = document.getElementById('betaFilesTableBody')
+        tbody.innerHTML = ''
+        
+        projectTasks.forEach(task => {
+            const row = document.createElement('tr')
+            const employee = window.allEmployees.find(emp => emp.id === task.assignee_id)
+            const statusBadge = getTaskStatusBadge(task.status)
+            
+            row.innerHTML = `
+                <td><input type="checkbox" class="beta-file-checkbox" value="${task.id}"></td>
+                <td>${task.name}</td>
+                <td>${employee ? employee.name : 'N/A'}</td>
+                <td>${statusBadge}</td>
+                <td>${formatDateTime(task.updated_at)}</td>
+            `
+            tbody.appendChild(row)
+        })
+        
+        // Setup select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAllBetaFiles')
+        if (selectAllCheckbox) {
+            selectAllCheckbox.onchange = function() {
+                const checkboxes = document.querySelectorAll('.beta-file-checkbox')
+                checkboxes.forEach(cb => cb.checked = this.checked)
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error loading beta files list:', error)
+        showNotification('Lỗi khi tải danh sách file', 'error')
+    }
+}
+
+// Hàm helper để lấy badge trạng thái task
+function getTaskStatusBadge(status) {
+    const statusMap = {
+        'pending': '<span class="badge bg-secondary">Chờ thực hiện</span>',
+        'in-progress': '<span class="badge bg-warning">Đang thực hiện</span>',
+        'completed': '<span class="badge bg-success">Hoàn thành</span>',
+        'overdue': '<span class="badge bg-danger">Quá hạn</span>'
+    }
+    return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
 }
 

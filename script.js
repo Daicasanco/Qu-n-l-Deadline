@@ -1262,15 +1262,15 @@ async function editTask(id) {
     setVal('taskStatus', task.status || '')
             // Cập nhật nút review input thay vì trường submission link
         updateReviewInputButton(task.submission_link || '')
-        setVal('taskBetaLink', task.beta_link || '')
-        setVal('taskDialogueChars', task.dialogue_chars || '')
-        setVal('taskTotalChars', task.total_chars || '')
-        setVal('taskRVChars', task.rv_chars || '')
-        setVal('taskBetaChars', task.beta_chars || '')
-        setVal('taskRate', task.rate || '')
-        setVal('taskBetaRate', task.beta_rate || '')
-        setVal('taskNotes', task.notes || '')
-        setVal('taskBetaNotes', task.beta_notes || '')
+    setVal('taskBetaLink', task.beta_link || '')
+    setVal('taskDialogueChars', task.dialogue_chars || '')
+    setVal('taskTotalChars', task.total_chars || '')
+    setVal('taskRVChars', task.rv_chars || '')
+    setVal('taskBetaChars', task.beta_chars || '')
+    setVal('taskRate', task.rate || '')
+    setVal('taskBetaRate', task.beta_rate || '')
+    setVal('taskNotes', task.notes || '')
+    setVal('taskBetaNotes', task.beta_notes || '')
         
         // Tự động cập nhật số chữ nếu có nội dung
         if (task.submission_link && !task.submission_link.startsWith('http')) {
@@ -2459,49 +2459,87 @@ function showEmployeesList() {
         tbody.appendChild(row)
     })
     
-    console.log('Showing modal...')
+        console.log('Showing modal...')
     try {
-        const modal = new bootstrap.Modal(modalElement)
+        // Đảm bảo modal hiển thị đúng cách
+        modalElement.style.display = 'block'
+        modalElement.style.visibility = 'visible'
+        modalElement.style.opacity = '1'
+        modalElement.style.zIndex = '9999'
+        
+        // Tạo modal instance và hiển thị
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        })
+        
         modal.show()
         console.log('Modal shown successfully')
         
-        // Debug: Kiểm tra trạng thái modal
+        // Đảm bảo modal hiển thị sau khi Bootstrap xử lý
         setTimeout(() => {
-            const modalBackdrop = document.querySelector('.modal-backdrop')
-            const modalElement = document.getElementById('employeesModal')
-            
-            console.log('Modal element:', modalElement)
-            console.log('Modal display style:', modalElement.style.display)
-            console.log('Modal visibility:', modalElement.style.visibility)
-            console.log('Modal z-index:', modalElement.style.zIndex)
-            console.log('Modal backdrop:', modalBackdrop)
-            
-            if (modalBackdrop) {
-                console.log('Backdrop z-index:', modalBackdrop.style.zIndex)
-                console.log('Backdrop display:', modalBackdrop.style.display)
+            // Kiểm tra và sửa CSS nếu cần
+            const computedStyle = window.getComputedStyle(modalElement)
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                console.log('Modal still hidden, forcing display...')
+                modalElement.style.display = 'block !important'
+                modalElement.style.visibility = 'visible !important'
+                modalElement.style.opacity = '1 !important'
+                modalElement.style.zIndex = '9999 !important'
             }
             
-            // Kiểm tra xem modal có thực sự visible không
-            const rect = modalElement.getBoundingClientRect()
-            console.log('Modal position:', {
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height,
-                visible: rect.width > 0 && rect.height > 0
-            })
+            // Kiểm tra backdrop
+            let backdrop = document.querySelector('.modal-backdrop')
+            if (!backdrop) {
+                console.log('Creating backdrop manually...')
+                backdrop = document.createElement('div')
+                backdrop.className = 'modal-backdrop fade show'
+                backdrop.style.position = 'fixed'
+                backdrop.style.top = '0'
+                backdrop.style.left = '0'
+                backdrop.style.width = '100%'
+                backdrop.style.height = '100%'
+                backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+                backdrop.style.zIndex = '9998'
+                document.body.appendChild(backdrop)
+            }
             
-            // Kiểm tra viewport
-            console.log('Viewport:', {
-                width: window.innerWidth,
-                height: window.innerHeight
-            })
+            console.log('Modal should now be visible')
             
-        }, 100)
+        }, 200)
         
     } catch (error) {
         console.error('Error showing modal:', error)
         showNotification('Lỗi khi hiển thị modal: ' + error.message, 'error')
+        
+        // Fallback: hiển thị modal bằng CSS thuần
+        console.log('Using CSS fallback...')
+        modalElement.style.display = 'block'
+        modalElement.style.visibility = 'visible'
+        modalElement.style.opacity = '1'
+        modalElement.style.zIndex = '9999'
+        modalElement.style.position = 'fixed'
+        modalElement.style.top = '50%'
+        modalElement.style.left = '50%'
+        modalElement.style.transform = 'translate(-50%, -50%)'
+        modalElement.style.backgroundColor = 'white'
+        modalElement.style.border = '2px solid #007bff'
+        modalElement.style.borderRadius = '8px'
+        modalElement.style.padding = '20px'
+        modalElement.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)'
+        
+        // Tạo backdrop
+        let backdrop = document.createElement('div')
+        backdrop.className = 'modal-backdrop'
+        backdrop.style.position = 'fixed'
+        backdrop.style.top = '0'
+        backdrop.style.left = '0'
+        backdrop.style.width = '100%'
+        backdrop.style.height = '100%'
+        backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+        backdrop.style.zIndex = '9998'
+        document.body.appendChild(backdrop)
     }
 }
 
@@ -3247,7 +3285,7 @@ function renderBetaTasksTable() {
                 if (parentRVTask.submission_link.startsWith('http')) {
                     // Nếu vẫn là link cũ
                     reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
-                } else {
+            } else {
                     // Kiểm tra quyền xem review content
                     const canViewReview = canViewReviewContent(task)
                     console.log('Review permission check for beta task:', {
@@ -4271,12 +4309,12 @@ async function populateFilesTable(projectId, fileType) {
     let fileTasks = []
     
     if (fileType === 'beta') {
-        // Lấy danh sách beta tasks của dự án
+    // Lấy danh sách beta tasks của dự án
         fileTasks = tasks.filter(t => 
-            t.project_id === projectId && 
-            t.task_type === 'beta' && 
-            t.beta_link // Chỉ những task có dữ liệu beta
-        )
+        t.project_id === projectId && 
+        t.task_type === 'beta' && 
+        t.beta_link // Chỉ những task có dữ liệu beta
+    )
     } else if (fileType === 'review') {
         // Lấy danh sách review tasks của dự án
         fileTasks = tasks.filter(t => 
@@ -4408,14 +4446,14 @@ async function executeDownload() {
         if (mergeOption === 'merge') {
             // Gộp thành 1 file
             if (fileType === 'beta') {
-                await downloadMergedBetaFiles(selectedTasks)
+            await downloadMergedBetaFiles(selectedTasks)
             } else {
                 await downloadMergedReviewFiles(selectedTasks)
             }
         } else {
             // Tải file riêng biệt
             if (fileType === 'beta') {
-                await downloadSeparateBetaFiles(selectedTasks)
+            await downloadSeparateBetaFiles(selectedTasks)
             } else {
                 await downloadSeparateReviewFiles(selectedTasks)
             }
@@ -4609,7 +4647,28 @@ function showActivityHistoryView() {
     }
     
     console.log('Showing activityHistoryView')
-    activityHistoryView.style.display = ''
+    
+    // Ẩn tất cả view khác trước
+    const projectsViewElement = document.getElementById('projectsView')
+    const tasksViewElement = document.getElementById('tasksView')
+    
+    if (projectsViewElement) {
+        projectsViewElement.style.display = 'none'
+        console.log('Hidden projectsView')
+    }
+    if (tasksViewElement) {
+        tasksViewElement.style.display = 'none'
+        console.log('Hidden tasksView')
+    }
+    
+    // Hiển thị view này với CSS đảm bảo
+    activityHistoryView.style.display = 'block'
+    activityHistoryView.style.visibility = 'visible'
+    activityHistoryView.style.opacity = '1'
+    activityHistoryView.style.zIndex = '1000'
+    activityHistoryView.style.position = 'relative'
+    
+    console.log('Activity History View displayed with CSS override')
     
     // Debug: Kiểm tra trạng thái view
     setTimeout(() => {
@@ -4639,6 +4698,14 @@ function showActivityHistoryView() {
             position: computedStyle.position,
             zIndex: computedStyle.zIndex
         })
+        
+        // Đảm bảo view hiển thị
+        if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+            console.log('View still hidden, forcing display...')
+            activityHistoryView.style.display = 'block !important'
+            activityHistoryView.style.visibility = 'visible !important'
+            activityHistoryView.style.opacity = '1 !important'
+        }
         
     }, 100)
     

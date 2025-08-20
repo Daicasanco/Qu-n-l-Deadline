@@ -375,6 +375,7 @@
                                                     <th>Thành tiền</th>
                                                     <th>Người thực hiện</th>
                                                     <th>Ghi chú</th>
+                                                    <th>Tải nội dung</th>
                                                     <th>Thao tác</th>
                                                 </tr>
                                             </thead>
@@ -732,12 +733,13 @@
                                     <input type="number" class="form-control" id="taskDialogueChars" min="0">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Số chữ tổng:</label>
-                                    <input type="number" class="form-control" id="taskTotalChars" min="0">
+                                                            <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Số chữ tổng:</label>
+                                        <input type="number" class="form-control" id="taskTotalChars" min="0" readonly>
+                                        <small class="form-text text-muted">Số chữ được tính tự động từ nội dung review</small>
+                                    </div>
                                 </div>
-                            </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Số chữ RV (tự động tính):</label>
@@ -747,7 +749,8 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Số chữ Beta:</label>
-                                    <input type="number" class="form-control" id="taskBetaChars" min="0">
+                                    <input type="number" class="form-control" id="taskBetaChars" min="0" readonly>
+                                    <small class="form-text text-muted">Số chữ được tính tự động từ nội dung beta</small>
                                 </div>
                             </div>
                         </div>

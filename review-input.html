@@ -667,6 +667,21 @@
                 // Update save button text
                 saveBtnText.textContent = 'Đã lưu'
                 
+                // Tự động cập nhật số chữ tổng trong database
+                try {
+                    const wordCount = content.trim().split(/\s+/).length
+                    await supabase
+                        .from('tasks')
+                        .update({
+                            total_chars: wordCount
+                        })
+                        .eq('id', taskId)
+                    
+                    console.log(`Đã cập nhật số chữ tổng: ${wordCount}`)
+                } catch (updateError) {
+                    console.warn('Không thể cập nhật số chữ tổng:', updateError)
+                }
+                
                 // Redirect back after a short delay
                 setTimeout(() => goBack(), 1500)
                 

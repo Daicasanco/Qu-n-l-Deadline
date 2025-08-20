@@ -1275,17 +1275,28 @@ async function editTask(id) {
     setVal('taskDeadline', task.deadline ? task.deadline.slice(0, 16) : '')
     setVal('taskPriority', task.priority || '')
     setVal('taskStatus', task.status || '')
-    // Cập nhật nút review input thay vì trường submission link
-    updateReviewInputButton(task.submission_link || '')
-    setVal('taskBetaLink', task.beta_link || '')
-    setVal('taskDialogueChars', task.dialogue_chars || '')
-    setVal('taskTotalChars', task.total_chars || '')
-    setVal('taskRVChars', task.rv_chars || '')
-    setVal('taskBetaChars', task.beta_chars || '')
-    setVal('taskRate', task.rate || '')
-    setVal('taskBetaRate', task.beta_rate || '')
-    setVal('taskNotes', task.notes || '')
-    setVal('taskBetaNotes', task.beta_notes || '')
+            // Cập nhật nút review input thay vì trường submission link
+        updateReviewInputButton(task.submission_link || '')
+        setVal('taskBetaLink', task.beta_link || '')
+        setVal('taskDialogueChars', task.dialogue_chars || '')
+        setVal('taskTotalChars', task.total_chars || '')
+        setVal('taskRVChars', task.rv_chars || '')
+        setVal('taskBetaChars', task.beta_chars || '')
+        setVal('taskRate', task.rate || '')
+        setVal('taskBetaRate', task.beta_rate || '')
+        setVal('taskNotes', task.notes || '')
+        setVal('taskBetaNotes', task.beta_notes || '')
+        
+        // Tự động cập nhật số chữ nếu có nội dung
+        if (task.submission_link && !task.submission_link.startsWith('http')) {
+            const reviewWordCount = task.submission_link.trim().split(/\s+/).length
+            setVal('taskTotalChars', reviewWordCount)
+        }
+        
+        if (task.beta_link && !task.beta_link.startsWith('http')) {
+            const betaWordCount = task.beta_link.trim().split(/\s+/).length
+            setVal('taskBetaChars', betaWordCount)
+        }
     document.getElementById('taskStatusField').style.display = 'block'
     document.getElementById('taskModalTitle').textContent = 'Chỉnh sửa Công việc'
     updateAssigneeDropdowns()
@@ -1824,6 +1835,7 @@ function renderTasksTable() {
             <td>${payment}</td>
             <td><span class="${task.assignee_id ? assigneeColorClass : 'text-muted'}">${assigneeName}</span></td>
             <td>${notesDisplay}</td>
+            <td>${getDownloadContentButtons(task)}</td>
             <td><div class="btn-group-actions">${actionButtons}</div></td>`
         tbody.appendChild(row)
     })
@@ -4004,6 +4016,38 @@ function canEditReviewContent(task) {
     return false
 }
 
+// Function tạo nút tải nội dung
+function getDownloadContentButtons(task) {
+    if (!currentUser || !(currentUser.role === 'boss' || currentUser.role === 'manager')) {
+        return '<span class="text-muted">-</span>'
+    }
+    
+    let buttons = `<div class="btn-group btn-group-sm">`
+    
+    // Nút tải nội dung Review
+    if (task.submission_link && !task.submission_link.startsWith('http')) {
+        buttons += `<button class="btn btn-outline-primary btn-sm" onclick="downloadReviewContent('${task.id}')" title="Tải nội dung Review">
+            <i class="fas fa-download"></i> Review
+        </button>`
+    }
+    
+    // Nút tải nội dung Beta
+    if (task.beta_link && !task.beta_link.startsWith('http')) {
+        buttons += `<button class="btn btn-outline-info btn-sm" onclick="downloadBetaContent('${task.id}')" title="Tải nội dung Beta">
+            <i class="fas fa-download"></i> Beta
+        </button>`
+    }
+    
+    if (buttons === `<div class="btn-group btn-group-sm">`) {
+        return '<span class="text-muted">-</span>'
+    }
+    
+    buttons += `</div>`
+    return buttons
+}
+
+
+
 // Download Beta Files Functions
 async function downloadBetaFiles(projectId) {
     const project = projects.find(p => p.id === projectId)
@@ -4652,4 +4696,40 @@ async function loadEmployeeTimeline(employeeId, page = 1) {
 function sendReminder(employeeId) {
     // TODO: Implement reminder functionality
     showNotification('Tính năng gửi nhắc nhở sẽ được triển khai sau', 'info')
+}
+
+// Download Review Content Function
+function downloadReviewContent(taskId) {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || !task.submission_link) {
+        showNotification('Không tìm thấy nội dung review để tải', 'error')
+        return
+    }
+    
+    // Check if it's a direct content or URL
+    if (task.submission_link.startsWith('http')) {
+        // If it's a URL, open in new tab
+        window.open(task.submission_link, '_blank')
+    } else {
+        // If it's direct content, download as text file
+        downloadAsTextFile(task.submission_link, `review_${task.name}_${taskId}.txt`)
+    }
+}
+
+// Download Beta Content Function (for tasks table)
+function downloadBetaContent(taskId) {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || !task.beta_link) {
+        showNotification('Không tìm thấy nội dung beta để tải', 'error')
+        return
+    }
+    
+    // Check if it's a direct content or URL
+    if (task.beta_link.startsWith('http')) {
+        // If it's a URL, open in new tab
+        window.open(task.beta_link, '_blank')
+    } else {
+        // If it's direct content, download as text file
+        downloadAsTextFile(task.beta_link, `beta_${task.name}_${taskId}.txt`)
+    }
 }

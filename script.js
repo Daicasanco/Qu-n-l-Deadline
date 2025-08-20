@@ -391,6 +391,12 @@ function updateUserInterface() {
             viewActivityHistoryBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         }
         
+        // Show debug button for boss only
+        const debugBtn = document.querySelector('button[onclick="debugEmployeesModal()"]')
+        if (debugBtn) {
+            debugBtn.style.display = isBoss(currentUser) ? 'inline-block' : 'none'
+        }
+        
         // Show guest content button for managers and bosses
         const guestContentBtn = document.getElementById('guestContentBtn')
         if (guestContentBtn) {
@@ -2461,15 +2467,55 @@ function showEmployeesList() {
     // Sử dụng Bootstrap Modal để hiển thị
     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
         try {
-            const modal = new bootstrap.Modal(modalElement)
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            })
             modal.show()
             console.log('Bootstrap modal shown successfully')
+            
+            // Đảm bảo backdrop được tạo
+            setTimeout(() => {
+                let backdrop = document.querySelector('.modal-backdrop')
+                if (!backdrop) {
+                    console.log('Creating backdrop manually...')
+                    backdrop = document.createElement('div')
+                    backdrop.className = 'modal-backdrop fade show'
+                    backdrop.style.position = 'fixed'
+                    backdrop.style.top = '0'
+                    backdrop.style.left = '0'
+                    backdrop.style.width = '100%'
+                    backdrop.style.height = '100%'
+                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+                    backdrop.style.zIndex = '1050'
+                    document.body.appendChild(backdrop)
+                }
+                
+                // Đảm bảo modal có z-index cao
+                modalElement.style.zIndex = '1055'
+                console.log('Modal and backdrop should now be visible')
+            }, 100)
+            
         } catch (error) {
             console.error('Bootstrap modal error:', error)
             // Fallback: hiển thị modal bằng CSS
             modalElement.style.display = 'block'
             modalElement.style.visibility = 'visible'
             modalElement.style.zIndex = '9999'
+            
+            // Tạo backdrop thủ công
+            let backdrop = document.createElement('div')
+            backdrop.className = 'modal-backdrop'
+            backdrop.style.position = 'fixed'
+            backdrop.style.top = '0'
+            backdrop.style.left = '0'
+            backdrop.style.width = '100%'
+            backdrop.style.height = '100%'
+            backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+            backdrop.style.zIndex = '9998'
+            document.body.appendChild(backdrop)
+            
             console.log('Using CSS fallback for modal display')
         }
     } else {
@@ -2477,6 +2523,19 @@ function showEmployeesList() {
         modalElement.style.display = 'block'
         modalElement.style.visibility = 'visible'
         modalElement.style.zIndex = '9999'
+        
+        // Tạo backdrop thủ công
+        let backdrop = document.createElement('div')
+        backdrop.className = 'modal-backdrop'
+        backdrop.style.position = 'fixed'
+        backdrop.style.top = '0'
+        backdrop.style.left = '0'
+        backdrop.style.width = '100%'
+        backdrop.style.height = '100%'
+        backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+        backdrop.style.zIndex = '9998'
+        document.body.appendChild(backdrop)
+        
         console.log('Bootstrap not available, using CSS display')
     }
 }
@@ -5144,8 +5203,37 @@ function showProjectReportModal(projectId) {
     
     // Hiển thị modal
     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
-        const modal = new bootstrap.Modal(modalElement)
-        modal.show()
+        try {
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            })
+            modal.show()
+            
+            // Đảm bảo backdrop được tạo
+            setTimeout(() => {
+                let backdrop = document.querySelector('.modal-backdrop')
+                if (!backdrop) {
+                    backdrop = document.createElement('div')
+                    backdrop.className = 'modal-backdrop fade show'
+                    backdrop.style.position = 'fixed'
+                    backdrop.style.top = '0'
+                    backdrop.style.left = '0'
+                    backdrop.style.width = '100%'
+                    backdrop.style.height = '100%'
+                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+                    backdrop.style.zIndex = '1050'
+                    document.body.appendChild(backdrop)
+                }
+                modalElement.style.zIndex = '1055'
+            }, 100)
+        } catch (error) {
+            console.error('Modal error:', error)
+            modalElement.style.display = 'block'
+            modalElement.style.visibility = 'visible'
+            modalElement.style.zIndex = '9999'
+        }
     } else {
         modalElement.style.display = 'block'
         modalElement.style.visibility = 'visible'
@@ -5177,8 +5265,37 @@ function showDownloadModal(projectId) {
     
     // Hiển thị modal
     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined') {
-        const modal = new bootstrap.Modal(modalElement)
-        modal.show()
+        try {
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            })
+            modal.show()
+            
+            // Đảm bảo backdrop được tạo
+            setTimeout(() => {
+                let backdrop = document.querySelector('.modal-backdrop')
+                if (!backdrop) {
+                    backdrop = document.createElement('div')
+                    backdrop.className = 'modal-backdrop fade show'
+                    backdrop.style.position = 'fixed'
+                    backdrop.style.top = '0'
+                    backdrop.style.left = '0'
+                    backdrop.style.width = '100%'
+                    backdrop.style.height = '100%'
+                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)'
+                    backdrop.style.zIndex = '1050'
+                    document.body.appendChild(backdrop)
+                }
+                modalElement.style.zIndex = '1055'
+            }, 100)
+        } catch (error) {
+            console.error('Modal error:', error)
+            modalElement.style.display = 'block'
+            modalElement.style.visibility = 'visible'
+            modalElement.style.zIndex = '9999'
+        }
     } else {
         modalElement.style.display = 'block'
         modalElement.style.visibility = 'visible'
@@ -5317,5 +5434,53 @@ function getTaskStatusBadge(status) {
         'overdue': '<span class="badge bg-danger">Quá hạn</span>'
     }
     return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
+}
+
+// Hàm debug để kiểm tra modal
+function debugModal(modalId) {
+    const modal = document.getElementById(modalId)
+    if (!modal) {
+        console.error(`Modal ${modalId} not found`)
+        return
+    }
+    
+    console.log(`=== Debug Modal ${modalId} ===`)
+    console.log('Modal element:', modal)
+    console.log('Display style:', modal.style.display)
+    console.log('Visibility style:', modal.style.visibility)
+    console.log('Z-index style:', modal.style.zIndex)
+    console.log('Classes:', modal.className)
+    
+    const computedStyle = window.getComputedStyle(modal)
+    console.log('Computed display:', computedStyle.display)
+    console.log('Computed visibility:', computedStyle.visibility)
+    console.log('Computed z-index:', computedStyle.zIndex)
+    console.log('Computed position:', computedStyle.position)
+    
+    const backdrop = document.querySelector('.modal-backdrop')
+    console.log('Backdrop element:', backdrop)
+    if (backdrop) {
+        console.log('Backdrop display:', backdrop.style.display)
+        console.log('Backdrop z-index:', backdrop.style.zIndex)
+    }
+    
+    const rect = modal.getBoundingClientRect()
+    console.log('Modal position:', {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        visible: rect.width > 0 && rect.height > 0
+    })
+    
+    console.log('=== End Debug ===')
+}
+
+// Gọi debug khi click nút
+function debugEmployeesModal() {
+    showEmployeesList()
+    setTimeout(() => {
+        debugModal('employeesModal')
+    }, 200)
 }
 

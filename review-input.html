@@ -373,12 +373,23 @@
             // Lấy thông tin beta task nếu có
             const betaTaskId = urlParams.get('betaTaskId')
             const betaTaskAssignee = urlParams.get('betaTaskAssignee')
+            
+            console.log('URL parameters:', {
+                taskId: taskId,
+                mode: mode,
+                betaTaskId: betaTaskId,
+                betaTaskAssignee: betaTaskAssignee,
+                fullUrl: window.location.href
+            })
+            
             if (betaTaskId && betaTaskAssignee) {
                 betaTaskInfo = {
                     id: betaTaskId,
                     assignee_id: betaTaskAssignee
                 }
                 console.log('Beta task info from URL:', betaTaskInfo)
+            } else {
+                console.log('No beta task info found in URL')
             }
             
             if (!taskId) {
@@ -433,8 +444,24 @@
                 
                 currentTask = taskData
                 
+                console.log('Task info loaded:', {
+                    taskId: currentTask.id,
+                    taskName: currentTask.name,
+                    taskType: currentTask.task_type,
+                    assigneeId: currentTask.assignee_id,
+                    mode: mode,
+                    betaTaskInfo: betaTaskInfo,
+                    currentUser: currentUser?.id
+                })
+                
                 // Check permissions
-                if (!canAccessTask(currentTask)) {
+                const hasAccess = canAccessTask(currentTask)
+                console.log('Access check result:', {
+                    hasAccess: hasAccess,
+                    canViewReview: mode === 'view' ? canViewReviewContent(currentTask) : 'N/A'
+                })
+                
+                if (!hasAccess) {
                     showNotification('Bạn không có quyền truy cập task này', 'error')
                     setTimeout(() => goBack(), 2000)
                     return
@@ -467,6 +494,12 @@
             
             // Employee chỉ có thể truy cập task được phân công cho mình
             if (currentUser.role === 'employee') {
+                // Nếu là mode view và có thông tin beta task, kiểm tra quyền xem review content
+                if (mode === 'view' && betaTaskInfo) {
+                    return canViewReviewContent(task)
+                }
+                
+                // Nếu không phải mode view, kiểm tra quyền chỉnh sửa (task được phân công cho mình)
                 return task.assignee_id === currentUser.id
             }
             
@@ -475,15 +508,28 @@
         
         // Function kiểm tra quyền xem review content (cho mode view)
         function canViewReviewContent(task) {
-            if (!currentUser) return false
+            console.log('canViewReviewContent called with:', {
+                task: task,
+                currentUser: currentUser,
+                mode: mode,
+                betaTaskInfo: betaTaskInfo
+            })
+            
+            if (!currentUser) {
+                console.log('No current user')
+                return false
+            }
             
             // Boss và Manager có thể xem mọi task
             if (currentUser.role === 'boss' || currentUser.role === 'manager') {
+                console.log('Permission granted: Boss/Manager')
                 return true
             }
             
             // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
             if (currentUser.role === 'employee') {
+                console.log('Checking permission for employee:', currentUser.id)
+                
                 // Nếu có thông tin beta task từ URL parameters, sử dụng trực tiếp
                 if (betaTaskInfo && betaTaskInfo.assignee_id === currentUser.id) {
                     console.log('Permission granted via URL parameters:', {
@@ -494,6 +540,8 @@
                     return true
                 }
                 
+                console.log('No permission via URL parameters, checking fallback...')
+                
                 // Fallback: Tìm task beta có parent_task_id trỏ đến task review này
                 // Lấy tasks từ localStorage hoặc window object
                 let betaTasks = []
@@ -501,11 +549,15 @@
                     // Thử lấy từ window object trước (nếu được truyền từ trang chính)
                     if (window.tasks && Array.isArray(window.tasks)) {
                         betaTasks = window.tasks
+                        console.log('Using window.tasks:', betaTasks.length)
                     } else {
                         // Nếu không có, thử lấy từ localStorage
                         const savedTasks = localStorage.getItem('tasks')
                         if (savedTasks) {
                             betaTasks = JSON.parse(savedTasks)
+                            console.log('Using localStorage tasks:', betaTasks.length)
+                        } else {
+                            console.log('No tasks found in localStorage')
                         }
                     }
                 } catch (error) {
@@ -531,6 +583,7 @@
                 return !!relatedBetaTask
             }
             
+            console.log('No permission: not employee')
             return false
         }
         

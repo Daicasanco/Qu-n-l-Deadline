@@ -41,6 +41,7 @@ let tasks = []
 let employees = []
 let filteredProjects = []
 let currentProjectId = null
+let currentEditingTaskId = null
 
 // Project Reporting Functions
 let currentReportData = null
@@ -68,6 +69,11 @@ function showProjectsView() {
     
     // Update UI to show/hide buttons based on current view
     updateUserInterface()
+}
+
+// Open guest content page
+function openGuestContentPage() {
+    window.open('guest-content.html', '_blank');
 }
 
 function showTasksView(projectId) {
@@ -399,6 +405,12 @@ function updateUserInterface() {
         const viewActivityHistoryBtn = document.getElementById('viewActivityHistoryBtn')
         if (viewActivityHistoryBtn) {
             viewActivityHistoryBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
+        }
+        
+        // Show guest content button for managers and bosses
+        const guestContentBtn = document.getElementById('guestContentBtn')
+        if (guestContentBtn) {
+            guestContentBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
         }
         
         // Show/hide announcement edit button for managers and bosses
@@ -906,6 +918,7 @@ async function deleteProject(id) {
 
 // Task Management
 async function addTask() {
+    currentEditingTaskId = null // Reset current editing task ID
     console.log('addTask() called')
     console.log('currentUser:', currentUser)
     console.log('currentTaskType:', currentTaskType)
@@ -940,7 +953,7 @@ async function addTask() {
     try {
         // Get additional form values
         const description = document.getElementById('taskDescription')?.value || ''
-        const submissionLink = document.getElementById('taskSubmissionLink')?.value || ''
+        const submissionLink = '' // Không còn lấy từ form, sẽ được cập nhật từ trang review input
         const betaLink = document.getElementById('taskBetaLink')?.value || ''
         const assigneeId = document.getElementById('taskAssignee')?.value || null
         const dialogueChars = document.getElementById('taskDialogueChars')?.value || null
@@ -1237,6 +1250,7 @@ async function unclaimTask(taskId) {
 }
 
 async function editTask(id) {
+    currentEditingTaskId = id // Set current editing task ID
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
@@ -1261,7 +1275,8 @@ async function editTask(id) {
     setVal('taskDeadline', task.deadline ? task.deadline.slice(0, 16) : '')
     setVal('taskPriority', task.priority || '')
     setVal('taskStatus', task.status || '')
-    setVal('taskSubmissionLink', task.submission_link || '')
+    // Cập nhật nút review input thay vì trường submission link
+    updateReviewInputButton(task.submission_link || '')
     setVal('taskBetaLink', task.beta_link || '')
     setVal('taskDialogueChars', task.dialogue_chars || '')
     setVal('taskTotalChars', task.total_chars || '')
@@ -1340,8 +1355,8 @@ async function updateTask() {
     const assigneeId = document.getElementById('taskAssignee').value
     const status = document.getElementById('taskStatus').value
     
-    // New fields
-    const submissionLink = document.getElementById('taskSubmissionLink').value
+    // New fields - submission link giờ được lưu từ trang review input
+    const submissionLink = '' // Không còn lấy từ form, sẽ được cập nhật từ trang review input
     const betaLink = document.getElementById('taskBetaLink').value
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
@@ -1720,7 +1735,32 @@ function renderTasksTable() {
         // Lấy rank và màu sắc cho người thực hiện
         const assigneeRank = getEmployeeRank(task.assignee_id)
         const assigneeColorClass = getAssigneeColorClass(assigneeRank)
-        const submissionLink = task.submission_link ? `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Xem</a>` : '<span class="text-muted">-</span>'
+        // Hiển thị nội dung review thay vì link
+        let reviewContentDisplay = '<span class="text-muted">-</span>'
+        if (task.submission_link && task.submission_link.trim()) {
+            if (task.submission_link.startsWith('http')) {
+                // Nếu vẫn là link cũ, hiển thị link
+                reviewContentDisplay = `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Link cũ</a>`
+            } else {
+                // Nếu là nội dung text, hiển thị preview và nút xem
+                const preview = task.submission_link.length > 50 ? 
+                    task.submission_link.substring(0, 50) + '...' : 
+                    task.submission_link
+                reviewContentDisplay = `
+                    <div class="d-flex flex-column gap-1">
+                        <small class="text-muted">${preview}</small>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary btn-sm" onclick="viewReviewContent('${task.id}')" title="Xem nội dung">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="editReviewData('${task.id}')" title="Chỉnh sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                `
+            }
+        }
         const dialogueChars = task.dialogue_chars ? `<span class="badge badge-gradient-blue">${task.dialogue_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         const totalChars = task.total_chars ? `<span class="badge badge-gradient-green">${task.total_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
         const rvChars = task.rv_chars ? `<span class="badge badge-gradient-yellow">${task.rv_chars.toLocaleString()}</span>` : '<span class="text-muted">-</span>'
@@ -1778,7 +1818,7 @@ function renderTasksTable() {
             <td><strong>${task.name}</strong></td>
             <td>${getTaskStatusBadge(task.status)}</td>
             <td>${getPriorityBadge(task.priority)}</td>
-            <td>${submissionLink}</td>
+            <td>${reviewContentDisplay}</td>
             <td>${dialogueChars}</td>
             <td>${totalChars}</td>
             <td>${rvChars}</td>
@@ -3904,6 +3944,56 @@ function inputBetaData(taskId) {
 
 function editBetaData(taskId) {
     window.open(`beta-input.html?taskId=${taskId}&mode=edit`, '_blank')
+}
+
+// Review Input Functions
+function openReviewInputPage(taskId) {
+    const id = taskId || currentEditingTaskId
+    if (!id) {
+        showNotification('Vui lòng chọn task để nhập nội dung review', 'error')
+        return
+    }
+    window.open(`review-input.html?taskId=${id}&mode=input`, '_blank')
+}
+
+function editReviewData(taskId) {
+    window.open(`review-input.html?taskId=${taskId}&mode=edit`, '_blank')
+}
+
+function viewReviewContent(taskId) {
+    window.open(`review-input.html?taskId=${taskId}&mode=view`, '_blank')
+}
+
+// Function để cập nhật nút review input
+function updateReviewInputButton(submissionLink) {
+    const openReviewBtn = document.getElementById('openReviewInputBtn')
+    const viewReviewBtn = document.getElementById('viewReviewContentBtn')
+    
+    if (submissionLink && submissionLink.trim()) {
+        if (submissionLink.startsWith('http')) {
+            // Nếu vẫn là link cũ
+            openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Chuyển sang nhập nội dung'
+            openReviewBtn.className = 'btn btn-outline-warning'
+            openReviewBtn.onclick = () => {
+                if (confirm('Bạn có muốn chuyển từ link sang nhập nội dung trực tiếp không?')) {
+                    openReviewInputPage(currentEditingTaskId)
+                }
+            }
+            viewReviewBtn.style.display = 'none'
+        } else {
+            // Nếu đã là nội dung text
+            openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Chỉnh sửa nội dung'
+            openReviewBtn.className = 'btn btn-outline-primary'
+            openReviewBtn.onclick = () => editReviewData(currentEditingTaskId)
+            viewReviewBtn.style.display = 'inline-block'
+        }
+    } else {
+        // Nếu chưa có nội dung
+        openReviewBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Nhập nội dung Review'
+        openReviewBtn.className = 'btn btn-outline-primary'
+        openReviewBtn.onclick = () => openReviewInputPage(currentEditingTaskId)
+        viewReviewBtn.style.display = 'none'
+    }
 }
 
 // Download Beta Files Functions

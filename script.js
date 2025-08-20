@@ -3185,7 +3185,7 @@ function renderBetaTasksTable() {
                     reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
                 } else {
                     // Nếu là nội dung text, hiển thị nút xem review content
-                    reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}')" title="Xem nội dung Review">
+                    reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
                         <i class="fas fa-eye"></i> Xem Review
                     </button>`
                 }
@@ -3978,54 +3978,91 @@ function editReviewData(taskId) {
     window.open(`review-input.html?taskId=${taskId}&mode=edit`, '_blank')
 }
 
-function viewReviewContent(taskId) {
+async function viewReviewContent(taskId) {
     console.log('viewReviewContent called with taskId:', taskId)
+    console.log('Current tasks array length:', tasks.length)
+    console.log('Current tasks:', tasks)
     
-    // Tìm task (có thể là beta task hoặc RV task)
-    const task = tasks.find(t => t.id === taskId)
-    if (!task) {
-        console.error('Task not found:', taskId)
-        showNotification('Không tìm thấy task', 'error')
-        return
-    }
-    
-    console.log('Found task:', task)
-    
-    let reviewTaskId = null
-    
-    if (task.task_type === 'beta') {
-        // Nếu là beta task, tìm parent RV task để lấy nội dung review
-        if (!task.parent_task_id) {
-            console.error('Beta task missing parent_task_id:', task)
-            showNotification('Beta task không có parent RV task', 'error')
+    try {
+        // Tìm task trong local data trước
+        let task = tasks.find(t => t.id === taskId)
+        console.log('Task found in local data:', task)
+        
+        // Nếu không tìm thấy trong local data, load từ database
+        if (!task) {
+            console.log('Task not found in local data, loading from database...')
+            const { data: taskData, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('id', taskId)
+                .single()
+            
+            if (error) {
+                console.error('Error loading task from database:', error)
+                showNotification('Lỗi tải thông tin task từ database', 'error')
+                return
+            }
+            
+            task = taskData
+            console.log('Loaded task from database:', task)
+        } else {
+            console.log('Found task in local data:', task)
+        }
+        
+        let reviewTaskId = null
+        
+        if (task.task_type === 'beta') {
+            // Nếu là beta task, tìm parent RV task để lấy nội dung review
+            if (!task.parent_task_id) {
+                console.error('Beta task missing parent_task_id:', task)
+                showNotification('Beta task không có parent RV task', 'error')
+                return
+            }
+            
+            // Tìm parent RV task trong local data hoặc database
+            let parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
+            
+            if (!parentRVTask) {
+                console.log('Parent RV task not found in local data, loading from database...')
+                const { data: parentTaskData, error: parentError } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .eq('id', task.parent_task_id)
+                    .eq('task_type', 'rv')
+                    .single()
+                
+                if (parentError) {
+                    console.error('Error loading parent RV task from database:', parentError)
+                    showNotification('Lỗi tải thông tin parent RV task', 'error')
+                    return
+                }
+                
+                parentRVTask = parentTaskData
+                console.log('Loaded parent RV task from database:', parentRVTask)
+            }
+            
+            reviewTaskId = parentRVTask.id
+            
+        } else if (task.task_type === 'rv') {
+            // Nếu là RV task, sử dụng trực tiếp
+            console.log('Task is RV task, using directly')
+            reviewTaskId = task.id
+            
+        } else {
+            console.error('Task is neither beta nor RV:', task.task_type)
+            showNotification('Task không phải là beta hoặc RV task', 'error')
             return
         }
         
-        const parentRVTask = tasks.find(t => t.id === task.parent_task_id && t.task_type === 'rv')
-        if (!parentRVTask) {
-            console.error('Parent RV task not found:', task.parent_task_id)
-            showNotification('Không tìm thấy parent RV task', 'error')
-            return
-        }
+        console.log('Opening review page with taskId:', reviewTaskId, 'mode: view')
         
-        console.log('Found parent RV task:', parentRVTask)
-        reviewTaskId = parentRVTask.id
+        // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
+        window.open(`review-input.html?taskId=${reviewTaskId}&mode=view`, '_blank')
         
-    } else if (task.task_type === 'rv') {
-        // Nếu là RV task, sử dụng trực tiếp
-        console.log('Task is RV task, using directly')
-        reviewTaskId = task.id
-        
-    } else {
-        console.error('Task is neither beta nor RV:', task.task_type)
-        showNotification('Task không phải là beta hoặc RV task', 'error')
-        return
+    } catch (error) {
+        console.error('Error in viewReviewContent:', error)
+        showNotification('Lỗi xử lý yêu cầu xem review: ' + error.message, 'error')
     }
-    
-    console.log('Opening review page with taskId:', reviewTaskId, 'mode: view')
-    
-    // Mở trang xem review content với mode 'view' (chỉ xem, không chỉnh sửa)
-    window.open(`review-input.html?taskId=${reviewTaskId}&mode=view`, '_blank')
 }
 
 // Function để cập nhật nút review input

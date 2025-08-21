@@ -727,6 +727,22 @@
         
         async function loadExistingContent() {
             try {
+                // Thử đọc nội dung từ bảng task_content trước
+                const { data: contentData, error: contentError } = await supabase
+                    .from('task_content')
+                    .select('content')
+                    .eq('task_id', parseInt(taskId)) // Đảm bảo task_id là INTEGER
+                    .eq('content_type', 'review')
+                    .single()
+                
+                if (contentData && contentData.content) {
+                    // Nếu có nội dung trong task_content, sử dụng nó
+                    document.getElementById('reviewContent').value = contentData.content
+                    updateWordCount()
+                    return
+                }
+                
+                // Fallback: kiểm tra submission_link cũ (backward compatibility)
                 if (currentTask.submission_link) {
                     // Check if submission_link is a URL or direct content
                     if (currentTask.submission_link.startsWith('http')) {
@@ -745,8 +761,8 @@
                             // If fetch fails (CORS, network error, etc.), treat as direct content
                             document.getElementById('reviewContent').value = currentTask.submission_link
                         }
-                    } else {
-                        // If it's direct content (not a URL)
+                    } else if (currentTask.submission_link !== '[CONTENT_SAVED]') {
+                        // If it's direct content (not a URL and not the marker)
                         document.getElementById('reviewContent').value = currentTask.submission_link
                     }
                     updateWordCount()
@@ -871,16 +887,28 @@
             saveSpinner.classList.add('show')
             
             try {
-                // Update task in database with the content
-                const { error } = await supabase
+                // Lưu nội dung vào bảng task_content thay vì submission_link
+                const { error: upsertError } = await supabase
+                    .from('task_content')
+                    .upsert({
+                        task_id: parseInt(taskId), // Đảm bảo task_id là INTEGER
+                        content_type: 'review',
+                        content: content,
+                        updated_at: new Date().toISOString()
+                    })
+                
+                if (upsertError) throw upsertError
+                
+                // Cập nhật submission_link với một marker để biết có nội dung
+                const { error: updateError } = await supabase
                     .from('tasks')
                     .update({
-                        submission_link: content,
+                        submission_link: '[CONTENT_SAVED]',
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', taskId)
                 
-                if (error) throw error
+                if (updateError) throw updateError
                 
                 showNotification('Lưu nội dung task review thành công!', 'success')
                 

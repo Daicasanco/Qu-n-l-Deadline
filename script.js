@@ -1197,7 +1197,7 @@ async function editTask(id) {
     setVal('taskBetaNotes', task.beta_notes || '')
         
         // Tự động cập nhật số chữ nếu có nội dung
-        if (task.submission_link && !task.submission_link.startsWith('http')) {
+        if (task.submission_link && !task.submission_link.startsWith('http') && task.submission_link !== '[CONTENT_SAVED]') {
             const reviewWordCount = task.submission_link.trim().split(/\s+/).length
             setVal('taskTotalChars', reviewWordCount)
         }
@@ -1646,8 +1646,8 @@ function renderTasksTable() {
             if (task.submission_link.startsWith('http')) {
                 // Nếu vẫn là link cũ, hiển thị link
                 reviewContentDisplay = `<a href="${task.submission_link}" target="_blank" class="text-primary"><i class="fas fa-external-link-alt me-1"></i>Link cũ</a>`
-            } else {
-                // Nếu là nội dung text, chỉ hiển thị nút chỉnh sửa (chỉ cho người có quyền)
+            } else if (task.submission_link === '[CONTENT_SAVED]' || task.submission_link.length > 100) {
+                // Nếu là marker hoặc nội dung dài, hiển thị nút chỉnh sửa (chỉ cho người có quyền)
                 const canEditReview = canEditReviewContent(task)
                 let editButton = ''
                 
@@ -1660,6 +1660,23 @@ function renderTasksTable() {
                 reviewContentDisplay = `
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-success">Đã có nội dung</span>
+                        ${editButton}
+                    </div>
+                `
+            } else if (task.submission_link.length <= 100) {
+                // Nếu là nội dung ngắn (cũ), hiển thị preview
+                const canEditReview = canEditReviewContent(task)
+                let editButton = ''
+                
+                if (canEditReview) {
+                    editButton = `<button class="btn btn-outline-warning btn-sm" onclick="editReviewData('${task.id}')" title="Chỉnh sửa">
+                        <i class="fas fa-edit"></i>
+                    </button>`
+                }
+                
+                reviewContentDisplay = `
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-info">${task.submission_link.substring(0, 30)}${task.submission_link.length > 30 ? '...' : ''}</span>
                         ${editButton}
                     </div>
                 `
@@ -3155,10 +3172,22 @@ function renderBetaTasksTable() {
                 if (parentRVTask.submission_link.startsWith('http')) {
                     // Nếu vẫn là link cũ
                     reviewContentDisplay = `<a href="${parentRVTask.submission_link}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Xem RV</a>`
-            } else {
-                    // Kiểm tra quyền xem review content
+                } else if (parentRVTask.submission_link === '[CONTENT_SAVED]') {
+                    // Nếu là marker, kiểm tra quyền xem review content
                     const canViewReview = canViewReviewContent(task)
-
+                    
+                    if (canViewReview) {
+                        // Nếu có quyền xem, hiển thị nút xem review content
+                        reviewContentDisplay = `<button class="btn btn-sm btn-outline-info" onclick="viewReviewContent('${task.id}').catch(console.error)" title="Xem nội dung Review">
+                            <i class="fas fa-eye"></i> Xem Review
+                        </button>`
+                    } else {
+                        // Nếu không có quyền xem, hiển thị thông báo
+                        reviewContentDisplay = '<span class="text-muted">Không có quyền xem</span>'
+                    }
+                } else {
+                    // Nếu là nội dung cũ (backward compatibility)
+                    const canViewReview = canViewReviewContent(task)
                     
                     if (canViewReview) {
                         // Nếu có quyền xem, hiển thị nút xem review content
@@ -3170,11 +3199,7 @@ function renderBetaTasksTable() {
                         reviewContentDisplay = '<span class="text-muted">Không có quyền xem</span>'
                     }
                 }
-            } else {
-
             }
-        } else {
-
         }
         
         // Format Beta link với phân quyền mới
@@ -4263,7 +4288,25 @@ async function downloadMergedReviewFiles(taskIds, fileFormat = 'doc') {
     let mergedContent = '';
 
     for (const task of reviewTasks) {
-        if (task.submission_link && !task.submission_link.startsWith('http')) {
+        try {
+            // Thử đọc nội dung từ task_content trước
+            const { data: contentData } = await supabase
+                .from('task_content')
+                .select('content')
+                .eq('task_id', task.id)
+                .eq('content_type', 'review')
+                .single()
+            
+            if (contentData && contentData.content) {
+                mergedContent += contentData.content + '\n\n';
+                continue;
+            }
+        } catch (error) {
+            console.warn(`Không thể đọc nội dung từ task_content cho task ${task.id}:`, error);
+        }
+        
+        // Fallback: nếu không có nội dung trong task_content, thử submission_link cũ
+        if (task.submission_link && !task.submission_link.startsWith('http') && task.submission_link !== '[CONTENT_SAVED]') {
             mergedContent += task.submission_link + '\n\n';
         }
     }
@@ -4314,7 +4357,24 @@ async function downloadSeparateReviewFiles(taskIds, fileFormat = 'doc') {
             let content = ''
             let fileName, blob
             
-            if (task.submission_link && !task.submission_link.startsWith('http')) {
+            // Thử đọc nội dung từ task_content trước
+            try {
+                const { data: contentData } = await supabase
+                    .from('task_content')
+                    .select('content')
+                    .eq('task_id', task.id)
+                    .eq('content_type', 'review')
+                    .single()
+                
+                if (contentData && contentData.content) {
+                    content = contentData.content
+                }
+            } catch (error) {
+                console.warn(`Không thể đọc nội dung từ task_content cho task ${task.id}:`, error)
+            }
+            
+            // Fallback: nếu không có nội dung trong task_content, thử submission_link cũ
+            if (!content && task.submission_link && !task.submission_link.startsWith('http') && task.submission_link !== '[CONTENT_SAVED]') {
                 content = task.submission_link
             }
             

@@ -888,6 +888,7 @@
             
             try {
                 // Lưu nội dung vào bảng task_content thay vì submission_link
+                // Sử dụng upsert với onConflict để xử lý trường hợp đã tồn tại
                 const { error: upsertError } = await supabase
                     .from('task_content')
                     .upsert({
@@ -895,6 +896,8 @@
                         content_type: 'review',
                         content: content,
                         updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'task_id,content_type'
                     })
                 
                 if (upsertError) throw upsertError

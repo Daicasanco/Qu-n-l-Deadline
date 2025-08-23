@@ -1177,6 +1177,9 @@ async function editTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
+    // Khôi phục form data nếu có
+    restoreFormData()
+    
     // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
     if (currentUser.role === 'employee') {
         const project = projects.find(p => p.id === task.project_id)
@@ -1370,14 +1373,21 @@ async function updateTask() {
                 modal.hide()
             }
             
-            // Re-render table after modal is closed
-            setTimeout(() => {
-                if (currentTaskType === 'beta') {
-                    renderBetaTasksTable()
-                } else {
-                    renderTasksTable()
-                }
-            }, 100)
+            // Chỉ re-render bảng nếu không có form nào khác đang mở
+            // Điều này giúp tránh reset form ở các trang khác
+            const isReviewInputOpen = window.opener && window.opener.location.href.includes('review-input.html')
+            const isBetaInputOpen = window.opener && window.opener.location.href.includes('beta-input.html')
+            
+            if (!isReviewInputOpen && !isBetaInputOpen) {
+                // Re-render table after modal is closed
+                setTimeout(() => {
+                    if (currentTaskType === 'beta') {
+                        renderBetaTasksTable()
+                    } else {
+                        renderTasksTable()
+                    }
+                }, 100)
+            }
             
             showNotification('Cập nhật công việc thành công!', 'success')
             
@@ -1505,11 +1515,18 @@ async function changeTaskStatus(id, newStatus) {
                 tasks[taskIndex] = updatedTask
             }
             
-            // Re-render appropriate table
-            if (currentTaskType === 'beta') {
-                renderBetaTasksTable()
-            } else {
-                renderTasksTable()
+            // Chỉ re-render bảng nếu không có form nào khác đang mở
+            // Điều này giúp tránh reset form ở các trang khác
+            const isReviewInputOpen = window.opener && window.opener.location.href.includes('review-input.html')
+            const isBetaInputOpen = window.opener && window.opener.location.href.includes('beta-input.html')
+            
+            if (!isReviewInputOpen && !isBetaInputOpen) {
+                // Re-render appropriate table
+                if (currentTaskType === 'beta') {
+                    renderBetaTasksTable()
+                } else {
+                    renderTasksTable()
+                }
             }
         } else {
             showNotification('Không thể cập nhật trạng thái', 'error')
@@ -1518,6 +1535,117 @@ async function changeTaskStatus(id, newStatus) {
     } catch (error) {
         console.error('Error updating task status:', error)
         showNotification('Lỗi cập nhật trạng thái', 'error')
+    }
+}
+
+// Hàm chỉ cập nhật trạng thái task mà không ảnh hưởng đến form
+async function updateTaskStatusOnly(id, newStatus) {
+    const task = tasks.find(t => t.id === id)
+    if (!task) return
+    
+    // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
+    if (currentUser.role === 'employee') {
+        const project = projects.find(p => p.id === task.project_id)
+        if (project && project.status === 'completed') {
+            showNotification('Không thể thay đổi trạng thái Deadline trong truyện đã hoàn thành', 'error')
+            return
+        }
+    }
+    
+    // Check permissions - Boss, Manager, hoặc người đang làm task
+    if (!canOperateOnTask(task)) {
+        showNotification('Bạn không có quyền thay đổi trạng thái công việc này', 'error')
+        return
+    }
+    
+    try {
+        const { data, error } = await supabase
+            .from('tasks')
+            .update({
+                status: newStatus,
+                started_at: newStatus === 'in-progress' ? new Date().toISOString() : null,
+                completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+        
+        if (error) throw error
+        
+        if (data && data.length > 0) {
+            showNotification('Cập nhật trạng thái thành công!', 'success')
+            
+            // Cập nhật local data ngay lập tức
+            const updatedTask = data[0]
+            const taskIndex = tasks.findIndex(t => t.id === id)
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = updatedTask
+            }
+            
+            // KHÔNG re-render bảng để tránh reset form
+            // Chỉ cập nhật trạng thái hiển thị nếu cần
+            
+        } else {
+            showNotification('Không thể cập nhật trạng thái', 'error')
+        }
+        
+    } catch (error) {
+        console.error('Error updating task status:', error)
+        showNotification('Lỗi cập nhật trạng thái', 'error')
+    }
+}
+
+// Hàm bảo vệ form data khỏi bị reset
+function protectFormData() {
+    // Lưu form data vào localStorage trước khi có thay đổi
+    const formData = {
+        taskName: document.getElementById('taskName')?.value || '',
+        taskDescription: document.getElementById('taskDescription')?.value || '',
+        taskDeadline: document.getElementById('taskDeadline')?.value || '',
+        taskPriority: document.getElementById('taskPriority')?.value || '',
+        taskAssignee: document.getElementById('taskAssignee')?.value || '',
+        taskBetaLink: document.getElementById('taskBetaLink')?.value || '',
+        taskDialogueChars: document.getElementById('taskDialogueChars')?.value || '',
+        taskTotalChars: document.getElementById('taskTotalChars')?.value || '',
+        taskRVChars: document.getElementById('taskRVChars')?.value || '',
+        taskBetaChars: document.getElementById('taskBetaChars')?.value || '',
+        taskRate: document.getElementById('taskRate')?.value || '',
+        taskBetaRate: document.getElementById('taskBetaRate')?.value || '',
+        taskNotes: document.getElementById('taskNotes')?.value || '',
+        taskBetaNotes: document.getElementById('taskBetaNotes')?.value || ''
+    }
+    
+    localStorage.setItem('protectedFormData', JSON.stringify(formData))
+}
+
+// Hàm khôi phục form data
+function restoreFormData() {
+    const savedData = localStorage.getItem('protectedFormData')
+    if (savedData) {
+        try {
+            const formData = JSON.parse(savedData)
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            
+            setVal('taskName', formData.taskName)
+            setVal('taskDescription', formData.taskDescription)
+            setVal('taskDeadline', formData.taskDeadline)
+            setVal('taskPriority', formData.taskPriority)
+            setVal('taskAssignee', formData.taskAssignee)
+            setVal('taskBetaLink', formData.taskBetaLink)
+            setVal('taskDialogueChars', formData.taskDialogueChars)
+            setVal('taskTotalChars', formData.taskTotalChars)
+            setVal('taskRVChars', formData.taskRVChars)
+            setVal('taskBetaChars', formData.taskBetaChars)
+            setVal('taskRate', formData.taskRate)
+            setVal('taskBetaRate', formData.taskBetaRate)
+            setVal('taskNotes', formData.taskNotes)
+            setVal('taskBetaNotes', formData.taskBetaNotes)
+            
+            // Xóa dữ liệu đã lưu
+            localStorage.removeItem('protectedFormData')
+        } catch (error) {
+            console.error('Error restoring form data:', error)
+        }
     }
 }
 
@@ -2299,6 +2427,33 @@ function setupEventListeners() {
             }
         })
     }
+    
+    // Task status dropdown event listener - cập nhật trạng thái mà không reset form
+    const taskStatusSelect = document.getElementById('taskStatus')
+    if (taskStatusSelect) {
+        taskStatusSelect.addEventListener('change', function() {
+            const taskId = document.getElementById('taskId').value
+            if (taskId && this.value) {
+                // Bảo vệ form data trước khi cập nhật
+                protectFormData()
+                // Sử dụng hàm chỉ cập nhật trạng thái mà không reset form
+                updateTaskStatusOnly(parseInt(taskId), this.value)
+            }
+        })
+    }
+    
+    // Bảo vệ form data khi có thay đổi
+    const formInputs = ['taskName', 'taskDescription', 'taskDeadline', 'taskPriority', 'taskAssignee', 
+                        'taskBetaLink', 'taskDialogueChars', 'taskTotalChars', 'taskRVChars', 
+                        'taskBetaChars', 'taskRate', 'taskBetaRate', 'taskNotes', 'taskBetaNotes']
+    
+    formInputs.forEach(inputId => {
+        const input = document.getElementById(inputId)
+        if (input) {
+            input.addEventListener('input', protectFormData)
+            input.addEventListener('change', protectFormData)
+        }
+    })
 }
 
 function checkOverdueTasks() {

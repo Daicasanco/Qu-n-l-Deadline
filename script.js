@@ -5511,6 +5511,46 @@ function addNewEmployeeRate() {
     modal.show()
 }
 
+// Kiểm tra xem nhân viên đã có rate chưa
+async function checkEmployeeRateExists(employeeId) {
+    try {
+        const { data, error } = await supabase
+            .from('employee_rates')
+            .select('id, rv_rate, beta_rate')
+            .eq('employee_id', employeeId)
+            .single()
+        
+        if (error && error.code !== 'PGRST116') {
+            throw error
+        }
+        
+        return data || null
+    } catch (error) {
+        console.error('Error checking employee rate:', error)
+        return null
+    }
+}
+
+// Kiểm tra xem dự án đã có rate chưa
+async function checkProjectRateExists(projectId) {
+    try {
+        const { data, error } = await supabase
+            .from('project_rates')
+            .select('id, rv_rate, beta_rate')
+            .eq('project_id', projectId)
+            .single()
+        
+        if (error && error.code !== 'PGRST116') {
+            throw error
+        }
+        
+        return data || null
+    } catch (error) {
+        console.error('Error checking project rate:', error)
+        return null
+    }
+}
+
 // Populate employee select trong modal rate
 async function populateEmployeeRateSelect() {
     try {
@@ -5557,7 +5597,7 @@ async function saveEmployeeRate() {
 
         let result
         if (rateId) {
-            // Update existing rate
+            // Update existing rate by ID
             result = await supabase
                 .from('employee_rates')
                 .update({
@@ -5567,14 +5607,29 @@ async function saveEmployeeRate() {
                 })
                 .eq('id', rateId)
         } else {
-            // Insert new rate
-            result = await supabase
-                .from('employee_rates')
-                .insert({
-                    employee_id: employeeId,
-                    rv_rate: rvRate,
-                    beta_rate: betaRate
-                })
+            // Check if employee already has a rate
+            const existingRate = await checkEmployeeRateExists(employeeId)
+            
+            if (existingRate) {
+                // Update existing rate
+                result = await supabase
+                    .from('employee_rates')
+                    .update({
+                        rv_rate: rvRate,
+                        beta_rate: betaRate,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existingRate.id)
+            } else {
+                // Insert new rate
+                result = await supabase
+                    .from('employee_rates')
+                    .insert({
+                        employee_id: employeeId,
+                        rv_rate: rvRate,
+                        beta_rate: betaRate
+                    })
+            }
         }
 
         if (result.error) throw result.error
@@ -5590,7 +5645,16 @@ async function saveEmployeeRate() {
 
     } catch (error) {
         console.error('Error saving employee rate:', error)
-        showNotification('Lỗi khi lưu rate', 'error')
+        
+        // Hiển thị thông báo lỗi chi tiết hơn
+        let errorMessage = 'Lỗi khi lưu rate'
+        if (error.code === '23505') {
+            errorMessage = 'Nhân viên này đã có rate. Vui lòng sửa rate hiện có thay vì thêm mới.'
+        } else if (error.message) {
+            errorMessage = `Lỗi: ${error.message}`
+        }
+        
+        showNotification(errorMessage, 'error')
     }
 }
 
@@ -5728,7 +5792,7 @@ async function saveProjectRate() {
 
         let result
         if (rateId) {
-            // Update existing rate
+            // Update existing rate by ID
             result = await supabase
                 .from('project_rates')
                 .update({
@@ -5738,15 +5802,30 @@ async function saveProjectRate() {
                 })
                 .eq('id', rateId)
         } else {
-            // Insert new rate
-            result = await supabase
-                .from('project_rates')
-                .insert({
-                    project_id: projectId,
-                    rv_rate: rvRate,
-                    beta_rate: betaRate
-                })
+            // Check if project already has a rate
+            const existingRate = await checkProjectRateExists(projectId)
+            
+            if (existingRate) {
+                // Update existing rate
+                result = await supabase
+                    .from('project_rates')
+                    .update({
+                        rv_rate: rvRate,
+                        beta_rate: betaRate,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existingRate.id)
+            } else {
+                // Insert new rate
+                result = await supabase
+                    .from('project_rates')
+                    .insert({
+                        project_id: projectId,
+                        rv_rate: rvRate,
+                        beta_rate: betaRate
+                    })
             }
+        }
 
         if (result.error) throw result.error
 
@@ -5761,7 +5840,16 @@ async function saveProjectRate() {
 
     } catch (error) {
         console.error('Error saving project rate:', error)
-        showNotification('Lỗi khi lưu rate', 'error')
+        
+        // Hiển thị thông báo lỗi chi tiết hơn
+        let errorMessage = 'Lỗi khi lưu rate'
+        if (error.code === '23505') {
+            errorMessage = 'Dự án này đã có rate. Vui lòng sửa rate hiện có thay vì thêm mới.'
+        } else if (error.message) {
+            errorMessage = `Lỗi: ${error.message}`
+        }
+        
+        showNotification(errorMessage, 'error')
     }
 }
 

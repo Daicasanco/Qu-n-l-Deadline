@@ -149,8 +149,8 @@ async function loadDataFromSupabase() {
         // Setup realtime subscriptions
         setupRealtimeSubscriptions()
         
-        // Check for overdue tasks
-        checkOverdueTasks()
+        // Check for overdue tasks - chỉ gọi khi cần thiết
+        // checkOverdueTasks()
         
     } catch (error) {
         console.error('Error loading data from Supabase:', error)
@@ -2241,33 +2241,51 @@ async function refreshData() {
 
 // Event Listeners
 function setupEventListeners() {
-    // Form submissions
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault()
-        login()
-    })
+    // Form submissions - chỉ thêm event listener nếu form tồn tại
+    const loginForm = document.getElementById('loginForm')
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault()
+            login()
+        })
+    }
     
     // Auto-calculate RV chars when dialogue or total chars change
-    document.getElementById('taskDialogueChars').addEventListener('input', calculateRVChars)
-    document.getElementById('taskTotalChars').addEventListener('input', calculateRVChars)
+    const taskDialogueChars = document.getElementById('taskDialogueChars')
+    const taskTotalChars = document.getElementById('taskTotalChars')
+    if (taskDialogueChars) {
+        taskDialogueChars.addEventListener('input', calculateRVChars)
+    }
+    if (taskTotalChars) {
+        taskTotalChars.addEventListener('input', calculateRVChars)
+    }
     
-    document.getElementById('projectForm').addEventListener('submit', function(e) {
-        e.preventDefault()
-        saveProject()
-    })
+    const projectForm = document.getElementById('projectForm')
+    if (projectForm) {
+        projectForm.addEventListener('submit', function(e) {
+            e.preventDefault()
+            saveProject()
+        })
+    }
     
-    document.getElementById('taskForm').addEventListener('submit', function(e) {
-        e.preventDefault()
-        saveTask()
-    })
+    const taskForm = document.getElementById('taskForm')
+    if (taskForm) {
+        taskForm.addEventListener('submit', function(e) {
+            e.preventDefault()
+            saveTask()
+        })
+    }
     
-    document.getElementById('transferForm').addEventListener('submit', function(e) {
-        e.preventDefault()
-        handleTransferTask()
-    })
+    const transferForm = document.getElementById('transferForm')
+    if (transferForm) {
+        transferForm.addEventListener('submit', function(e) {
+            e.preventDefault()
+            handleTransferTask()
+        })
+    }
     
-    // Auto-check overdue tasks
-    setInterval(checkOverdueTasks, 60000) // Check every minute
+    // Auto-check overdue tasks - chỉ gọi khi cần thiết
+    // setInterval(checkOverdueTasks, 60000) // Check every minute
     
     // Bulk rate functionality event listeners
     const rateTargetSelect = document.getElementById('projectRateTarget')
@@ -2300,8 +2318,8 @@ function checkOverdueTasks() {
     }
 }
 
-// Initialize overdue check on load
-checkOverdueTasks() 
+// Initialize overdue check on load - chỉ gọi khi cần thiết
+// checkOverdueTasks() 
 
 // Employee Management Functions
 function showEmployeesList() {
@@ -5329,11 +5347,15 @@ async function loadEmployeeRates() {
             query = query.eq('employee_id', currentUser.id)
         }
         
-        const { data: employeeRates, error } = await query.order('employees.name')
+        const { data: employeeRates, error } = await query.order('id')
 
         if (error) throw error
 
-        renderEmployeeRatesTable(employeeRates || [])
+        // Sắp xếp theo tên nhân viên trong JavaScript
+        const sortedRates = (employeeRates || []).sort((a, b) => 
+            a.employees.name.localeCompare(b.employees.name)
+        )
+        renderEmployeeRatesTable(sortedRates)
     } catch (error) {
         console.error('Error loading employee rates:', error)
         showNotification('Lỗi khi tải danh sách rate nhân viên', 'error')
@@ -5393,11 +5415,15 @@ async function loadProjectRates() {
                     status
                 )
             `)
-            .order('projects.name')
+            .order('id')
 
         if (error) throw error
 
-        renderProjectRatesTable(projectRates || [])
+        // Sắp xếp theo tên dự án trong JavaScript
+        const sortedRates = (projectRates || []).sort((a, b) => 
+            a.projects.name.localeCompare(b.projects.name)
+        )
+        renderProjectRatesTable(sortedRates)
     } catch (error) {
         console.error('Error loading project rates:', error)
         showNotification('Lỗi khi tải danh sách rate dự án', 'error')

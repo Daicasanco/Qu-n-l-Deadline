@@ -207,6 +207,9 @@
             <button class="btn btn-secondary" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i> Làm mới
             </button>
+            <button class="btn btn-primary" id="rateMembersBtn" onclick="showRateMembersModal()" style="display: none;">
+                <i class="fas fa-star"></i> Rate Thành viên
+            </button>
         </div>
 
         <!-- Project Filters -->
@@ -988,6 +991,242 @@
                     <button type="button" class="btn btn-primary" onclick="executeDownload()">
                         <i class="fas fa-download"></i> Tải File
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rate Members Modal -->
+    <div class="modal fade" id="rateMembersModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-star me-2"></i>Quản lý Rate Thành viên
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Rate Management Tabs -->
+                    <ul class="nav nav-tabs mb-3" id="rateManagementTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="employee-rates-tab" data-bs-toggle="tab" data-bs-target="#employee-rates" type="button" role="tab">
+                                <i class="fas fa-users me-2"></i>Rate Nhân viên
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="project-rates-tab" data-bs-toggle="tab" data-bs-target="#project-rates" type="button" role="tab">
+                                <i class="fas fa-project-diagram me-2"></i>Rate Dự án
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bulk-rates-tab" data-bs-toggle="tab" data-bs-target="#bulk-rates" type="button" role="tab">
+                                <i class="fas fa-cogs me-2"></i>Cài đặt Hàng loạt
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="rateManagementTabContent">
+                        <!-- Employee Rates Tab -->
+                        <div class="tab-pane fade show active" id="employee-rates" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6>Rate mặc định của nhân viên</h6>
+                                    <p class="text-muted small">Rate này sẽ được áp dụng khi không có rate riêng cho dự án</p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-success btn-sm" onclick="addNewEmployeeRate()" id="addEmployeeRateBtn" style="display: none;">
+                                        <i class="fas fa-plus me-1"></i>Thêm Rate
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="employeeRatesTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Nhân viên</th>
+                                            <th>Rate RV (VNĐ/1000 chữ)</th>
+                                            <th>Rate Beta (VNĐ/1000 chữ)</th>
+                                            <th>Ngày cập nhật</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employeeRatesTableBody">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Project Rates Tab -->
+                        <div class="tab-pane fade" id="project-rates" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6>Rate mặc định của dự án</h6>
+                                    <p class="text-muted small">Rate này sẽ được áp dụng cho tất cả nhân viên trong dự án (nếu được chọn)</p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-success btn-sm" onclick="addNewProjectRate()" id="addProjectRateBtn" style="display: none;">
+                                        <i class="fas fa-plus me-1"></i>Thêm Rate Dự án
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="projectRatesTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Dự án</th>
+                                            <th>Rate RV (VNĐ/1000 chữ)</th>
+                                            <th>Rate Beta (VNĐ/1000 chữ)</th>
+                                            <th>Ngày cập nhật</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projectRatesTableBody">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Rates Tab -->
+                        <div class="tab-pane fade" id="bulk-rates" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6>Cài đặt Rate hàng loạt</h6>
+                                    <p class="text-muted small">Áp dụng rate cho nhiều nhân viên hoặc dự án cùng lúc</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Áp dụng cho nhân viên</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Chọn nhân viên:</label>
+                                                <select class="form-select" id="bulkEmployeeSelect" multiple>
+                                                    <!-- Will be populated dynamically -->
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Rate RV (VNĐ/1000 chữ):</label>
+                                                <input type="number" class="form-control" id="bulkEmployeeRVRate" min="0" step="0.01">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Rate Beta (VNĐ/1000 chữ):</label>
+                                                <input type="number" class="form-control" id="bulkEmployeeBetaRate" min="0" step="0.01">
+                                            </div>
+                                            <button class="btn btn-primary btn-sm" onclick="applyBulkEmployeeRates()">
+                                                <i class="fas fa-save me-1"></i>Áp dụng
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Áp dụng cho dự án</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Chọn dự án:</label>
+                                                <select class="form-select" id="bulkProjectSelect" multiple>
+                                                    <!-- Will be populated dynamically -->
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Rate RV (VNĐ/1000 chữ):</label>
+                                                <input type="number" class="form-control" id="bulkProjectRVRate" min="0" step="0.01">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Rate Beta (VNĐ/1000 chữ):</label>
+                                                <input type="number" class="form-control" id="bulkProjectBetaRate" min="0" step="0.01">
+                                            </div>
+                                            <button class="btn btn-primary btn-sm" onclick="applyBulkProjectRates()">
+                                                <i class="fas fa-save me-1"></i>Áp dụng
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Employee Rate Modal -->
+    <div class="modal fade" id="employeeRateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="employeeRateModalTitle">Thêm Rate Nhân viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="employeeRateForm">
+                        <input type="hidden" id="employeeRateId">
+                        <div class="mb-3">
+                            <label class="form-label">Nhân viên:</label>
+                            <select class="form-select" id="employeeRateEmployeeSelect" required>
+                                <option value="">Chọn nhân viên...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rate RV (VNĐ/1000 chữ):</label>
+                            <input type="number" class="form-control" id="employeeRateRVRate" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rate Beta (VNĐ/1000 chữ):</label>
+                            <input type="number" class="form-control" id="employeeRateBetaRate" min="0" step="0.01" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEmployeeRate()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Project Rate Modal -->
+    <div class="modal fade" id="projectRateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="projectRateModalTitle">Thêm Rate Dự án</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectRateForm">
+                        <input type="hidden" id="projectRateId">
+                        <div class="mb-3">
+                            <label class="form-label">Dự án:</label>
+                            <select class="form-select" id="projectRateProjectSelect" required>
+                                <option value="">Chọn dự án...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rate RV (VNĐ/1000 chữ):</label>
+                            <input type="number" class="form-control" id="projectRateRVRate" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rate Beta (VNĐ/1000 chữ):</label>
+                            <input type="number" class="form-control" id="projectRateBetaRate" min="0" step="0.01" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProjectRate()">Lưu</button>
                 </div>
             </div>
         </div>

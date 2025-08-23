@@ -1,6 +1,6 @@
 // Supabase Configuration - Thêm API keys trực tiếp vào đây
 const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'              // ← Thay bằng ANON KEY thực
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5Mzc5NDgsImV4cCI6MjA2OTUxMzk0OH0.0VQIXPP5ZfpeFzDpG-lGVFqwZNikn5rb-vQTu5AdUTs'              // ← Thay bằng ANON KEY thực
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -327,6 +327,11 @@ function updateUserInterface() {
         const isInTasksView = tasksView && tasksView.style.display !== 'none'
         addTaskBtn.style.display = (hasManagerOrBossPermissions(currentUser) && isInTasksView) ? 'inline-block' : 'none'
         
+        // Chỉ hiện nút "Rate Thành viên" khi ở trong projects view và là manager hoặc boss
+        const projectsView = document.getElementById('projectsView')
+        const isInProjectsView = projectsView && projectsView.style.display !== 'none'
+        updateRateMembersButton()
+        
 
         
         viewEmployeesBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'inline-block' : 'none'
@@ -349,6 +354,9 @@ function updateUserInterface() {
             editAnnouncementBtn.style.display = hasManagerOrBossPermissions(currentUser) ? 'block' : 'none'
         }
         
+        // Show/hide rate members button for managers and bosses
+        updateRateMembersButton()
+        
         // Show main content and hide login message
         if (mainContent) mainContent.style.display = 'block'
         if (loginMessage) loginMessage.style.display = 'none'
@@ -369,6 +377,12 @@ function updateUserInterface() {
         const viewActivityHistoryBtn = document.getElementById('viewActivityHistoryBtn')
         if (viewActivityHistoryBtn) {
             viewActivityHistoryBtn.style.display = 'none'
+        }
+        
+        // Hide rate members button
+        const rateMembersBtn = document.getElementById('rateMembersBtn')
+        if (rateMembersBtn) {
+            rateMembersBtn.style.display = 'none'
         }
         
         // Hide main content and show login message
@@ -5277,4 +5291,738 @@ function getTaskStatusBadge(status) {
         'overdue': '<span class="badge bg-danger">Quá hạn</span>'
     }
     return statusMap[status] || '<span class="badge bg-secondary">N/A</span>'
+}
+
+// ==================== RATE MEMBERS FUNCTIONS ====================
+
+// Hiển thị modal rate thành viên
+function showRateMembersModal() {
+    const modal = new bootstrap.Modal(document.getElementById('rateMembersModal'))
+    modal.show()
+    
+    // Cập nhật hiển thị các button dựa trên quyền
+    updateRateModalButtons()
+    
+    // Load dữ liệu rate
+    loadEmployeeRates()
+    loadProjectRates()
+    loadBulkRateOptions()
+}
+
+// Load danh sách rate nhân viên
+async function loadEmployeeRates() {
+    try {
+        let query = supabase
+            .from('employee_rates')
+            .select(`
+                *,
+                employees (
+                    id,
+                    name,
+                    email,
+                    role
+                )
+            `)
+        
+        // Nếu là nhân viên thường, chỉ xem rate của mình
+        if (currentUser && currentUser.role === 'employee') {
+            query = query.eq('employee_id', currentUser.id)
+        }
+        
+        const { data: employeeRates, error } = await query.order('employees.name')
+
+        if (error) throw error
+
+        renderEmployeeRatesTable(employeeRates || [])
+    } catch (error) {
+        console.error('Error loading employee rates:', error)
+        showNotification('Lỗi khi tải danh sách rate nhân viên', 'error')
+    }
+}
+
+// Render bảng rate nhân viên
+function renderEmployeeRatesTable(employeeRates) {
+    const tbody = document.getElementById('employeeRatesTableBody')
+    tbody.innerHTML = ''
+
+    if (employeeRates.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Chưa có rate nào được thiết lập</td></tr>'
+        return
+    }
+
+    employeeRates.forEach(rate => {
+        const row = document.createElement('tr')
+        const canEdit = hasManagerOrBossPermissions(currentUser)
+        
+        row.innerHTML = `
+            <td>
+                <div>
+                    <strong>${rate.employees.name}</strong><br>
+                    <small class="text-muted">${rate.employees.email}</small>
+                </div>
+            </td>
+            <td>${rate.rv_rate.toLocaleString()} VNĐ</td>
+            <td>${rate.beta_rate.toLocaleString()} VNĐ</td>
+            <td>${formatDateTime(rate.updated_at)}</td>
+            <td>
+                ${canEdit ? `
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editEmployeeRate('${rate.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployeeRate('${rate.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
+            </td>
+        `
+        tbody.appendChild(row)
+    })
+}
+
+// Load danh sách rate dự án
+async function loadProjectRates() {
+    try {
+        // Tất cả nhân viên đều có thể xem rate dự án (không cần filter)
+        const { data: projectRates, error } = await supabase
+            .from('project_rates')
+            .select(`
+                *,
+                projects (
+                    id,
+                    name,
+                    status
+                )
+            `)
+            .order('projects.name')
+
+        if (error) throw error
+
+        renderProjectRatesTable(projectRates || [])
+    } catch (error) {
+        console.error('Error loading project rates:', error)
+        showNotification('Lỗi khi tải danh sách rate dự án', 'error')
+    }
+}
+
+// Render bảng rate dự án
+function renderProjectRatesTable(projectRates) {
+    const tbody = document.getElementById('projectRatesTableBody')
+    tbody.innerHTML = ''
+
+    if (projectRates.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Chưa có rate nào được thiết lập</td></tr>'
+        return
+    }
+
+    projectRates.forEach(rate => {
+        const row = document.createElement('tr')
+        const canEdit = hasManagerOrBossPermissions(currentUser)
+        
+        row.innerHTML = `
+            <td>
+                <div>
+                    <strong>${rate.projects.name}</strong><br>
+                    <small class="text-muted">${rate.projects.status}</small>
+                </div>
+            </td>
+            <td>${rate.rv_rate.toLocaleString()} VNĐ</td>
+            <td>${rate.beta_rate.toLocaleString()} VNĐ</td>
+            <td>${formatDateTime(rate.updated_at)}</td>
+            <td>
+                ${canEdit ? `
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editProjectRate('${rate.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteProjectRate('${rate.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
+            </td>
+        `
+        tbody.appendChild(row)
+    })
+}
+
+// Load tùy chọn cho bulk rate
+async function loadBulkRateOptions() {
+    try {
+        // Chỉ manager và boss mới có thể sử dụng bulk rate
+        if (!hasManagerOrBossPermissions(currentUser)) {
+            return
+        }
+        
+        // Load nhân viên
+        const { data: employees, error: empError } = await supabase
+            .from('employees')
+            .select('id, name, email')
+            .order('name')
+
+        if (empError) throw empError
+
+        // Load dự án
+        const { data: projects, error: projError } = await supabase
+            .from('projects')
+            .select('id, name, status')
+            .order('name')
+
+        if (projError) throw projError
+
+        // Populate employee select
+        const employeeSelect = document.getElementById('bulkEmployeeSelect')
+        employeeSelect.innerHTML = ''
+        employees.forEach(emp => {
+            const option = document.createElement('option')
+            option.value = emp.id
+            option.textContent = `${emp.name} (${emp.email})`
+            employeeSelect.appendChild(option)
+        })
+
+        // Populate project select
+        const projectSelect = document.getElementById('bulkProjectSelect')
+        projectSelect.innerHTML = ''
+        projects.forEach(proj => {
+            const option = document.createElement('option')
+            option.value = proj.id
+            option.textContent = `${proj.name} (${proj.status})`
+            projectSelect.appendChild(option)
+        })
+
+    } catch (error) {
+        console.error('Error loading bulk rate options:', error)
+        showNotification('Lỗi khi tải tùy chọn bulk rate', 'error')
+    }
+}
+
+// Thêm rate nhân viên mới
+function addNewEmployeeRate() {
+    // Chỉ manager và boss mới có thể thêm rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền thêm rate', 'error')
+        return
+    }
+    
+    document.getElementById('employeeRateId').value = ''
+    document.getElementById('employeeRateModalTitle').textContent = 'Thêm Rate Nhân viên'
+    
+    // Populate employee select
+    populateEmployeeRateSelect()
+    
+    const modal = new bootstrap.Modal(document.getElementById('employeeRateModal'))
+    modal.show()
+}
+
+// Populate employee select trong modal rate
+async function populateEmployeeRateSelect() {
+    try {
+        // Chỉ manager và boss mới có thể thêm/sửa rate
+        if (!hasManagerOrBossPermissions(currentUser)) {
+            return
+        }
+        
+        const { data: employees, error } = await supabase
+            .from('employees')
+            .select('id, name, email')
+            .order('name')
+
+        if (error) throw error
+
+        const select = document.getElementById('employeeRateEmployeeSelect')
+        select.innerHTML = '<option value="">Chọn nhân viên...</option>'
+        
+        employees.forEach(emp => {
+            const option = document.createElement('option')
+            option.value = emp.id
+            option.textContent = `${emp.name} (${emp.email})`
+            select.appendChild(option)
+        })
+
+    } catch (error) {
+        console.error('Error populating employee select:', error)
+        showNotification('Lỗi khi tải danh sách nhân viên', 'error')
+    }
+}
+
+// Lưu rate nhân viên
+async function saveEmployeeRate() {
+    try {
+        const employeeId = document.getElementById('employeeRateEmployeeSelect').value
+        const rvRate = parseFloat(document.getElementById('employeeRateRVRate').value)
+        const betaRate = parseFloat(document.getElementById('employeeRateBetaRate').value)
+        const rateId = document.getElementById('employeeRateId').value
+
+        if (!employeeId || isNaN(rvRate) || isNaN(betaRate)) {
+            showNotification('Vui lòng điền đầy đủ thông tin', 'error')
+            return
+        }
+
+        let result
+        if (rateId) {
+            // Update existing rate
+            result = await supabase
+                .from('employee_rates')
+                .update({
+                    rv_rate: rvRate,
+                    beta_rate: betaRate,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', rateId)
+        } else {
+            // Insert new rate
+            result = await supabase
+                .from('employee_rates')
+                .insert({
+                    employee_id: employeeId,
+                    rv_rate: rvRate,
+                    beta_rate: betaRate
+                })
+        }
+
+        if (result.error) throw result.error
+
+        showNotification('Lưu rate thành công', 'success')
+        
+        // Close modal and refresh data
+        const modal = bootstrap.Modal.getInstance(document.getElementById('employeeRateModal'))
+        modal.hide()
+        
+        loadEmployeeRates()
+        loadBulkRateOptions()
+
+    } catch (error) {
+        console.error('Error saving employee rate:', error)
+        showNotification('Lỗi khi lưu rate', 'error')
+    }
+}
+
+// Sửa rate nhân viên
+async function editEmployeeRate(rateId) {
+    // Chỉ manager và boss mới có thể sửa rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền sửa rate', 'error')
+        return
+    }
+    
+    try {
+        const { data: rate, error } = await supabase
+            .from('employee_rates')
+            .select(`
+                *,
+                employees (
+                    id,
+                    name,
+                    email
+                )
+            `)
+            .eq('id', rateId)
+            .single()
+
+        if (error) throw error
+
+        document.getElementById('employeeRateId').value = rate.id
+        document.getElementById('employeeRateModalTitle').textContent = 'Sửa Rate Nhân viên'
+        document.getElementById('employeeRateRVRate').value = rate.rv_rate
+        document.getElementById('employeeRateBetaRate').value = rate.beta_rate
+
+        // Populate employee select and set current value
+        await populateEmployeeRateSelect()
+        document.getElementById('employeeRateEmployeeSelect').value = rate.employee_id
+
+        const modal = new bootstrap.Modal(document.getElementById('employeeRateModal'))
+        modal.show()
+
+    } catch (error) {
+        console.error('Error loading employee rate for edit:', error)
+        showNotification('Lỗi khi tải thông tin rate', 'error')
+    }
+}
+
+// Xóa rate nhân viên
+async function deleteEmployeeRate(rateId) {
+    // Chỉ manager và boss mới có thể xóa rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền xóa rate', 'error')
+        return
+    }
+    
+    if (!confirm('Bạn có chắc chắn muốn xóa rate này?')) return
+
+    try {
+        const { error } = await supabase
+            .from('employee_rates')
+            .delete()
+            .eq('id', rateId)
+
+        if (error) throw error
+
+        showNotification('Xóa rate thành công', 'success')
+        loadEmployeeRates()
+        loadBulkRateOptions()
+
+    } catch (error) {
+        console.error('Error deleting employee rate:', error)
+        showNotification('Lỗi khi xóa rate', 'error')
+    }
+}
+
+// Thêm rate dự án mới
+function addNewProjectRate() {
+    // Chỉ manager và boss mới có thể thêm rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền thêm rate', 'error')
+        return
+    }
+    
+    document.getElementById('projectRateId').value = ''
+    document.getElementById('projectRateModalTitle').textContent = 'Thêm Rate Dự án'
+    
+    // Populate project select
+    populateProjectRateSelect()
+    
+    const modal = new bootstrap.Modal(document.getElementById('projectRateModal'))
+    modal.show()
+}
+
+// Populate project select trong modal rate
+async function populateProjectRateSelect() {
+    try {
+        // Chỉ manager và boss mới có thể thêm/sửa rate
+        if (!hasManagerOrBossPermissions(currentUser)) {
+            return
+        }
+        
+        const { data: projects, error } = await supabase
+            .from('projects')
+            .select('id, name, status')
+            .order('name')
+
+        if (error) throw error
+
+        const select = document.getElementById('projectRateProjectSelect')
+        select.innerHTML = '<option value="">Chọn dự án...</option>'
+        
+        projects.forEach(proj => {
+            const option = document.createElement('option')
+            option.value = proj.id
+            option.textContent = `${proj.name} (${proj.status})`
+            select.appendChild(option)
+        })
+
+    } catch (error) {
+        console.error('Error populating project select:', error)
+        showNotification('Lỗi khi tải danh sách dự án', 'error')
+    }
+}
+
+// Lưu rate dự án
+async function saveProjectRate() {
+    try {
+        const projectId = document.getElementById('projectRateProjectSelect').value
+        const rvRate = parseFloat(document.getElementById('projectRateRVRate').value)
+        const betaRate = parseFloat(document.getElementById('projectRateBetaRate').value)
+        const rateId = document.getElementById('projectRateId').value
+
+        if (!projectId || isNaN(rvRate) || isNaN(betaRate)) {
+            showNotification('Vui lòng điền đầy đủ thông tin', 'error')
+            return
+        }
+
+        let result
+        if (rateId) {
+            // Update existing rate
+            result = await supabase
+                .from('project_rates')
+                .update({
+                    rv_rate: rvRate,
+                    beta_rate: betaRate,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', rateId)
+        } else {
+            // Insert new rate
+            result = await supabase
+                .from('project_rates')
+                .insert({
+                    project_id: projectId,
+                    rv_rate: rvRate,
+                    beta_rate: betaRate
+                })
+            }
+
+        if (result.error) throw result.error
+
+        showNotification('Lưu rate thành công', 'success')
+        
+        // Close modal and refresh data
+        const modal = bootstrap.Modal.getInstance(document.getElementById('projectRateModal'))
+        modal.hide()
+        
+        loadProjectRates()
+        loadBulkRateOptions()
+
+    } catch (error) {
+        console.error('Error saving project rate:', error)
+        showNotification('Lỗi khi lưu rate', 'error')
+    }
+}
+
+// Sửa rate dự án
+async function editProjectRate(rateId) {
+    // Chỉ manager và boss mới có thể sửa rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền sửa rate', 'error')
+        return
+    }
+    
+    try {
+        const { data: rate, error } = await supabase
+            .from('project_rates')
+            .select(`
+                *,
+                projects (
+                    id,
+                    name,
+                    status
+                )
+            `)
+            .eq('id', rateId)
+            .single()
+
+        if (error) throw error
+
+        document.getElementById('projectRateId').value = rate.id
+        document.getElementById('projectRateModalTitle').textContent = 'Sửa Rate Dự án'
+        document.getElementById('projectRateRVRate').value = rate.rv_rate
+        document.getElementById('projectRateBetaRate').value = rate.beta_rate
+
+        // Populate project select and set current value
+        await populateProjectRateSelect()
+        document.getElementById('projectRateProjectSelect').value = rate.project_id
+
+        const modal = new bootstrap.Modal(document.getElementById('projectRateModal'))
+    modal.show()
+
+    } catch (error) {
+        console.error('Error loading project rate for edit:', error)
+        showNotification('Lỗi khi tải thông tin rate', 'error')
+    }
+}
+
+// Xóa rate dự án
+async function deleteProjectRate(rateId) {
+    // Chỉ manager và boss mới có thể xóa rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền xóa rate', 'error')
+        return
+    }
+    
+    if (!confirm('Bạn có chắc chắn muốn xóa rate này?')) return
+
+    try {
+        const { error } = await supabase
+            .from('project_rates')
+            .delete()
+            .eq('id', rateId)
+
+        if (error) throw error
+
+        showNotification('Xóa rate thành công', 'success')
+        loadProjectRates()
+        loadBulkRateOptions()
+
+    } catch (error) {
+        console.error('Error deleting project rate:', error)
+        showNotification('Lỗi khi xóa rate', 'error')
+    }
+}
+
+// Áp dụng rate hàng loạt cho nhân viên
+async function applyBulkEmployeeRates() {
+    // Chỉ manager và boss mới có thể áp dụng bulk rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền áp dụng rate hàng loạt', 'error')
+        return
+    }
+    
+    try {
+        const selectedEmployees = Array.from(document.getElementById('bulkEmployeeSelect').selectedOptions).map(opt => opt.value)
+        const rvRate = parseFloat(document.getElementById('bulkEmployeeRVRate').value)
+        const betaRate = parseFloat(document.getElementById('bulkEmployeeBetaRate').value)
+
+        if (selectedEmployees.length === 0 || isNaN(rvRate) || isNaN(betaRate)) {
+            showNotification('Vui lòng chọn nhân viên và nhập rate', 'error')
+            return
+        }
+
+        // Upsert rates for all selected employees
+        const ratesToUpsert = selectedEmployees.map(empId => ({
+            employee_id: empId,
+            rv_rate: rvRate,
+            beta_rate: betaRate
+        }))
+
+        const { error } = await supabase
+            .from('employee_rates')
+            .upsert(ratesToUpsert, { onConflict: 'employee_id' })
+
+        if (error) throw error
+
+        showNotification(`Đã áp dụng rate cho ${selectedEmployees.length} nhân viên`, 'success')
+        
+        // Clear form and refresh data
+        document.getElementById('bulkEmployeeRVRate').value = ''
+        document.getElementById('bulkEmployeeBetaRate').value = ''
+        document.getElementById('bulkEmployeeSelect').selectedIndex = -1
+        
+        loadEmployeeRates()
+
+    } catch (error) {
+        console.error('Error applying bulk employee rates:', error)
+        showNotification('Lỗi khi áp dụng rate hàng loạt', 'error')
+    }
+}
+
+// Áp dụng rate hàng loạt cho dự án
+async function applyBulkProjectRates() {
+    // Chỉ manager và boss mới có thể áp dụng bulk rate
+    if (!hasManagerOrBossPermissions(currentUser)) {
+        showNotification('Bạn không có quyền áp dụng rate hàng loạt', 'error')
+        return
+    }
+    
+    try {
+        const selectedProjects = Array.from(document.getElementById('bulkProjectSelect').selectedOptions).map(opt => opt.value)
+        const rvRate = parseFloat(document.getElementById('bulkProjectRVRate').value)
+        const betaRate = parseFloat(document.getElementById('bulkProjectBetaRate').value)
+
+        if (selectedProjects.length === 0 || isNaN(rvRate) || isNaN(betaRate)) {
+            showNotification('Vui lòng chọn dự án và nhập rate', 'error')
+            return
+        }
+
+        // Upsert rates for all selected projects
+        const ratesToUpsert = selectedProjects.map(projId => ({
+            project_id: projId,
+            rv_rate: rvRate,
+            beta_rate: betaRate
+        }))
+
+        const { error } = await supabase
+            .from('project_rates')
+            .upsert(ratesToUpsert, { onConflict: 'project_id' })
+
+        if (error) throw error
+
+        showNotification(`Đã áp dụng rate cho ${selectedProjects.length} dự án`, 'success')
+        
+        // Clear form and refresh data
+        document.getElementById('bulkProjectRVRate').value = ''
+        document.getElementById('bulkProjectBetaRate').value = ''
+        document.getElementById('bulkProjectSelect').selectedIndex = -1
+        
+        loadProjectRates()
+
+    } catch (error) {
+        console.error('Error applying bulk project rates:', error)
+        showNotification('Lỗi khi áp dụng rate hàng loạt', 'error')
+    }
+}
+
+// Hàm helper để lấy rate cho task
+async function getTaskRate(employeeId, projectId, taskType) {
+    try {
+        // Kiểm tra xem nhân viên có sử dụng rate của dự án không
+        const { data: projectRateSetting, error: settingError } = await supabase
+            .from('employee_project_rates')
+            .select('use_project_rate, rv_rate, beta_rate')
+            .eq('employee_id', employeeId)
+            .eq('project_id', projectId)
+            .single()
+
+        if (settingError && settingError.code !== 'PGRST116') {
+            console.error('Error checking project rate setting:', settingError)
+        }
+
+        // Nếu nhân viên sử dụng rate của dự án
+        if (projectRateSetting && projectRateSetting.use_project_rate) {
+            const { data: projectRate, error: projError } = await supabase
+                .from('project_rates')
+                .select('rv_rate, beta_rate')
+                .eq('project_id', projectId)
+                .single()
+
+            if (!projError && projectRate) {
+                return taskType === 'rv' ? projectRate.rv_rate : projectRate.beta_rate
+            }
+        }
+
+        // Nếu không, sử dụng rate riêng của nhân viên
+        if (projectRateSetting && !projectRateSetting.use_project_rate) {
+            return taskType === 'rv' ? projectRateSetting.rv_rate : projectRateSetting.beta_rate
+        }
+
+        // Cuối cùng, sử dụng rate mặc định của nhân viên
+        const { data: employeeRate, error: empError } = await supabase
+            .from('employee_rates')
+            .select('rv_rate, beta_rate')
+            .eq('employee_id', employeeId)
+            .single()
+
+        if (!empError && employeeRate) {
+            return taskType === 'rv' ? employeeRate.rv_rate : employeeRate.beta_rate
+        }
+
+        return 0 // Không có rate nào
+
+    } catch (error) {
+        console.error('Error getting task rate:', error)
+        return 0
+    }
+}
+
+// Cập nhật UI để hiển thị button rate thành viên
+function updateRateMembersButton() {
+    const rateMembersBtn = document.getElementById('rateMembersBtn')
+    if (rateMembersBtn) {
+        // Tất cả nhân viên đều có thể xem button khi ở trong projects view
+        const projectsView = document.getElementById('projectsView')
+        const isInProjectsView = projectsView && projectsView.style.display !== 'none'
+        
+        if (currentUser && isInProjectsView) {
+            rateMembersBtn.style.display = 'inline-block'
+        } else {
+            rateMembersBtn.style.display = 'none'
+        }
+    }
+}
+
+// Cập nhật hiển thị các button trong modal rate dựa trên quyền
+function updateRateModalButtons() {
+    const canEdit = hasManagerOrBossPermissions(currentUser)
+    
+    // Button thêm rate nhân viên
+    const addEmployeeRateBtn = document.getElementById('addEmployeeRateBtn')
+    if (addEmployeeRateBtn) {
+        addEmployeeRateBtn.style.display = canEdit ? 'inline-block' : 'none'
+    }
+    
+    // Button thêm rate dự án
+    const addProjectRateBtn = document.getElementById('addProjectRateBtn')
+    if (addProjectRateBtn) {
+        addProjectRateBtn.style.display = canEdit ? 'inline-block' : 'none'
+    }
+    
+    // Ẩn/hiện tab "Cài đặt Hàng loạt" dựa trên quyền
+    const bulkRatesTab = document.getElementById('bulk-rates-tab')
+    if (bulkRatesTab) {
+        if (canEdit) {
+            bulkRatesTab.style.display = 'block'
+        } else {
+            bulkRatesTab.style.display = 'none'
+            // Nếu đang ở tab bulk rates, chuyển về tab đầu tiên
+            const firstTab = document.getElementById('employee-rates-tab')
+            if (firstTab && bulkRatesTab.classList.contains('active')) {
+                firstTab.click()
+            }
+        }
+    }
 }

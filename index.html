@@ -74,6 +74,80 @@
                 transform: translateY(0);
             }
         }
+        
+        /* RULE TEAM Button Styles - Rainbow Theme */
+        .rainbow-btn {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            transition: all 0.5s ease;
+            animation: rainbow-shift 3s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .rainbow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            border-radius: 25px;
+            z-index: -1;
+            animation: rainbow-shift 3s ease-in-out infinite;
+        }
+        
+        .rainbow-btn span {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: rainbow-shift 3s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .rainbow-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            text-decoration: none;
+        }
+        
+        .rainbow-btn:hover span {
+            animation: rainbow-shift 1.5s ease-in-out infinite;
+        }
+        
+        .rainbow-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        @keyframes rainbow-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Responsive adjustments for RULE TEAM button */
+        @media (max-width: 768px) {
+            .rainbow-btn {
+                padding: 8px 20px !important;
+                font-size: 0.9rem;
+            }
+            
+            .rainbow-btn i {
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -84,6 +158,15 @@
                 <i class="fas fa-project-diagram me-2"></i>
                 Bảng DL Garden Moon
             </a>
+            
+            <!-- RULE TEAM Button -->
+            <div class="navbar-nav me-auto">
+                <a class="nav-link btn rainbow-btn me-2" href="rule-team.html" target="_blank">
+                    <i class="fas fa-book-open me-2"></i>
+                    <strong><span>RULE TEAM</span></strong>
+                </a>
+            </div>
+            
             <div class="navbar-nav ms-auto">
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">

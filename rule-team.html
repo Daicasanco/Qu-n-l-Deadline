@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quy tắc Team - Garden Moon</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .rule-team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+            transform: rotate(45deg);
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .hero-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .rule-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border-left: 8px solid;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .rule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--card-accent), var(--card-accent-light));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+        
+        .rule-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .rule-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .rule-card:hover .rule-icon i {
+            transform: scale(1.2) rotate(5deg);
+        }
+        
+        /* CSS Variables for card colors */
+        .rule-card.encouraged {
+            --card-accent: #28a745;
+            --card-accent-light: #34ce57;
+            border-left-color: #28a745;
+        }
+        
+        .rule-card.prohibited {
+            --card-accent: #dc3545;
+            --card-accent-light: #e74c3c;
+            border-left-color: #dc3545;
+        }
+        
+        .rule-card.rewards {
+            --card-accent: #ffc107;
+            --card-accent-light: #ffdb4d;
+            border-left-color: #ffc107;
+        }
+        
+        .rule-card.penalties {
+            --card-accent: #6f42c1;
+            --card-accent-light: #8e44ad;
+            border-left-color: #6f42c1;
+        }
+        
+        .rule-card.monthly {
+            --card-accent: #17a2b8;
+            --card-accent-light: #3498db;
+            border-left-color: #17a2b8;
+        }
+        
+        .rule-card.events {
+            --card-accent: #fd7e14;
+            --card-accent-light: #f39c12;
+            border-left-color: #fd7e14;
+        }
+        
+        .rule-card.special {
+            --card-accent: #e83e8c;
+            --card-accent-light: #e91e63;
+            border-left-color: #e83e8c;
+        }
+        
+        .rule-card.quality {
+            --card-accent: #20c997;
+            --card-accent-light: #00d4aa;
+            border-left-color: #20c997;
+        }
+        
+        .rule-card.process {
+            --card-accent: #fd7e14;
+            --card-accent-light: #ff8c42;
+            border-left-color: #fd7e14;
+        }
+        
+        .rule-card.emergency {
+            --card-accent: #dc3545;
+            --card-accent-light: #e74c3c;
+            border-left-color: #dc3545;
+            animation: pulse-emergency 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-emergency {
+            0%, 100% { box-shadow: 0 8px 32px rgba(220, 53, 69, 0.1); }
+            50% { box-shadow: 0 8px 32px rgba(220, 53, 69, 0.3); }
+        }
+        
+        .rule-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .rule-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            width: 60px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .rule-icon i {
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .rule-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .rule-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .rule-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .rule-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .rule-list li:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 18px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #007bff;
+        }
+        
+        .rule-list li.important:before {
+            background: #dc3545;
+        }
+        
+        .rule-list li.warning:before {
+            background: #ffc107;
+        }
+        
+        .rule-list li.success:before {
+            background: #28a745;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+            color: white;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 3px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+        }
+        
+        .highlight-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 193, 7, 0.1) 10px,
+                rgba(255, 193, 7, 0.1) 20px
+            );
+            animation: pattern-move 20s linear infinite;
+        }
+        
+        @keyframes pattern-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+        
+        .highlight-box h5,
+        .highlight-box p {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .highlight-box h5 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .highlight-box p {
+            color: #856404;
+            margin: 0;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-encouraged {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-prohibited {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-rewards {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-penalties {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .rule-card {
+                padding: 20px;
+            }
+            
+            .rule-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="rule-team-container">
+        <!-- Back Button -->
+        <button class="btn back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại trang chính
+        </button>
+        
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1><i class="fas fa-book-open me-3"></i>Quy tắc Team</h1>
+            <p>Những nguyên tắc và quy định để xây dựng một team mạnh và đoàn kết</p>
+        </div>
+        
+        <!-- Encouraged Rules -->
+        <div class="rule-card encouraged">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-thumbs-up text-success"></i>
+                </div>
+                <h3 class="rule-title">🌱 Điều khuyến khích</h3>
+            </div>
+            <p class="text-muted mb-3">Những hành vi được khuyến khích để xây dựng team tốt</p>
+            <ul class="rule-list">
+                <li class="success">Chủ động liên lạc với boss/QL nếu có khó khăn (ví dụ: cách sử dụng web, check dl, thắc mắc về lương…).</li>
+                <li class="success">Chăm theo dõi tin nhắn trong group DL. Không tắt thông báo để cập nhật luật mới hoặc thông báo quan trọng.</li>
+                <li class="success">Giải quyết mâu thuẫn văn minh – riêng tư: ib riêng trước, nếu cần có thể nhờ boss/QL phân xử.</li>
+                <li class="success">Có tinh thần học hỏi và cầu tiến: chủ động hỏi lỗi, rút kinh nghiệm.</li>
+                <li class="success">Nhận dl nhiều và chất lượng (nhưng đã nhận thì phải hoàn thành).</li>
+                <li class="success">Chủ động check bảng lương, bảng dl để đảm bảo quyền lợi. Khiếu nại muộn hơn 01 ngày sẽ không giải quyết.</li>
+                <li class="success">Hỗ trợ đồng đội trong khả năng (hướng dẫn, góp ý), cùng nhau tiến bộ.</li>
+                <li class="success">Đóng góp ý kiến để cải thiện team, đưa ra đề xuất tích cực.</li>
+            </ul>
+        </div>
+        
+        <!-- Prohibited Rules -->
+        <div class="rule-card prohibited">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-ban text-danger"></i>
+                </div>
+                <h3 class="rule-title">🚫 Điều nghiêm cấm</h3>
+            </div>
+            <p class="text-muted mb-3">Những hành vi bị nghiêm cấm và sẽ bị xử lý</p>
+            <ul class="rule-list">
+                <li class="important">Không nhượng lại dl của team cho người ngoài/thời vụ.</li>
+                <li class="important">Giao tiếp văn minh: không chửi bậy, xúc phạm, gây war, hạn chế nói tục.</li>
+                <li class="important">Không bàn luận chính trị – tôn giáo trong group.</li>
+                <li class="important">Không giấu dốt: nếu không biết thì phải hỏi → tránh kiểu "em tưởng/em nghĩ".</li>
+                <li class="important">Nghiêm cấm dùng AI (ChatGPT, Gemini, Claude…) để viết/review.</li>
+                <li class="warning">Có thể dùng AI để hỗ trợ tra cứu (vd: hỏi tên đồ vật trong tranh).</li>
+                <li class="important">Nếu phát hiện dùng AI để hoàn thành bài → kick ngay lập tức.</li>
+                <li class="important">Không được leak thông tin của team ra bên ngoài.</li>
+                <li class="important">Không "cá cảnh": nếu 7 ngày liên tục không nhận dl và không báo bận → boss sẽ kick.</li>
+                <li class="warning">Báo bận/Pass dl phải báo trước <strong>ít nhất 6 giờ</strong> trước deadline. Báo muộn hoặc sát giờ sẽ bị trừ <strong>20% lương của 3 chap đã làm</strong></li>
+            </ul>
+        </div>
+        
+        <!-- Rewards Policy -->
+        <div class="rule-card rewards">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-gift text-warning"></i>
+                </div>
+                <h3 class="rule-title">🎁 Chính sách thưởng</h3>
+            </div>
+            <p class="text-muted mb-3">Khích lệ thành viên tích cực</p>
+            <ul class="rule-list">
+                <li class="success">Thành viên chăm nhận dl + hoàn thành đúng hạn + chất lượng → có thể được:</li>
+                <li class="success">Bonus thêm % lương chap.</li>
+                <li class="success">Ưu tiên chọn chap khó/dễ.</li>
+                <li class="success">Xét tăng rate sau một thời gian làm việc tốt.</li>
+                <li class="success">Thành viên hỗ trợ team, chỉ lỗi cho đồng đội, tinh thần đóng góp cao → được cộng điểm uy tín, boss ưu tiên giữ lâu dài.</li>
+            </ul>
+        </div>
+        
+        <!-- Penalties Policy -->
+        <div class="rule-card penalties">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-gavel text-primary"></i>
+                </div>
+                <h3 class="rule-title">🔨 Chính sách phạt</h3>
+            </div>
+            <p class="text-muted mb-3">Xử lý vi phạm</p>
+            <ul class="rule-list">
+                <li class="important">Trễ deadline:</li>
+                <li class="warning">Trễ 1 chap → trừ 10% lương chap đó.</li>
+                <li class="warning">Trễ 2 chap → trừ 20% tổng lương 2 chap.</li>
+                <li class="warning">Cứ thế cộng dồn theo số lần trễ.</li>
+                <li class="important">Bài rv kém chất lượng:</li>
+                <li class="warning">Nếu được nhắc nhở và cho cơ hội làm lại nhưng vẫn mắc lỗi cũ → hạ rate (0.5 – 1 tùy mức độ).</li>
+                <li class="important">Báo bận trễ:</li>
+                <li class="warning">Nếu báo muộn hơn quy định (trước 6 giờ) → trừ 20% lương chap đó.</li>
+                <li class="important">Không hoạt động liên tục 7 ngày và không báo bận → kick khỏi team.</li>
+                <li class="important">Dùng AI làm bài, leak thông tin, xúc phạm thành viên khác → kick ngay lập tức, không xét.</li>
+            </ul>
+        </div>
+        
+        <!-- Monthly Rewards -->
+        <div class="rule-card monthly">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-calendar-alt text-info"></i>
+                </div>
+                <h3 class="rule-title">🌟 Chính sách thưởng hàng tháng</h3>
+            </div>
+            <p class="text-muted mb-3">Thưởng định kỳ hàng tháng</p>
+            <ul class="rule-list">
+                <li class="success">Top Performer tháng (người hoàn thành nhiều dl nhất, chất lượng tốt, ít sai lỗi):</li>
+                <li class="success">Thưởng thêm % lương (5–10% tuỳ tình hình team).</li>
+                <li class="success">Được ghi nhận trong bảng vinh danh hàng tháng.</li>
+                <li class="success">Thành viên tiến bộ nhất (so với tháng trước, ít sai hơn, chất lượng tăng rõ):</li>
+                <li class="success">Bonus nhỏ (ví dụ 1 chap rate cao hơn).</li>
+                <li class="success">Ghi nhận trong group để khích lệ.</li>
+                <li class="success">Thành viên tích cực hỗ trợ team (chỉ lỗi cho người khác, hỗ trợ newbies, góp ý xây dựng):</li>
+                <li class="success">Thưởng tinh thần: lương 1 chap bonus.</li>
+            </ul>
+        </div>
+        
+        <!-- Quarterly Events -->
+        <div class="rule-card events">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-trophy text-warning"></i>
+                </div>
+                <h3 class="rule-title">🎉 Event theo quý</h3>
+            </div>
+            <p class="text-muted mb-3">Sự kiện định kỳ 3 - 6tháng</p>
+            <ul class="rule-list">
+                <li class="success">Mỗi 3 - 6 tháng sẽ có 1 big-event cho team, ngoài ra còn có:</li>
+                <li class="success">Đua thành tích quý: ai có số lượng dl done nhiều nhất + ít trễ hạn nhất sẽ được thưởng lớn hơn (tiền mặt hoặc bonus chap).</li>
+                <li class="success">Cuộc thi nhỏ: Số lượng done dl trong ngày, góp ý sáng tạo, làm meme vui về team → có quà.</li>
+                <li class="success">Bốc thăm may mắn: chỉ dành cho những ai tháng đó có đóng góp (có dl done), boss quay random tặng quà.</li>
+            </ul>
+        </div>
+        
+        <!-- Special Events -->
+        <div class="rule-card special">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-star text-warning"></i>
+                </div>
+                <h3 class="rule-title">🌈 Sự kiện lớn</h3>
+            </div>
+            <p class="text-muted mb-3">Theo năm hoặc dịp đặc biệt</p>
+            <ul class="rule-list">
+                <li class="success">Tổng kết cuối năm / Sinh nhật team:</li>
+                <li class="success">Vinh danh các thành viên gắn bó, làm việc hiệu quả.</li>
+                <li class="success">Thưởng tiền hoặc quà đặc biệt cho top 3 thành viên xuất sắc năm.</li>
+                <li class="success">Event bất chợt: có thể tổ chức khi team đạt cột mốc (ví dụ: 1000 chap done, 1 năm thành lập).</li>
+                <li class="success">Thưởng tiền lương 1 chap free.</li>
+                <li class="success">Tặng quà lưu niệm online/offline.</li>
+            </ul>
+        </div>
+        
+        <!-- Quality Standards -->
+        <div class="rule-card quality">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-award text-success"></i>
+                </div>
+                <h3 class="rule-title">🏆 Tiêu chuẩn chất lượng</h3>
+            </div>
+            <p class="text-muted mb-3">Yêu cầu về chất lượng bài review</p>
+            <ul class="rule-list">
+                <li class="success">Bài review phải đảm bảo <strong>đúng yêu cầu của bộ được ghi rõ trong RULE từng bộ</strong></li>
+                <li class="success">Văn phong phải <strong>rõ ràng, dễ hiểu</strong> và rút gọn linh hoạt.</li>
+                <li class="success">Kiểm tra <strong>chính tả, ngữ pháp</strong> trước khi nộp bài.</li>
+                <li class="success">Nếu có <strong>thắc mắc về nội dung</strong>, phải hỏi boss/QL trước khi hoàn thành.</li>
+                <li class="warning">Bài review kém chất lượng sẽ được <strong>yêu cầu làm lại</strong> và có thể bị hạ rate.</li>
+            </ul>
+        </div>
+        
+        <!-- Process & Procedures -->
+        <div class="rule-card process">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-cogs text-info"></i>
+                </div>
+                <h3 class="rule-title">⚙️ Quy trình & Thủ tục</h3>
+            </div>
+            <p class="text-muted mb-3">Các quy trình xử lý và thủ tục cần thiết</p>
+            <ul class="rule-list">
+                <li class="success"><strong>Khiếu nại:</strong> Phải báo cáo trong vòng <strong>24 giờ</strong> sau khi phát hiện vấn đề.</li>
+                <li class="success"><strong>Off deadline:</strong> Báo trước <strong>1 tuần</strong> cho việc xin off dài hạn.</li>
+                <li class="success"><strong>Thay đổi thông tin:</strong> Cập nhật thông tin cá nhân trong vòng <strong>3 ngày</strong> sau khi thay đổi.</li>
+                <li class="warning"><strong>Vi phạm lần đầu:</strong> Cảnh báo và cho cơ hội sửa chữa.</li>
+                <li class="important"><strong>Vi phạm lần 2:</strong> Hạ rate hoặc tạm ngưng nhận dl.</li>
+                <li class="important"><strong>Vi phạm nghiêm trọng:</strong> Kick khỏi team ngay lập tức, không thanh toán lương trong tháng đó.</li>
+            </ul>
+        </div>
+        
+        <!-- Core Rule Highlight -->
+        <div class="highlight-box">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Quy tắc cốt lõi</h5>
+            <p><strong>Trong quá trình làm việc theo nhóm chắc chắn sẽ có những tình huống mâu thuẫn nhạy cảm phát sinh giữa các thành viên, những lúc này quyết định của boss sẽ là quyết định cuối cùng.</strong></p>
+        </div>
+        
+        <!-- Emergency Contact -->
+        <div class="rule-card emergency">
+            <div class="rule-header">
+                <div class="rule-icon">
+                    <i class="fas fa-phone-alt text-danger"></i>
+                </div>
+                <h3 class="rule-title">🚨 Thông tin liên hệ khẩn cấp</h3>
+            </div>
+            <p class="text-muted mb-3">Liên hệ ngay khi có vấn đề nghiêm trọng</p>
+            <ul class="rule-list">
+                <li class="important"><strong>Vấn đề kỹ thuật:</strong> Liên hệ boss/QL ngay lập tức qua group hoặc Inbox.</li>
+                <li class="important"><strong>Xung đột nghiêm trọng:</strong> Báo cáo boss để được xử lý công bằng.</li>
+                <li class="important"><strong>Vấn đề bảo mật:</strong> Báo cáo ngay nếu phát hiện leak thông tin.</li>
+                <li class="success"><strong>Hỗ trợ khẩn cấp:</strong> Team sẽ hỗ trợ lẫn nhau trong tình huống khó khăn.</li>
+                <li class="warning"><strong>Lưu ý:</strong> Luôn giữ bình tĩnh và giải quyết vấn đề một cách văn minh.</li>
+            </ul>
+        </div>
+        
+        <!-- Back Button Bottom -->
+        <div class="text-center mt-4">
+            <button class="btn back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại trang chính
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function goBack() {
+            if (window.opener) {
+                window.close();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, index * 100); // Stagger animation
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all rule cards
+            document.querySelectorAll('.rule-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = `opacity 0.8s ease ${index * 0.1}s, transform 0.8s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+            
+            // Add floating animation to hero section
+            const hero = document.querySelector('.hero-section');
+            if (hero) {
+                hero.style.animation = 'float 6s ease-in-out infinite';
+            }
+        });
+        
+        // Add floating animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

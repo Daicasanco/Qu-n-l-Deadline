@@ -1275,6 +1275,27 @@ async function saveTask() {
         if (currentTaskType === 'beta') {
             await updateBetaTask()
         } else {
+            // Kiểm tra xem có phải chỉ thay đổi trạng thái không
+            const currentTask = tasks.find(t => t.id === parseInt(id))
+            if (currentTask) {
+                const currentStatus = currentTask.status
+                const newStatus = document.getElementById('taskStatus').value
+                
+                // Nếu chỉ thay đổi trạng thái, sử dụng updateTaskStatusOnly để tránh mất nội dung
+                if (currentStatus !== newStatus && 
+                    currentTask.name === document.getElementById('taskName').value &&
+                    currentTask.description === document.getElementById('taskDescription').value &&
+                    currentTask.deadline === document.getElementById('taskDeadline').value &&
+                    currentTask.priority === document.getElementById('taskPriority').value &&
+                    currentTask.assignee_id === (document.getElementById('taskAssignee').value || null)) {
+                    
+                    // Chỉ thay đổi trạng thái - sử dụng hàm an toàn
+                    await updateTaskStatusOnly(parseInt(id), newStatus)
+                    return
+                }
+            }
+            
+            // Nếu có thay đổi khác, sử dụng updateTask bình thường
             await updateTask()
         }
     } else {

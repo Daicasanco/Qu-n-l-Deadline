@@ -1177,8 +1177,8 @@ async function editTask(id) {
     const task = tasks.find(t => t.id === id)
     if (!task) return
     
-    // Khôi phục form data nếu có
-    restoreFormData()
+    // Không cần khôi phục form data khi chỉnh sửa task
+    // restoreFormData() - đã bỏ để tránh mất nội dung review input
     
     // Kiểm tra xem task có thuộc dự án đã hoàn thành không (cho nhân viên)
     if (currentUser.role === 'employee') {

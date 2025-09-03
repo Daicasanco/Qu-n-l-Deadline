@@ -315,7 +315,7 @@
                     <i class="fas fa-eraser me-2"></i>
                     Xóa nội dung
                 </button>
-                <button class="btn save-btn" id="saveButton" onclick="saveReviewContent()">
+                <button class="btn save-btn" id="saveButton">
                     <i class="fas fa-save me-2"></i>
                     <span id="saveBtnText">Lưu nội dung</span>
                     <span class="loading-spinner" id="saveSpinner">
@@ -348,9 +348,17 @@
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzkzNzk0OCwiZXhwIjoyMDY5NTEzOTQ4fQ.B-YLv3Akz3OJ_gM6FtpftSgxC6OBmGOp9lToo5LMrvE'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5Mzc5NDgsImV4cCI6MjA2OTUxMzk0OH0.0VQIXPP5ZfpeFzDpG-lGVFqwZNikn5rb-vQTu5AdUTs'
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        // Kiểm tra xem Supabase đã được load chưa
+        if (!window.supabase) {
+            console.error('❌ Supabase library not loaded!')
+            document.addEventListener('DOMContentLoaded', function() {
+                showNotification('Lỗi: Supabase library chưa được tải', 'error')
+            })
+        }
+        
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
         
         // Global variables
         let currentUser = null
@@ -365,6 +373,12 @@
         })
         
         async function initializePage() {
+            // Kiểm tra Supabase client
+            if (!supabase) {
+                showNotification('Lỗi: Không thể kết nối Supabase', 'error')
+                return
+            }
+            
             // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search)
             taskId = urlParams.get('taskId')
@@ -374,23 +388,11 @@
             const betaTaskId = urlParams.get('betaTaskId')
             const betaTaskAssignee = urlParams.get('betaTaskAssignee')
             
-            console.log('=== URL PARAMETERS ===')
-            console.log('Full URL:', window.location.href)
-            console.log('Task ID:', taskId)
-            console.log('Mode:', mode)
-            console.log('Beta Task ID:', betaTaskId)
-            console.log('Beta Task Assignee:', betaTaskAssignee)
-            console.log('========================')
-            
             if (betaTaskId && betaTaskAssignee) {
                 betaTaskInfo = {
                     id: betaTaskId,
                     assignee_id: betaTaskAssignee
                 }
-                console.log('✅ Beta task info loaded from URL:', betaTaskInfo)
-            } else {
-                console.log('❌ No beta task info found in URL')
-                console.log('This might be the issue!')
             }
             
             if (!taskId) {
@@ -418,6 +420,7 @@
         async function checkAuthentication() {
             // Get user from localStorage (from main page)
             const savedUser = localStorage.getItem('currentUser')
+            
             if (savedUser) {
                 currentUser = JSON.parse(savedUser)
                 document.getElementById('currentUserName').textContent = currentUser.name
@@ -430,6 +433,11 @@
         
         async function loadTaskInfo() {
             try {
+                // Kiểm tra xem taskId có hợp lệ không
+                if (!taskId || isNaN(parseInt(taskId))) {
+                    throw new Error('Task ID không hợp lệ: ' + taskId)
+                }
+                
                 // Get task information
                 const { data: taskData, error } = await supabase
                     .from('tasks')
@@ -438,48 +446,27 @@
                         project:projects(name, status),
                         assignee:employees(name)
                     `)
-                    .eq('id', taskId)
+                    .eq('id', parseInt(taskId))
                     .single()
                 
-                if (error) throw error
+                if (error) {
+                    throw error
+                }
+                
+                if (!taskData) {
+                    throw new Error('Không tìm thấy task với ID: ' + taskId)
+                }
                 
                 currentTask = taskData
                 
-                console.log('=== TASK INFO LOADED ===')
-                console.log('Task ID:', currentTask.id)
-                console.log('Task Name:', currentTask.name)
-                console.log('Task Type:', currentTask.task_type)
-                console.log('Task Assignee ID:', currentTask.assignee_id)
-                console.log('Mode:', mode)
-                console.log('Beta Task Info:', betaTaskInfo)
-                console.log('Current User ID:', currentUser?.id)
-                console.log('============================')
+                                        // Check permissions
+                const hasAccess = canAccessTask(currentTask)
                 
-                        // Check permissions
-        const hasAccess = canAccessTask(currentTask)
-        const canViewReview = mode === 'view' ? canViewReviewContent(currentTask) : 'N/A'
-        
-        console.log('=== ACCESS CHECK RESULT ===')
-        console.log('Task ID:', currentTask.id)
-        console.log('Task Name:', currentTask.name)
-        console.log('Task Type:', currentTask.task_type)
-        console.log('Task Assignee ID:', currentTask.assignee_id)
-        console.log('Current User ID:', currentUser?.id)
-        console.log('Current User Role:', currentUser?.role)
-        console.log('Mode:', mode)
-        console.log('Beta Task Info:', betaTaskInfo)
-        console.log('Has Access:', hasAccess)
-        console.log('Can View Review:', canViewReview)
-        console.log('Final Result:', hasAccess ? '✅ ACCESS GRANTED' : '❌ ACCESS DENIED')
-        console.log('================================')
-        
-        if (!hasAccess) {
-            showNotification('Bạn không có quyền truy cập task này', 'error')
-            // Tắt logic thoát trang để debug
-            // setTimeout(() => goBack(), 2000)
-            // return
-            console.log('ACCESS DENIED - but staying on page for debugging')
-        }
+                if (!hasAccess) {
+                    showNotification('Bạn không có quyền truy cập task này', 'error')
+                    setTimeout(() => goBack(), 2000)
+                    return
+                }
         
         // Update UI with task information
         updateTaskInfoUI(currentTask)
@@ -499,108 +486,56 @@
         }
         
         function canAccessTask(task) {
-            console.log('=== canAccessTask called ===')
-            console.log('Current User:', currentUser)
-            console.log('Task:', task)
-            console.log('Mode:', mode)
-            console.log('Beta Task Info:', betaTaskInfo)
-            
             if (!currentUser) {
-                console.log('No current user - returning false')
                 return false
             }
             
             // Boss và Manager có thể truy cập mọi task
             if (currentUser.role === 'boss' || currentUser.role === 'manager') {
-                console.log('User is Boss/Manager - returning true')
                 return true
             }
             
             // Employee chỉ có thể truy cập task được phân công cho mình
             if (currentUser.role === 'employee') {
-                console.log('User is Employee - checking permissions...')
-                
                 // Nếu là mode view và có thông tin beta task, kiểm tra quyền xem review content
                 if (mode === 'view' && betaTaskInfo) {
-                    console.log('Mode is view and has beta task info - calling canViewReviewContent')
-                    const result = canViewReviewContent(task)
-                    console.log('canViewReviewContent result:', result)
-                    return result
+                    return canViewReviewContent(task)
                 }
                 
                 // Nếu không phải mode view, kiểm tra quyền chỉnh sửa (task được phân công cho mình)
-                const isAssignee = task.assignee_id === currentUser.id
-                console.log('Checking if user is assignee:', {
-                    taskAssigneeId: task.assignee_id,
-                    currentUserId: currentUser.id,
-                    isAssignee: isAssignee
-                })
-                return isAssignee
+                return task.assignee_id === currentUser.id
             }
             
-            console.log('User role not recognized - returning false')
             return false
         }
         
         // Function kiểm tra quyền xem review content (cho mode view)
         function canViewReviewContent(task) {
-            console.log('=== canViewReviewContent called ===')
-            console.log('Task:', task)
-            console.log('Current User:', currentUser)
-            console.log('Mode:', mode)
-            console.log('Beta Task Info:', betaTaskInfo)
-            
             if (!currentUser) {
-                console.log('No current user - returning false')
                 return false
             }
             
             // Boss và Manager có thể xem mọi task
             if (currentUser.role === 'boss' || currentUser.role === 'manager') {
-                console.log('Permission granted: Boss/Manager - returning true')
                 return true
             }
             
             // Employee chỉ có thể xem review content nếu được phân công task beta tương ứng
             if (currentUser.role === 'employee') {
-                console.log('User is Employee - checking beta task permissions...')
-                console.log('Current User ID:', currentUser.id)
-                
                 // Nếu có thông tin beta task từ URL parameters, sử dụng trực tiếp
                 if (betaTaskInfo && betaTaskInfo.assignee_id === currentUser.id) {
-                    console.log('✅ Permission granted via URL parameters:', {
-                        currentUser: currentUser.id,
-                        betaTaskAssignee: betaTaskInfo.assignee_id,
-                        betaTaskId: betaTaskInfo.id
-                    })
                     return true
                 }
                 
-                console.log('❌ No permission via URL parameters, checking fallback...')
-                console.log('Beta Task Info check:', {
-                    hasBetaTaskInfo: !!betaTaskInfo,
-                    betaTaskInfo: betaTaskInfo,
-                    betaTaskAssignee: betaTaskInfo?.assignee_id,
-                    currentUserId: currentUser.id,
-                    match: betaTaskInfo?.assignee_id === currentUser.id
-                })
-                
                 // Fallback: Tìm task beta có parent_task_id trỏ đến task review này
-                // Lấy tasks từ localStorage hoặc window object
                 let betaTasks = []
                 try {
-                    // Thử lấy từ window object trước (nếu được truyền từ trang chính)
                     if (window.tasks && Array.isArray(window.tasks)) {
                         betaTasks = window.tasks
-                        console.log('Using window.tasks:', betaTasks.length)
                     } else {
-                        // Nếu không có, thử lấy từ localStorage
                         const savedTasks = localStorage.getItem('tasks')
                         if (savedTasks) {
                             betaTasks = JSON.parse(savedTasks)
-                            console.log('Using localStorage tasks:', betaTasks.length)
-                        } else {
-                            console.log('No tasks found in localStorage')
                         }
                     }
                 } catch (error) {
@@ -614,25 +549,9 @@
                     t.assignee_id === currentUser.id
                 )
                 
-                console.log('Fallback permission check:', {
-                    currentUser: currentUser.id,
-                    reviewTaskId: task.id,
-                    betaTasks: betaTasks.length,
-                    relatedBetaTask: relatedBetaTask,
-                    hasPermission: !!relatedBetaTask,
-                    betaTaskInfo: betaTaskInfo
-                })
-                
-                if (relatedBetaTask) {
-                    console.log('✅ Permission granted via fallback method')
-                } else {
-                    console.log('❌ No permission via fallback method')
-                }
-                
                 return !!relatedBetaTask
             }
             
-            console.log('No permission: user is not employee - returning false')
             return false
         }
         
@@ -650,10 +569,8 @@
                 // Kiểm tra quyền xem trước
                 if (!canView) {
                     showNotification('Bạn không có quyền xem nội dung review này', 'error')
-                    // Tắt logic thoát trang để debug
-                    // setTimeout(() => goBack(), 2000)
-                    // return
-                    console.log('VIEW PERMISSION DENIED - but staying on page for debugging')
+                    setTimeout(() => goBack(), 2000)
+                    return
                 }
                 
                 // Mode xem: chỉ hiển thị nội dung, không cho phép chỉnh sửa
@@ -690,9 +607,7 @@
             } else {
                 // Không có quyền chỉnh sửa - chuyển về trang chính
                 showNotification('Bạn không có quyền truy cập nội dung này', 'error')
-                // Tắt logic thoát trang để debug
-                // setTimeout(() => goBack(), 2000)
-                console.log('EDIT PERMISSION DENIED - but staying on page for debugging')
+                setTimeout(() => goBack(), 2000)
             }
         }
         
@@ -785,6 +700,12 @@
             document.getElementById('fontFamily').addEventListener('change', applyTextFormatting)
             document.getElementById('fontSize').addEventListener('change', applyTextFormatting)
             document.getElementById('lineHeight').addEventListener('change', applyTextFormatting)
+            
+            // Save button event listener
+            const saveButton = document.getElementById('saveButton')
+            if (saveButton) {
+                saveButton.addEventListener('click', saveReviewContent)
+            }
         }
         
         function applyTextFormatting() {
@@ -798,10 +719,18 @@
             contentEditor.style.lineHeight = lineHeight
         }
         
+        // Hàm tính số chữ chuẩn
+        function calculateWordCount(content) {
+            if (!content || !content.trim()) {
+                return 0
+            }
+            return content.trim().split(/\s+/).length
+        }
+        
         function updateWordCount() {
             const content = document.getElementById('reviewContent').value
             const charCount = content.length
-            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0
+            const wordCount = calculateWordCount(content)
             const lineCount = content.split('\n').length
             
             document.getElementById('charCount').textContent = charCount.toLocaleString()
@@ -918,17 +847,21 @@
                 // Update save button text
                 saveBtnText.textContent = 'Đã lưu'
                 
-                // Tự động cập nhật số chữ tổng trong database
+                // Tự động cập nhật số chữ tổng và số chữ RV trong database
                 try {
-                    const wordCount = content.trim().split(/\s+/).length
+                    const totalWordCount = calculateWordCount(content)
+                    const dialogueChars = currentTask.dialogue_chars || 0
+                    const rvWordCount = Math.max(0, totalWordCount - dialogueChars)
+                    
                     await supabase
                         .from('tasks')
                         .update({
-                            total_chars: wordCount
+                            total_chars: totalWordCount,
+                            rv_chars: rvWordCount
                         })
                         .eq('id', taskId)
                     
-                    console.log(`Đã cập nhật số chữ tổng: ${wordCount}`)
+                    console.log(`Đã cập nhật số chữ: Tổng ${totalWordCount} chữ, RV ${rvWordCount} chữ (trừ ${dialogueChars} chữ thoại)`)
                 } catch (updateError) {
                     console.warn('Không thể cập nhật số chữ tổng:', updateError)
                 }

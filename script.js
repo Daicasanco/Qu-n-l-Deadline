@@ -130,6 +130,9 @@ async function loadDataFromSupabase() {
         // Load tasks
         await loadTasks()
         
+        // Đồng bộ số chữ từ task_content cho các task có nội dung
+        await syncWordCountFromTaskContent()
+        
         // Re-render projects table after tasks are loaded to ensure accurate task counts
         renderProjectsTable()
         
@@ -1215,12 +1218,16 @@ async function editTask(id) {
         
         // Tự động cập nhật số chữ nếu có nội dung
         if (task.submission_link && !task.submission_link.startsWith('http') && task.submission_link !== '[CONTENT_SAVED]') {
-            const reviewWordCount = task.submission_link.trim().split(/\s+/).length
-            setVal('taskTotalChars', reviewWordCount)
+            const totalWordCount = calculateWordCount(task.submission_link)
+            const dialogueChars = task.dialogue_chars || 0
+            const rvWordCount = Math.max(0, totalWordCount - dialogueChars)
+            
+            setVal('taskTotalChars', totalWordCount)
+            setVal('taskRVChars', rvWordCount)
         }
         
         if (task.beta_link && !task.beta_link.startsWith('http')) {
-            const betaWordCount = task.beta_link.trim().split(/\s+/).length
+            const betaWordCount = calculateWordCount(task.beta_link)
             setVal('taskBetaChars', betaWordCount)
         }
     document.getElementById('taskStatusField').style.display = 'block'
@@ -2378,6 +2385,12 @@ async function handleTransferTask() {
 async function refreshData() {
     await loadDataFromSupabase()
     
+    // Đồng bộ số chữ từ task_content cho các task có nội dung
+    await syncWordCountFromTaskContent()
+    
+    // Cập nhật RV chars cho tất cả task có nội dung
+    await updateRVCharsForAllTasks()
+    
     // Update project link buttons if we're in tasks view
     if (currentProjectId) {
         updateProjectLinkButtons()
@@ -2388,6 +2401,81 @@ async function refreshData() {
     renderBetaTasksTable()
     
     showNotification('Đã làm mới dữ liệu', 'info')
+}
+
+// Hàm tính số chữ chuẩn (giống với review-input.html)
+function calculateWordCount(content) {
+    if (!content || !content.trim()) {
+        return 0
+    }
+    return content.trim().split(/\s+/).length
+}
+
+// Hàm đồng bộ số chữ từ task_content
+async function syncWordCountFromTaskContent() {
+    try {
+        // Lấy tất cả task có submission_link = '[CONTENT_SAVED]'
+        const { data: tasksWithContent, error: tasksError } = await supabase
+            .from('tasks')
+            .select('id, name, total_chars, rv_chars, dialogue_chars')
+            .eq('submission_link', '[CONTENT_SAVED]')
+            .eq('task_type', 'rv')
+        
+        if (tasksError) {
+            console.warn('Lỗi lấy danh sách task có nội dung:', tasksError)
+            return
+        }
+        
+        if (!tasksWithContent || tasksWithContent.length === 0) {
+            return
+        }
+        
+        console.log(`Đang đồng bộ số chữ cho ${tasksWithContent.length} task...`)
+        
+        // Đồng bộ từng task
+        for (const task of tasksWithContent) {
+            try {
+                // Lấy nội dung từ task_content
+                const { data: contentData, error: contentError } = await supabase
+                    .from('task_content')
+                    .select('content')
+                    .eq('task_id', task.id)
+                    .eq('content_type', 'review')
+                    .single()
+                
+                if (contentError || !contentData) {
+                    console.warn(`Không tìm thấy nội dung cho task ${task.id}:`, contentError)
+                    continue
+                }
+                
+                // Tính số chữ
+                const totalWordCount = calculateWordCount(contentData.content)
+                const dialogueChars = task.dialogue_chars || 0
+                const rvWordCount = Math.max(0, totalWordCount - dialogueChars)
+                
+                // Cập nhật nếu số chữ khác với database
+                if (task.total_chars !== totalWordCount || task.rv_chars !== rvWordCount) {
+                    await supabase
+                        .from('tasks')
+                        .update({
+                            total_chars: totalWordCount,
+                            rv_chars: rvWordCount
+                        })
+                        .eq('id', task.id)
+                    
+                    console.log(`Đã cập nhật task ${task.name}: Tổng ${totalWordCount} chữ, RV ${rvWordCount} chữ (trừ ${dialogueChars} chữ thoại)`)
+                }
+                
+            } catch (error) {
+                console.warn(`Lỗi đồng bộ task ${task.id}:`, error)
+            }
+        }
+        
+        console.log('Hoàn thành đồng bộ số chữ')
+        
+    } catch (error) {
+        console.warn('Lỗi đồng bộ số chữ từ task_content:', error)
+    }
 }
 
 // Event Listeners
@@ -2673,7 +2761,58 @@ function calculateRVChars() {
     const rvChars = totalChars - dialogueChars
     
     document.getElementById('taskRVChars').value = rvChars >= 0 ? rvChars : 0
-} 
+}
+
+// Hàm cập nhật RV chars cho tất cả task có nội dung khi có thay đổi
+async function updateRVCharsForAllTasks() {
+    try {
+        // Lấy tất cả task có nội dung và có dialogue_chars
+        const { data: tasksWithContent, error: tasksError } = await supabase
+            .from('tasks')
+            .select('id, name, total_chars, rv_chars, dialogue_chars')
+            .eq('submission_link', '[CONTENT_SAVED]')
+            .eq('task_type', 'rv')
+            .not('dialogue_chars', 'is', null)
+        
+        if (tasksError) {
+            console.warn('Lỗi lấy danh sách task để cập nhật RV chars:', tasksError)
+            return
+        }
+        
+        if (!tasksWithContent || tasksWithContent.length === 0) {
+            return
+        }
+        
+        console.log(`Đang cập nhật RV chars cho ${tasksWithContent.length} task...`)
+        
+        // Cập nhật từng task
+        for (const task of tasksWithContent) {
+            try {
+                const newRVChars = Math.max(0, (task.total_chars || 0) - (task.dialogue_chars || 0))
+                
+                // Chỉ cập nhật nếu RV chars khác với giá trị hiện tại
+                if (task.rv_chars !== newRVChars) {
+                    await supabase
+                        .from('tasks')
+                        .update({
+                            rv_chars: newRVChars
+                        })
+                        .eq('id', task.id)
+                    
+                    console.log(`Đã cập nhật RV chars cho task ${task.name}: ${newRVChars} chữ`)
+                }
+                
+            } catch (error) {
+                console.warn(`Lỗi cập nhật RV chars cho task ${task.id}:`, error)
+            }
+        }
+        
+        console.log('Hoàn thành cập nhật RV chars')
+        
+    } catch (error) {
+        console.warn('Lỗi cập nhật RV chars cho tất cả task:', error)
+    }
+}
 
 // Thêm hàm cập nhật dropdown nhân viên cho bộ lọc
 function updateTaskAssigneeFilter() {

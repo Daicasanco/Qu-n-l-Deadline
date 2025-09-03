@@ -130,11 +130,11 @@ async function loadDataFromSupabase() {
         // Load tasks
         await loadTasks()
         
-        // Đồng bộ số chữ từ task_content cho các task có nội dung
-        await syncWordCountFromTaskContent()
-        
         // Re-render projects table after tasks are loaded to ensure accurate task counts
         renderProjectsTable()
+        
+        // Đồng bộ số chữ từ task_content trong background (không block UI)
+        syncWordCountFromTaskContentInBackground()
         
         // Load leaderboards and notifications
         await loadLeaderboards()
@@ -2424,12 +2424,6 @@ async function handleTransferTask() {
 async function refreshData() {
     await loadDataFromSupabase()
     
-    // Đồng bộ số chữ từ task_content cho các task có nội dung
-    await syncWordCountFromTaskContent()
-    
-    // Cập nhật RV chars cho tất cả task có nội dung
-    await updateRVCharsForAllTasks()
-    
     // Update project link buttons if we're in tasks view
     if (currentProjectId) {
         updateProjectLinkButtons()
@@ -2438,6 +2432,9 @@ async function refreshData() {
     // Re-render tables to apply updated rank-based styling
     renderTasksTable()
     renderBetaTasksTable()
+    
+    // Chỉ đồng bộ số chữ khi user chủ động refresh (không phải auto-refresh)
+    syncWordCountFromTaskContentInBackground()
     
     showNotification('Đã làm mới dữ liệu', 'info')
 }
@@ -2448,6 +2445,32 @@ function calculateWordCount(content) {
         return 0
     }
     return content.trim().split(/\s+/).length
+}
+
+// Hàm đồng bộ số chữ từ task_content trong background (không block UI)
+function syncWordCountFromTaskContentInBackground() {
+    // Chạy trong background để không block UI
+    setTimeout(async () => {
+        try {
+            // Kiểm tra xem có cần đồng bộ không
+            const lastSyncTime = localStorage.getItem('lastWordCountSync')
+            const now = Date.now()
+            
+            // Chỉ đồng bộ nếu chưa đồng bộ trong 5 phút gần đây
+            if (lastSyncTime && (now - parseInt(lastSyncTime)) < 5 * 60 * 1000) {
+                console.log('Bỏ qua đồng bộ số chữ - đã đồng bộ gần đây')
+                return
+            }
+            
+            await syncWordCountFromTaskContent()
+            
+            // Lưu thời gian đồng bộ cuối
+            localStorage.setItem('lastWordCountSync', now.toString())
+            
+        } catch (error) {
+            console.warn('Lỗi đồng bộ số chữ trong background:', error)
+        }
+    }, 1000) // Delay 1 giây để UI load xong
 }
 
 // Hàm đồng bộ số chữ từ task_content
@@ -2471,8 +2494,20 @@ async function syncWordCountFromTaskContent() {
         
         console.log(`Đang đồng bộ số chữ cho ${tasksWithContent.length} task...`)
         
-        // Đồng bộ từng task
-        for (const task of tasksWithContent) {
+        // Lọc ra những task thực sự cần đồng bộ (có total_chars = null hoặc rv_chars = null)
+        const tasksNeedSync = tasksWithContent.filter(task => 
+            task.total_chars === null || task.rv_chars === null
+        )
+        
+        if (tasksNeedSync.length === 0) {
+            console.log('Không có task nào cần đồng bộ số chữ')
+            return
+        }
+        
+        console.log(`Chỉ đồng bộ ${tasksNeedSync.length} task cần thiết...`)
+        
+        // Đồng bộ từng task (chỉ những task cần thiết)
+        for (const task of tasksNeedSync) {
             try {
                 // Lấy nội dung từ task_content
                 const { data: contentData, error: contentError } = await supabase
@@ -2492,18 +2527,16 @@ async function syncWordCountFromTaskContent() {
                 const dialogueChars = task.dialogue_chars || 0
                 const rvWordCount = Math.max(0, totalWordCount - dialogueChars)
                 
-                // Cập nhật nếu số chữ khác với database
-                if (task.total_chars !== totalWordCount || task.rv_chars !== rvWordCount) {
-                    await supabase
-                        .from('tasks')
-                        .update({
-                            total_chars: totalWordCount,
-                            rv_chars: rvWordCount
-                        })
-                        .eq('id', task.id)
-                    
-                    console.log(`Đã cập nhật task ${task.name}: Tổng ${totalWordCount} chữ, RV ${rvWordCount} chữ (trừ ${dialogueChars} chữ thoại)`)
-                }
+                // Cập nhật số chữ
+                await supabase
+                    .from('tasks')
+                    .update({
+                        total_chars: totalWordCount,
+                        rv_chars: rvWordCount
+                    })
+                    .eq('id', task.id)
+                
+                console.log(`Đã cập nhật task ${task.name}: Tổng ${totalWordCount} chữ, RV ${rvWordCount} chữ`)
                 
             } catch (error) {
                 console.warn(`Lỗi đồng bộ task ${task.id}:`, error)

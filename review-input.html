@@ -736,7 +736,33 @@
             document.getElementById('charCount').textContent = charCount.toLocaleString()
             document.getElementById('wordCount').textContent = wordCount.toLocaleString()
             document.getElementById('lineCount').textContent = lineCount.toLocaleString()
+            
+            // Cập nhật số chữ vào database ngay lập tức (debounced)
+            debouncedUpdateWordCountToDatabase(content)
         }
+        
+        // Hàm cập nhật số chữ vào database với debounce
+        const debouncedUpdateWordCountToDatabase = debounce(async (content) => {
+            if (!content || !content.trim()) return
+            
+            try {
+                const totalWordCount = calculateWordCount(content)
+                const dialogueChars = currentTask ? (currentTask.dialogue_chars || 0) : 0
+                const rvWordCount = Math.max(0, totalWordCount - dialogueChars)
+                
+                await supabase
+                    .from('tasks')
+                    .update({
+                        total_chars: totalWordCount,
+                        rv_chars: rvWordCount
+                    })
+                    .eq('id', taskId)
+                
+                console.log(`Đã cập nhật số chữ real-time: Tổng ${totalWordCount} chữ, RV ${rvWordCount} chữ`)
+            } catch (error) {
+                console.warn('Không thể cập nhật số chữ real-time:', error)
+            }
+        }, 2000) // Debounce 2 giây
         
         function splitByPeriods() {
             const contentEditor = document.getElementById('reviewContent')

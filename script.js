@@ -238,18 +238,57 @@ function setupRealtimeSubscriptions() {
         })
         .subscribe()
     
-    // Subscribe to task changes - Tạm thời comment để tránh conflict
-    /*
+    // Subscribe to task changes - Bật lại để cập nhật số chữ real-time
     supabase
         .channel('tasks')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
+            // Chỉ reload tasks nếu đang ở trong tasks view
             if (currentProjectId) {
-                loadTasks(currentProjectId)
+                loadTasks(currentProjectId).then(() => {
+                    // Re-render tables để cập nhật số chữ
+                    renderTasksTable()
+                    renderBetaTasksTable()
+                    
+                    // Cập nhật UI ngay lập tức nếu đang xem task đó
+                    if (payload.new && payload.new.id) {
+                        updateTaskUIInRealTime(payload.new)
+                    }
+                })
             }
-            showNotification('Dữ liệu công việc đã được cập nhật', 'info')
         })
         .subscribe()
-    */
+}
+
+// Hàm cập nhật UI task ngay lập tức khi có thay đổi từ database
+function updateTaskUIInRealTime(updatedTask) {
+    try {
+        // Cập nhật task trong local data
+        const taskIndex = tasks.findIndex(t => t.id === updatedTask.id)
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTask }
+        }
+        
+        // Cập nhật UI nếu đang xem task đó
+        const taskRow = document.querySelector(`tr[data-task-id="${updatedTask.id}"]`)
+        if (taskRow) {
+            // Cập nhật số chữ trong bảng
+            const totalCharsCell = taskRow.querySelector('.total-chars-cell')
+            const rvCharsCell = taskRow.querySelector('.rv-chars-cell')
+            
+            if (totalCharsCell && updatedTask.total_chars) {
+                totalCharsCell.innerHTML = `<span class="badge badge-gradient-green">${updatedTask.total_chars.toLocaleString()}</span>`
+            }
+            
+            if (rvCharsCell && updatedTask.rv_chars) {
+                rvCharsCell.innerHTML = `<span class="badge badge-gradient-yellow">${updatedTask.rv_chars.toLocaleString()}</span>`
+            }
+            
+            console.log(`Đã cập nhật UI cho task ${updatedTask.name}: Tổng ${updatedTask.total_chars} chữ, RV ${updatedTask.rv_chars} chữ`)
+        }
+        
+    } catch (error) {
+        console.warn('Lỗi cập nhật UI real-time:', error)
+    }
 }
 
 // User Management

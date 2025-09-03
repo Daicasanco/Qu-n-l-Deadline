@@ -32,6 +32,10 @@ function showProjectsView() {
     document.getElementById('projectsView').style.display = ''
     document.getElementById('tasksView').style.display = 'none'
     currentProjectId = null
+    
+    // Dừng countdown updates khi rời tasks view
+    stopCountdownUpdates()
+    
     updateDashboard()
     
     // Update UI to show/hide buttons based on current view
@@ -49,6 +53,9 @@ function showTasksView(projectId) {
     
     // Set current project
     currentProjectId = projectId
+    
+    // Bắt đầu countdown updates khi vào tasks view
+    startCountdownUpdates()
     
     // Update project name in header
     const project = projects.find(p => p.id === projectId)
@@ -136,9 +143,9 @@ async function loadDataFromSupabase() {
         // Đồng bộ số chữ từ task_content trong background (không block UI)
         syncWordCountFromTaskContentInBackground()
         
-        // Load leaderboards and notifications
-        await loadLeaderboards()
-        await loadNotifications()
+        // Load leaderboards and notifications trong background (không block UI)
+        loadLeaderboardsInBackground()
+        loadNotificationsInBackground()
         
         // Update UI
         updateDashboard()
@@ -238,22 +245,24 @@ function setupRealtimeSubscriptions() {
         })
         .subscribe()
     
-    // Subscribe to task changes - Bật lại để cập nhật số chữ real-time
+    // Subscribe to task changes - Tối ưu hóa để không reload toàn bộ
     supabase
         .channel('tasks')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
-            // Chỉ reload tasks nếu đang ở trong tasks view
-            if (currentProjectId) {
-                loadTasks(currentProjectId).then(() => {
-                    // Re-render tables để cập nhật số chữ
-                    renderTasksTable()
-                    renderBetaTasksTable()
-                    
-                    // Cập nhật UI ngay lập tức nếu đang xem task đó
-                    if (payload.new && payload.new.id) {
-                        updateTaskUIInRealTime(payload.new)
-                    }
-                })
+            // Chỉ cập nhật UI nếu đang ở trong tasks view
+            if (currentProjectId && payload.new) {
+                // Cập nhật task trong local data
+                const taskIndex = tasks.findIndex(t => t.id === payload.new.id)
+                if (taskIndex !== -1) {
+                    tasks[taskIndex] = { ...tasks[taskIndex], ...payload.new }
+                }
+                
+                // Cập nhật UI ngay lập tức
+                updateTaskUIInRealTime(payload.new)
+                
+                // Re-render tables để cập nhật số chữ
+                renderTasksTable()
+                renderBetaTasksTable()
             }
         })
         .subscribe()
@@ -2940,10 +2949,41 @@ function updateAllCountdowns() {
         }
     });
 }
-// Tự động cập nhật countdown mỗi giây
-setInterval(updateAllCountdowns, 1000);
+// Tự động cập nhật countdown mỗi giây (chỉ khi có task hiển thị)
+let countdownInterval = null
+
+function startCountdownUpdates() {
+    if (countdownInterval) return // Đã chạy rồi
+    
+    countdownInterval = setInterval(() => {
+        // Chỉ update nếu đang ở tasks view và có task hiển thị
+        if (currentProjectId && tasks.length > 0) {
+            updateAllCountdowns()
+        }
+    }, 1000)
+}
+
+function stopCountdownUpdates() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval)
+        countdownInterval = null
+    }
+}
+
+
 
 // --- LEADERBOARD FUNCTIONS ---
+// Hàm load leaderboards trong background
+function loadLeaderboardsInBackground() {
+    setTimeout(async () => {
+        try {
+            await loadLeaderboards()
+        } catch (error) {
+            console.warn('Lỗi load leaderboards trong background:', error)
+        }
+    }, 2000) // Delay 2 giây để UI load xong
+}
+
 async function loadLeaderboards() {
     try {
         // Load all-time leaderboard (TOP 5)
@@ -2958,13 +2998,13 @@ async function loadLeaderboards() {
 
 async function loadAllTimeLeaderboard() {
     try {
-        // Get all employees first
-        const { data: allEmployees, error: employeesError } = await supabase
-            .from('employees')
-            .select('*')
-            .eq('role', 'employee')
-
-        if (employeesError) throw employeesError
+        // Sử dụng employees đã load từ loadDataFromSupabase
+        const allEmployees = window.allEmployees || []
+        
+        if (allEmployees.length === 0) {
+            console.warn('Không có employees data để load leaderboard')
+            return
+        }
 
         // Get all completed tasks with employee data
         const { data: completedTasks, error } = await supabase
@@ -3186,6 +3226,17 @@ function renderLeaderboard(containerId, data, type) {
 }
 
 // --- NOTIFICATION FUNCTIONS ---
+// Hàm load notifications trong background
+function loadNotificationsInBackground() {
+    setTimeout(async () => {
+        try {
+            await loadNotifications()
+        } catch (error) {
+            console.warn('Lỗi load notifications trong background:', error)
+        }
+    }, 3000) // Delay 3 giây để UI load xong
+}
+
 async function loadNotifications() {
     try {
         // Load system announcement

@@ -1314,7 +1314,9 @@ async function updateTask() {
     const status = document.getElementById('taskStatus').value
     
     // New fields - submission link giờ được lưu từ trang review input
-    const submissionLink = '' // Không còn lấy từ form, sẽ được cập nhật từ trang review input
+    // Giữ nguyên submission_link hiện tại nếu đã có nội dung được lưu
+    const currentTask = tasks.find(t => t.id === id)
+    const submissionLink = currentTask && currentTask.submission_link ? currentTask.submission_link : ''
     const betaLink = document.getElementById('taskBetaLink').value
     const dialogueChars = document.getElementById('taskDialogueChars').value
     const totalChars = document.getElementById('taskTotalChars').value
@@ -1363,7 +1365,7 @@ async function updateTask() {
                 priority: priority,
                 assignee_id: assigneeId || null, // Có thể null
                 status: status,
-                submission_link: submissionLink || null,
+                submission_link: submissionLink || (currentTask && currentTask.submission_link) || null,
                 beta_link: betaLink || null,
                 dialogue_chars: dialogueChars ? parseInt(dialogueChars) : null,
                 total_chars: totalChars ? parseInt(totalChars) : null,

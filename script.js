@@ -144,7 +144,12 @@ async function loadDataFromSupabase() {
         syncWordCountFromTaskContentInBackground()
         
         // Load leaderboards and notifications trong background (không block UI)
-        loadLeaderboardsInBackground()
+        // Chỉ load nếu có employees data và user có quyền xem leaderboard
+        if (window.allEmployees && window.allEmployees.length > 0 && currentUser && currentUser.role !== 'guest') {
+            loadLeaderboardsInBackground()
+        } else {
+            console.log('Bỏ qua load leaderboard - không đủ điều kiện')
+        }
         loadNotificationsInBackground()
         
         // Update UI
@@ -2975,13 +2980,19 @@ function stopCountdownUpdates() {
 // --- LEADERBOARD FUNCTIONS ---
 // Hàm load leaderboards trong background
 function loadLeaderboardsInBackground() {
+    // Kiểm tra xem có cần load leaderboard không
+    if (!window.allEmployees || window.allEmployees.length === 0) {
+        console.log('Bỏ qua load leaderboard - chưa có employees data')
+        return
+    }
+    
     setTimeout(async () => {
         try {
             await loadLeaderboards()
         } catch (error) {
             console.warn('Lỗi load leaderboards trong background:', error)
         }
-    }, 2000) // Delay 2 giây để UI load xong
+    }, 5000) // Delay 5 giây để đảm bảo employees data đã load xong
 }
 
 async function loadLeaderboards() {
@@ -3230,11 +3241,12 @@ function renderLeaderboard(containerId, data, type) {
 function loadNotificationsInBackground() {
     setTimeout(async () => {
         try {
+            // Chỉ load notifications nếu cần thiết
             await loadNotifications()
         } catch (error) {
             console.warn('Lỗi load notifications trong background:', error)
         }
-    }, 3000) // Delay 3 giây để UI load xong
+    }, 4000) // Delay 4 giây để UI load xong
 }
 
 async function loadNotifications() {

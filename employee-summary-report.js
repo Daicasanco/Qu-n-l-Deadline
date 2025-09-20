@@ -298,6 +298,9 @@ function calculateEarnings(chars, rate) {
 }
 
 function displayReport(data) {
+    // Sort employees by total characters (highest first) BEFORE displaying
+    data.employees.sort((a, b) => b.totalChars - a.totalChars)
+    
     // Update summary cards
     document.getElementById('totalEmployees').textContent = data.totalEmployees
     document.getElementById('totalProjects').textContent = data.totalProjects
@@ -462,9 +465,6 @@ function displayReport(data) {
         `
         tbody.appendChild(summaryRow)
     })
-    
-    // Sort employees by total characters (highest first)
-    data.employees.sort((a, b) => b.totalChars - a.totalChars)
     
     // Show report content
     document.getElementById('reportContent').style.display = 'block'
@@ -679,6 +679,9 @@ function filterEmployeeData() {
         filteredEmployees = reportData.employees.filter(emp => emp.id === selectedEmployeeId)
     }
     
+    // Sort filtered employees by total characters (highest first) BEFORE displaying
+    filteredEmployees.sort((a, b) => b.totalChars - a.totalChars)
+    
     // Update table with filtered data
     const tbody = document.getElementById('employeeReportTableBody')
     tbody.innerHTML = ''
@@ -830,9 +833,6 @@ function filterEmployeeData() {
         `
         tbody.appendChild(summaryRow)
     })
-    
-    // Sort filtered employees by total characters (highest first)
-    filteredEmployees.sort((a, b) => b.totalChars - a.totalChars)
 }
 
 function showLoading(show) {

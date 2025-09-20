@@ -1,6 +1,6 @@
 // Supabase Configuration - Thêm API keys trực tiếp vào đây
-const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'  // ← Thay bằng URL thực
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5Mzc5NDgsImV4cCI6MjA2OTUxMzk0OH0.0VQIXPP5ZfpeFzDpG-lGVFqwZNikn5rb-vQTu5AdUTs'              // ← Thay bằng ANON KEY thực
+const SUPABASE_URL = 'https://blkkgtjsebkjmhqqtrwh.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsa2tndGpzZWJram1ocXF0cndoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5Mzc5NDgsImV4cCI6MjA2OTUxMzk0OH0.0VQIXPP5ZfpeFzDpG-lGVFqwZNikn5rb-vQTu5AdUTs'
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -45,6 +45,11 @@ function showProjectsView() {
 // Open guest content page
 function openGuestContentPage() {
     window.open('guest-content.html', '_blank');
+}
+
+// Open employee summary report page
+function openEmployeeSummaryReport() {
+    window.open('employee-summary-report.html', '_blank');
 }
 
 function showTasksView(projectId) {
@@ -412,6 +417,12 @@ function updateUserInterface() {
         
         // Show/hide rate members button for managers and bosses
         updateRateMembersButton()
+        
+        // Show/hide employee summary report button for bosses only
+        const employeeSummaryReportBtn = document.getElementById('employeeSummaryReportBtn')
+        if (employeeSummaryReportBtn) {
+            employeeSummaryReportBtn.style.display = isBoss(currentUser) ? 'inline-block' : 'none'
+        }
         
         // Show main content and hide login message
         if (mainContent) mainContent.style.display = 'block'

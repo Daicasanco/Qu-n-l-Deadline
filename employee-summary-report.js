@@ -219,6 +219,9 @@ function processReportData(employees, projects, tasks) {
                 emp.rvChars += task.rv_chars || 0
                 emp.rvEarnings += calculateEarnings(task.rv_chars || 0, task.rate || 0)
                 
+                // Debug log
+                console.log(`RV Task for ${emp.name}: rv_chars=${task.rv_chars}, total so far=${emp.rvChars}`)
+                
                 // Project details
                 emp.projectDetails[projectId].rvChapters++
                 emp.projectDetails[projectId].rvChars += task.rv_chars || 0
@@ -227,6 +230,9 @@ function processReportData(employees, projects, tasks) {
                 emp.betaChapters++
                 emp.betaChars += task.beta_chars || 0
                 emp.betaEarnings += calculateEarnings(task.beta_chars || 0, task.beta_rate || 0)
+                
+                // Debug log
+                console.log(`Beta Task for ${emp.name}: beta_chars=${task.beta_chars}, total so far=${emp.betaChars}`)
                 
                 // Project details
                 emp.projectDetails[projectId].betaChapters++
@@ -298,8 +304,26 @@ function calculateEarnings(chars, rate) {
 }
 
 function displayReport(data) {
+    // Debug: Log employees before sorting
+    console.log('Before sorting:', data.employees.map(emp => ({
+        name: emp.name,
+        totalChars: emp.totalChars,
+        totalEarnings: emp.totalEarnings
+    })))
+    
     // Sort employees by total characters (highest first) BEFORE displaying
-    data.employees.sort((a, b) => b.totalChars - a.totalChars)
+    data.employees.sort((a, b) => {
+        const result = b.totalChars - a.totalChars
+        console.log(`Comparing ${a.name} (${a.totalChars}) vs ${b.name} (${b.totalChars}): result = ${result}`)
+        return result
+    })
+    
+    // Debug: Log employees after sorting
+    console.log('After sorting:', data.employees.map(emp => ({
+        name: emp.name,
+        totalChars: emp.totalChars,
+        totalEarnings: emp.totalEarnings
+    })))
     
     // Update summary cards
     document.getElementById('totalEmployees').textContent = data.totalEmployees

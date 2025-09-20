@@ -152,6 +152,7 @@ async function loadComparisonData() {
 
 function processReportData(employees, projects, tasks) {
     const employeeStats = {}
+    const projectStats = {}
     
     // Initialize employee stats
     employees.forEach(emp => {
@@ -160,6 +161,7 @@ function processReportData(employees, projects, tasks) {
             name: emp.name,
             email: emp.email,
             projects: new Set(),
+            projectDetails: {}, // Chi tiết từng dự án
             rvChapters: 0,
             betaChapters: 0,
             totalChapters: 0,
@@ -172,14 +174,43 @@ function processReportData(employees, projects, tasks) {
         }
     })
     
+    // Initialize project stats
+    projects.forEach(project => {
+        projectStats[project.id] = {
+            id: project.id,
+            name: project.name,
+            totalChapters: 0,
+            totalChars: 0,
+            totalEarnings: 0,
+            employees: new Set()
+        }
+    })
+    
     // Process tasks
     tasks.forEach(task => {
         if (task.assignee_id && employeeStats[task.assignee_id]) {
             const emp = employeeStats[task.assignee_id]
+            const projectId = task.project_id
             
             // Add project to set
             if (task.projects) {
                 emp.projects.add(task.projects.name)
+            }
+            
+            // Initialize project details for this employee if not exists
+            if (!emp.projectDetails[projectId]) {
+                emp.projectDetails[projectId] = {
+                    projectName: task.projects ? task.projects.name : 'Unknown',
+                    rvChapters: 0,
+                    betaChapters: 0,
+                    totalChapters: 0,
+                    rvChars: 0,
+                    betaChars: 0,
+                    totalChars: 0,
+                    rvEarnings: 0,
+                    betaEarnings: 0,
+                    totalEarnings: 0
+                }
             }
             
             // Count chapters
@@ -187,15 +218,39 @@ function processReportData(employees, projects, tasks) {
                 emp.rvChapters++
                 emp.rvChars += task.rv_chars || 0
                 emp.rvEarnings += calculateEarnings(task.rv_chars || 0, task.rate || 0)
+                
+                // Project details
+                emp.projectDetails[projectId].rvChapters++
+                emp.projectDetails[projectId].rvChars += task.rv_chars || 0
+                emp.projectDetails[projectId].rvEarnings += calculateEarnings(task.rv_chars || 0, task.rate || 0)
             } else if (task.task_type === 'beta') {
                 emp.betaChapters++
                 emp.betaChars += task.beta_chars || 0
                 emp.betaEarnings += calculateEarnings(task.beta_chars || 0, task.beta_rate || 0)
+                
+                // Project details
+                emp.projectDetails[projectId].betaChapters++
+                emp.projectDetails[projectId].betaChars += task.beta_chars || 0
+                emp.projectDetails[projectId].betaEarnings += calculateEarnings(task.beta_chars || 0, task.beta_rate || 0)
             }
             
+            // Update totals
             emp.totalChapters = emp.rvChapters + emp.betaChapters
             emp.totalChars = emp.rvChars + emp.betaChars
             emp.totalEarnings = emp.rvEarnings + emp.betaEarnings
+            
+            // Update project details totals
+            emp.projectDetails[projectId].totalChapters = emp.projectDetails[projectId].rvChapters + emp.projectDetails[projectId].betaChapters
+            emp.projectDetails[projectId].totalChars = emp.projectDetails[projectId].rvChars + emp.projectDetails[projectId].betaChars
+            emp.projectDetails[projectId].totalEarnings = emp.projectDetails[projectId].rvEarnings + emp.projectDetails[projectId].betaEarnings
+            
+            // Update project stats
+            if (projectStats[projectId]) {
+                projectStats[projectId].totalChapters++
+                projectStats[projectId].totalChars += (task.rv_chars || 0) + (task.beta_chars || 0)
+                projectStats[projectId].totalEarnings += calculateEarnings(task.rv_chars || 0, task.rate || 0) + calculateEarnings(task.beta_chars || 0, task.beta_rate || 0)
+                projectStats[projectId].employees.add(task.assignee_id)
+            }
         }
     })
     
@@ -204,8 +259,13 @@ function processReportData(employees, projects, tasks) {
         emp.projects = emp.projects.size
     })
     
+    Object.values(projectStats).forEach(project => {
+        project.employees = project.employees.size
+    })
+    
     return {
         employees: Object.values(employeeStats),
+        projects: Object.values(projectStats),
         totalEmployees: employees.length,
         totalProjects: projects.length,
         totalChapters: tasks.length,
@@ -249,8 +309,10 @@ function displayReport(data) {
     tbody.innerHTML = ''
     
     data.employees.forEach(emp => {
-        const row = document.createElement('tr')
-        row.innerHTML = `
+        // Tạo row chính cho nhân viên
+        const mainRow = document.createElement('tr')
+        mainRow.className = 'employee-main-row'
+        mainRow.innerHTML = `
             <td>
                 <div class="d-flex align-items-center">
                     <div class="employee-avatar me-3">
@@ -280,7 +342,62 @@ function displayReport(data) {
                 </div>
             </td>
         `
-        tbody.appendChild(row)
+        tbody.appendChild(mainRow)
+        
+        // Tạo các row chi tiết cho từng dự án
+        Object.values(emp.projectDetails).forEach(projectDetail => {
+            const detailRow = document.createElement('tr')
+            detailRow.className = 'project-detail-row'
+            detailRow.style.backgroundColor = '#f8f9fa'
+            detailRow.innerHTML = `
+                <td colspan="12">
+                    <div class="project-details">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong class="text-primary">📚 ${projectDetail.projectName}</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Chap RV: </small>
+                                <span class="badge bg-success">${projectDetail.rvChapters}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Chap Beta: </small>
+                                <span class="badge bg-warning">${projectDetail.betaChapters}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Tổng chap: </small>
+                                <span class="badge bg-info">${projectDetail.totalChapters}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tổng tiền: </small>
+                                <strong class="text-success">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                            </div>
+                        </div>
+                        <div class="row mt-1">
+                            <div class="col-md-3">
+                                <small class="text-muted">Chữ RV: </small>
+                                <span>${formatNumber(projectDetail.rvChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Chữ Beta: </small>
+                                <span>${formatNumber(projectDetail.betaChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tổng chữ: </small>
+                                <span>${formatNumber(projectDetail.totalChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tiền RV: </small>
+                                <span>${formatCurrency(projectDetail.rvEarnings)}</span>
+                                <small class="text-muted ms-2">| Beta: </small>
+                                <span>${formatCurrency(projectDetail.betaEarnings)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            `
+            tbody.appendChild(detailRow)
+        })
     })
     
     // Update performance chart
@@ -443,8 +560,10 @@ function filterEmployeeData() {
     tbody.innerHTML = ''
     
     filteredEmployees.forEach(emp => {
-        const row = document.createElement('tr')
-        row.innerHTML = `
+        // Tạo row chính cho nhân viên
+        const mainRow = document.createElement('tr')
+        mainRow.className = 'employee-main-row'
+        mainRow.innerHTML = `
             <td>
                 <div class="d-flex align-items-center">
                     <div class="employee-avatar me-3">
@@ -474,7 +593,62 @@ function filterEmployeeData() {
                 </div>
             </td>
         `
-        tbody.appendChild(row)
+        tbody.appendChild(mainRow)
+        
+        // Tạo các row chi tiết cho từng dự án
+        Object.values(emp.projectDetails).forEach(projectDetail => {
+            const detailRow = document.createElement('tr')
+            detailRow.className = 'project-detail-row'
+            detailRow.style.backgroundColor = '#f8f9fa'
+            detailRow.innerHTML = `
+                <td colspan="12">
+                    <div class="project-details">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong class="text-primary">📚 ${projectDetail.projectName}</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Chap RV: </small>
+                                <span class="badge bg-success">${projectDetail.rvChapters}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Chap Beta: </small>
+                                <span class="badge bg-warning">${projectDetail.betaChapters}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Tổng chap: </small>
+                                <span class="badge bg-info">${projectDetail.totalChapters}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tổng tiền: </small>
+                                <strong class="text-success">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                            </div>
+                        </div>
+                        <div class="row mt-1">
+                            <div class="col-md-3">
+                                <small class="text-muted">Chữ RV: </small>
+                                <span>${formatNumber(projectDetail.rvChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Chữ Beta: </small>
+                                <span>${formatNumber(projectDetail.betaChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tổng chữ: </small>
+                                <span>${formatNumber(projectDetail.totalChars)}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Tiền RV: </small>
+                                <span>${formatCurrency(projectDetail.rvEarnings)}</span>
+                                <small class="text-muted ms-2">| Beta: </small>
+                                <span>${formatCurrency(projectDetail.betaEarnings)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            `
+            tbody.appendChild(detailRow)
+        })
     })
     
     // Update chart with filtered data
@@ -530,23 +704,32 @@ function generateCSV(employees) {
         'Tổng chữ',
         'Tiền RV (VNĐ)',
         'Tiền Beta (VNĐ)',
-        'Tổng tiền (VNĐ)'
+        'Tổng tiền (VNĐ)',
+        'Chi tiết dự án'
     ]
     
-    const rows = employees.map(emp => [
-        emp.name,
-        emp.email,
-        emp.projects,
-        emp.rvChapters,
-        emp.betaChapters,
-        emp.totalChapters,
-        emp.rvChars,
-        emp.betaChars,
-        emp.totalChars,
-        emp.rvEarnings,
-        emp.betaEarnings,
-        emp.totalEarnings
-    ])
+    const rows = employees.map(emp => {
+        // Tạo chuỗi chi tiết dự án
+        const projectDetails = Object.values(emp.projectDetails).map(project => 
+            `${project.projectName}: ${project.totalChapters} chap (RV: ${project.rvChapters}, Beta: ${project.betaChapters}) - ${formatCurrency(project.totalEarnings)}`
+        ).join('; ')
+        
+        return [
+            emp.name,
+            emp.email,
+            emp.projects,
+            emp.rvChapters,
+            emp.betaChapters,
+            emp.totalChapters,
+            emp.rvChars,
+            emp.betaChars,
+            emp.totalChars,
+            emp.rvEarnings,
+            emp.betaEarnings,
+            emp.totalEarnings,
+            projectDetails
+        ]
+    })
     
     return [headers, ...rows].map(row => 
         row.map(field => `"${field}"`).join(',')

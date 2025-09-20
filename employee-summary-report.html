@@ -168,21 +168,25 @@
         /* Project Details Styling */
         .employee-main-row {
             border-left: 4px solid #007bff;
+            background-color: #f8f9fa !important;
         }
         
         .project-detail-row {
             border-left: 4px solid #28a745;
+            background-color: #ffffff !important;
         }
         
         .project-details {
-            padding: 0.5rem 1rem;
+            padding: 1rem;
             border-radius: 8px;
-            background: rgba(0,123,255,0.05);
-            border: 1px solid rgba(0,123,255,0.1);
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 1px solid #e1f5fe;
+            margin: 0.5rem 0;
         }
         
         .project-details .row {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
         }
         
         .project-details .row:last-child {
@@ -190,24 +194,170 @@
         }
         
         .project-details strong {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            color: #1976d2;
         }
         
         .project-details .badge {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            padding: 0.4em 0.6em;
         }
         
         .project-details small {
-            font-weight: 500;
+            font-weight: 600;
+            color: #424242;
         }
         
         /* Hover effects */
         .employee-main-row:hover {
-            background-color: rgba(0,123,255,0.05) !important;
+            background-color: #e3f2fd !important;
+            transform: translateX(2px);
+            transition: all 0.3s ease;
         }
         
         .project-detail-row:hover {
-            background-color: rgba(40,167,69,0.05) !important;
+            background-color: #f1f8e9 !important;
+            transform: translateX(2px);
+            transition: all 0.3s ease;
+        }
+        
+        /* Table improvements */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem;
+        }
+        
+        .table th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 1rem 0.75rem;
+        }
+        
+        /* Better spacing for project details */
+        .project-details .col-md-3,
+        .project-details .col-md-2 {
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Improved badges */
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.75em;
+            border-radius: 20px;
+        }
+        
+        /* Employee avatar improvements */
+        .employee-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        /* Progress bar improvements */
+        .progress {
+            height: 25px;
+            border-radius: 12px;
+            background-color: #e9ecef;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            border-radius: 12px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Stat item styling */
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .stat-item small {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-item strong {
+            font-size: 1.1rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+        
+        /* Project details improvements */
+        .project-details h6 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .project-details .badge.fs-6 {
+            font-size: 0.8rem !important;
+            padding: 0.4em 0.8em;
+        }
+        
+        /* Better spacing */
+        .project-details .row {
+            margin-bottom: 0.75rem;
+        }
+        
+        .project-details .row:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .project-details .row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .project-details .col-md-3,
+            .project-details .col-md-2 {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .project-details .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.5rem !important;
+            }
+            
+            .project-details .d-flex.gap-3 {
+                gap: 0.5rem !important;
+            }
+            
+            .project-details .d-flex.gap-4 {
+                gap: 1rem !important;
+            }
+            
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .stat-item {
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -353,18 +503,42 @@
                                 <table class="table table-hover" id="employeeReportTable">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th>Nhân viên</th>
-                                            <th>Số dự án</th>
-                                            <th>Chap RV</th>
-                                            <th>Chap Beta</th>
-                                            <th>Tổng chap</th>
-                                            <th>Chữ RV</th>
-                                            <th>Chữ Beta</th>
-                                            <th>Tổng chữ</th>
-                                            <th>Tiền RV</th>
-                                            <th>Tiền Beta</th>
-                                            <th>Tổng tiền</th>
-                                            <th>Hiệu suất</th>
+                                            <th style="width: 20%;">
+                                                <i class="fas fa-user me-2"></i>Nhân viên
+                                            </th>
+                                            <th style="width: 8%;">
+                                                <i class="fas fa-project-diagram me-2"></i>Dự án
+                                            </th>
+                                            <th style="width: 8%;">
+                                                <i class="fas fa-eye me-2"></i>Chap RV
+                                            </th>
+                                            <th style="width: 8%;">
+                                                <i class="fas fa-code me-2"></i>Chap Beta
+                                            </th>
+                                            <th style="width: 8%;">
+                                                <i class="fas fa-tasks me-2"></i>Tổng chap
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-font me-2"></i>Chữ RV
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-font me-2"></i>Chữ Beta
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-font me-2"></i>Tổng chữ
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-coins me-2"></i>Tiền RV
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-coins me-2"></i>Tiền Beta
+                                            </th>
+                                            <th style="width: 12%;">
+                                                <i class="fas fa-money-bill-wave me-2"></i>Tổng tiền
+                                            </th>
+                                            <th style="width: 10%;">
+                                                <i class="fas fa-chart-line me-2"></i>Hiệu suất
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody id="employeeReportTableBody">

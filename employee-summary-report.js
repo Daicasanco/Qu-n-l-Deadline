@@ -348,49 +348,67 @@ function displayReport(data) {
         Object.values(emp.projectDetails).forEach(projectDetail => {
             const detailRow = document.createElement('tr')
             detailRow.className = 'project-detail-row'
-            detailRow.style.backgroundColor = '#f8f9fa'
             detailRow.innerHTML = `
                 <td colspan="12">
                     <div class="project-details">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <strong class="text-primary">📚 ${projectDetail.projectName}</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Chap RV: </small>
-                                <span class="badge bg-success">${projectDetail.rvChapters}</span>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Chap Beta: </small>
-                                <span class="badge bg-warning">${projectDetail.betaChapters}</span>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Tổng chap: </small>
-                                <span class="badge bg-info">${projectDetail.totalChapters}</span>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Tổng tiền: </small>
-                                <strong class="text-success">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                        <!-- Header row with project name and main stats -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="fas fa-book me-2"></i>
+                                        ${projectDetail.projectName}
+                                    </h6>
+                                    <div class="d-flex gap-3">
+                                        <span class="badge bg-success fs-6">${projectDetail.rvChapters} RV</span>
+                                        <span class="badge bg-warning fs-6">${projectDetail.betaChapters} Beta</span>
+                                        <span class="badge bg-info fs-6">${projectDetail.totalChapters} Tổng</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="row mt-1">
+                        
+                        <!-- Stats row -->
+                        <div class="row">
                             <div class="col-md-3">
-                                <small class="text-muted">Chữ RV: </small>
-                                <span>${formatNumber(projectDetail.rvChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Chữ RV</small>
+                                    <strong class="text-success">${formatNumber(projectDetail.rvChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Chữ Beta: </small>
-                                <span>${formatNumber(projectDetail.betaChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Chữ Beta</small>
+                                    <strong class="text-warning">${formatNumber(projectDetail.betaChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Tổng chữ: </small>
-                                <span>${formatNumber(projectDetail.totalChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Tổng chữ</small>
+                                    <strong class="text-info">${formatNumber(projectDetail.totalChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Tiền RV: </small>
-                                <span>${formatCurrency(projectDetail.rvEarnings)}</span>
-                                <small class="text-muted ms-2">| Beta: </small>
-                                <span>${formatCurrency(projectDetail.betaEarnings)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Tổng tiền</small>
+                                    <strong class="text-success fs-5">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Earnings breakdown -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-center gap-4">
+                                    <small class="text-muted">
+                                        <i class="fas fa-coins me-1"></i>
+                                        RV: <strong>${formatCurrency(projectDetail.rvEarnings)}</strong>
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-coins me-1"></i>
+                                        Beta: <strong>${formatCurrency(projectDetail.betaEarnings)}</strong>
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -599,49 +617,67 @@ function filterEmployeeData() {
         Object.values(emp.projectDetails).forEach(projectDetail => {
             const detailRow = document.createElement('tr')
             detailRow.className = 'project-detail-row'
-            detailRow.style.backgroundColor = '#f8f9fa'
             detailRow.innerHTML = `
                 <td colspan="12">
                     <div class="project-details">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <strong class="text-primary">📚 ${projectDetail.projectName}</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Chap RV: </small>
-                                <span class="badge bg-success">${projectDetail.rvChapters}</span>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Chap Beta: </small>
-                                <span class="badge bg-warning">${projectDetail.betaChapters}</span>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Tổng chap: </small>
-                                <span class="badge bg-info">${projectDetail.totalChapters}</span>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Tổng tiền: </small>
-                                <strong class="text-success">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                        <!-- Header row with project name and main stats -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="fas fa-book me-2"></i>
+                                        ${projectDetail.projectName}
+                                    </h6>
+                                    <div class="d-flex gap-3">
+                                        <span class="badge bg-success fs-6">${projectDetail.rvChapters} RV</span>
+                                        <span class="badge bg-warning fs-6">${projectDetail.betaChapters} Beta</span>
+                                        <span class="badge bg-info fs-6">${projectDetail.totalChapters} Tổng</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="row mt-1">
+                        
+                        <!-- Stats row -->
+                        <div class="row">
                             <div class="col-md-3">
-                                <small class="text-muted">Chữ RV: </small>
-                                <span>${formatNumber(projectDetail.rvChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Chữ RV</small>
+                                    <strong class="text-success">${formatNumber(projectDetail.rvChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Chữ Beta: </small>
-                                <span>${formatNumber(projectDetail.betaChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Chữ Beta</small>
+                                    <strong class="text-warning">${formatNumber(projectDetail.betaChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Tổng chữ: </small>
-                                <span>${formatNumber(projectDetail.totalChars)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Tổng chữ</small>
+                                    <strong class="text-info">${formatNumber(projectDetail.totalChars)}</strong>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Tiền RV: </small>
-                                <span>${formatCurrency(projectDetail.rvEarnings)}</span>
-                                <small class="text-muted ms-2">| Beta: </small>
-                                <span>${formatCurrency(projectDetail.betaEarnings)}</span>
+                                <div class="stat-item">
+                                    <small class="text-muted d-block">Tổng tiền</small>
+                                    <strong class="text-success fs-5">${formatCurrency(projectDetail.totalEarnings)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Earnings breakdown -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-center gap-4">
+                                    <small class="text-muted">
+                                        <i class="fas fa-coins me-1"></i>
+                                        RV: <strong>${formatCurrency(projectDetail.rvEarnings)}</strong>
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-coins me-1"></i>
+                                        Beta: <strong>${formatCurrency(projectDetail.betaEarnings)}</strong>
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>

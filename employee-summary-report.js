@@ -308,13 +308,23 @@ function displayReport(data) {
     const tbody = document.getElementById('employeeReportTableBody')
     tbody.innerHTML = ''
     
-    data.employees.forEach(emp => {
+    data.employees.forEach((emp, index) => {
         // Tạo row chính cho nhân viên
         const mainRow = document.createElement('tr')
         mainRow.className = 'employee-main-row'
+        
+        // Thêm class cho top 3
+        let rankClass = ''
+        if (index === 0) rankClass = 'rank-gold'
+        else if (index === 1) rankClass = 'rank-silver'
+        else if (index === 2) rankClass = 'rank-bronze'
+        
         mainRow.innerHTML = `
             <td>
                 <div class="d-flex align-items-center">
+                    <div class="rank-badge me-3 ${rankClass}">
+                        <span class="rank-number">#${index + 1}</span>
+                    </div>
                     <div class="employee-avatar me-3">
                         ${emp.name.charAt(0).toUpperCase()}
                     </div>
@@ -453,8 +463,8 @@ function displayReport(data) {
         tbody.appendChild(summaryRow)
     })
     
-    // Sort employees by total earnings (highest first)
-    data.employees.sort((a, b) => b.totalEarnings - a.totalEarnings)
+    // Sort employees by total characters (highest first)
+    data.employees.sort((a, b) => b.totalChars - a.totalChars)
     
     // Show report content
     document.getElementById('reportContent').style.display = 'block'
@@ -519,10 +529,10 @@ function getChangeClass(change) {
 }
 
 function calculatePerformance(employee) {
-    // Simple performance calculation based on total earnings
-    const maxEarnings = Math.max(...reportData.employees.map(emp => emp.totalEarnings))
-    if (maxEarnings === 0) return 0
-    return Math.round((employee.totalEarnings / maxEarnings) * 100)
+    // Simple performance calculation based on total characters
+    const maxChars = Math.max(...reportData.employees.map(emp => emp.totalChars))
+    if (maxChars === 0) return 0
+    return Math.round((employee.totalChars / maxChars) * 100)
 }
 
 // Show project summary modal
@@ -555,11 +565,11 @@ function showProjectSummary() {
         })
     })
     
-    // Convert to array and sort by total earnings
+    // Convert to array and sort by total characters
     const projectArray = Object.values(projectSummary).map(project => ({
         ...project,
         employees: project.employees.size
-    })).sort((a, b) => b.totalEarnings - a.totalEarnings)
+    })).sort((a, b) => b.totalChars - a.totalChars)
     
     // Display in table
     projectArray.forEach(project => {
@@ -615,7 +625,7 @@ function exportProjectSummary() {
     const projectArray = Object.values(projectSummary).map(project => ({
         ...project,
         employees: project.employees.size
-    })).sort((a, b) => b.totalEarnings - a.totalEarnings)
+    })).sort((a, b) => b.totalChars - a.totalChars)
     
     const headers = ['Tên dự án', 'Số nhân viên', 'Tổng chap', 'Tổng chữ', 'Tổng tiền cần chi (VNĐ)']
     const rows = projectArray.map(project => [
@@ -673,13 +683,16 @@ function filterEmployeeData() {
     const tbody = document.getElementById('employeeReportTableBody')
     tbody.innerHTML = ''
     
-    filteredEmployees.forEach(emp => {
+    filteredEmployees.forEach((emp, index) => {
         // Tạo row chính cho nhân viên
         const mainRow = document.createElement('tr')
         mainRow.className = 'employee-main-row'
         mainRow.innerHTML = `
             <td>
                 <div class="d-flex align-items-center">
+                    <div class="rank-badge me-3">
+                        <span class="rank-number">#${index + 1}</span>
+                    </div>
                     <div class="employee-avatar me-3">
                         ${emp.name.charAt(0).toUpperCase()}
                     </div>
@@ -817,6 +830,9 @@ function filterEmployeeData() {
         `
         tbody.appendChild(summaryRow)
     })
+    
+    // Sort filtered employees by total characters (highest first)
+    filteredEmployees.sort((a, b) => b.totalChars - a.totalChars)
 }
 
 function showLoading(show) {

@@ -253,6 +253,61 @@
             border-radius: 20px;
         }
         
+        /* Rank badge styling */
+        .rank-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(255,107,107,0.3);
+            position: relative;
+        }
+        
+        .rank-number {
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        /* Special styling for top 3 */
+        .rank-gold {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4) !important;
+        }
+        
+        .rank-gold .rank-number {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+        
+        .rank-silver {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%) !important;
+            box-shadow: 0 4px 15px rgba(192,192,192,0.4) !important;
+        }
+        
+        .rank-silver .rank-number {
+            color: #666 !important;
+            font-weight: 900;
+        }
+        
+        .rank-bronze {
+            background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%) !important;
+            box-shadow: 0 4px 15px rgba(205,127,50,0.4) !important;
+        }
+        
+        .rank-bronze .rank-number {
+            color: #8b4513 !important;
+            font-weight: 900;
+        }
+        
         /* Employee avatar improvements */
         .employee-avatar {
             width: 50px;

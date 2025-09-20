@@ -416,10 +416,45 @@ function displayReport(data) {
             `
             tbody.appendChild(detailRow)
         })
+        
+        // Thêm dòng tổng kết cho nhân viên
+        const summaryRow = document.createElement('tr')
+        summaryRow.className = 'employee-summary-row'
+        summaryRow.style.backgroundColor = '#e8f5e8'
+        summaryRow.innerHTML = `
+            <td colspan="12">
+                <div class="employee-summary">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-tasks me-2 text-primary"></i>
+                                <strong>Tổng chap: </strong>
+                                <span class="badge bg-primary fs-6">${emp.totalChapters}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-font me-2 text-info"></i>
+                                <strong>Tổng chữ: </strong>
+                                <span class="text-info fw-bold">${formatNumber(emp.totalChars)}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                                <strong>Tổng tiền: </strong>
+                                <span class="text-success fw-bold fs-5">${formatCurrency(emp.totalEarnings)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        `
+        tbody.appendChild(summaryRow)
     })
     
-    // Update performance chart
-    updatePerformanceChart(data.employees)
+    // Sort employees by total earnings (highest first)
+    data.employees.sort((a, b) => b.totalEarnings - a.totalEarnings)
     
     // Show report content
     document.getElementById('reportContent').style.display = 'block'
@@ -490,51 +525,112 @@ function calculatePerformance(employee) {
     return Math.round((employee.totalEarnings / maxEarnings) * 100)
 }
 
-function updatePerformanceChart(employees) {
-    const ctx = document.getElementById('performanceChart').getContext('2d')
+// Show project summary modal
+function showProjectSummary() {
+    if (!reportData) return
     
-    if (performanceChart) {
-        performanceChart.destroy()
-    }
+    const modal = new bootstrap.Modal(document.getElementById('projectSummaryModal'))
+    const tbody = document.getElementById('projectSummaryTableBody')
+    tbody.innerHTML = ''
     
-    const labels = employees.map(emp => emp.name)
-    const data = employees.map(emp => emp.totalEarnings)
+    // Process project data
+    const projectSummary = {}
     
-    performanceChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tổng tiền nhận (VNĐ)',
-                data: data,
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return formatCurrency(value)
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Tổng tiền: ' + formatCurrency(context.parsed.y)
-                        }
-                    }
+    reportData.employees.forEach(emp => {
+        Object.values(emp.projectDetails).forEach(project => {
+            if (!projectSummary[project.projectName]) {
+                projectSummary[project.projectName] = {
+                    name: project.projectName,
+                    employees: new Set(),
+                    totalChapters: 0,
+                    totalChars: 0,
+                    totalEarnings: 0
                 }
             }
-        }
+            
+            projectSummary[project.projectName].employees.add(emp.id)
+            projectSummary[project.projectName].totalChapters += project.totalChapters
+            projectSummary[project.projectName].totalChars += project.totalChars
+            projectSummary[project.projectName].totalEarnings += project.totalEarnings
+        })
     })
+    
+    // Convert to array and sort by total earnings
+    const projectArray = Object.values(projectSummary).map(project => ({
+        ...project,
+        employees: project.employees.size
+    })).sort((a, b) => b.totalEarnings - a.totalEarnings)
+    
+    // Display in table
+    projectArray.forEach(project => {
+        const row = document.createElement('tr')
+        row.innerHTML = `
+            <td>
+                <strong class="text-primary">${project.name}</strong>
+            </td>
+            <td>
+                <span class="badge bg-info">${project.employees}</span>
+            </td>
+            <td>
+                <span class="badge bg-success">${project.totalChapters}</span>
+            </td>
+            <td>
+                <strong class="text-info">${formatNumber(project.totalChars)}</strong>
+            </td>
+            <td>
+                <strong class="text-success fs-5">${formatCurrency(project.totalEarnings)}</strong>
+            </td>
+        `
+        tbody.appendChild(row)
+    })
+    
+    modal.show()
+}
+
+// Export project summary to Excel
+function exportProjectSummary() {
+    if (!reportData) return
+    
+    const projectSummary = {}
+    
+    reportData.employees.forEach(emp => {
+        Object.values(emp.projectDetails).forEach(project => {
+            if (!projectSummary[project.projectName]) {
+                projectSummary[project.projectName] = {
+                    name: project.projectName,
+                    employees: new Set(),
+                    totalChapters: 0,
+                    totalChars: 0,
+                    totalEarnings: 0
+                }
+            }
+            
+            projectSummary[project.projectName].employees.add(emp.id)
+            projectSummary[project.projectName].totalChapters += project.totalChapters
+            projectSummary[project.projectName].totalChars += project.totalChars
+            projectSummary[project.projectName].totalEarnings += project.totalEarnings
+        })
+    })
+    
+    const projectArray = Object.values(projectSummary).map(project => ({
+        ...project,
+        employees: project.employees.size
+    })).sort((a, b) => b.totalEarnings - a.totalEarnings)
+    
+    const headers = ['Tên dự án', 'Số nhân viên', 'Tổng chap', 'Tổng chữ', 'Tổng tiền cần chi (VNĐ)']
+    const rows = projectArray.map(project => [
+        project.name,
+        project.employees,
+        project.totalChapters,
+        project.totalChars,
+        project.totalEarnings
+    ])
+    
+    const csvContent = [headers, ...rows].map(row => 
+        row.map(field => `"${field}"`).join(',')
+    ).join('\n')
+    
+    downloadCSV(csvContent, `tong-hop-du-an-${document.getElementById('reportMonth').value}.csv`)
 }
 
 async function loadEmployeeList() {
@@ -685,10 +781,42 @@ function filterEmployeeData() {
             `
             tbody.appendChild(detailRow)
         })
+        
+        // Thêm dòng tổng kết cho nhân viên
+        const summaryRow = document.createElement('tr')
+        summaryRow.className = 'employee-summary-row'
+        summaryRow.style.backgroundColor = '#e8f5e8'
+        summaryRow.innerHTML = `
+            <td colspan="12">
+                <div class="employee-summary">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-tasks me-2 text-primary"></i>
+                                <strong>Tổng chap: </strong>
+                                <span class="badge bg-primary fs-6">${emp.totalChapters}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-font me-2 text-info"></i>
+                                <strong>Tổng chữ: </strong>
+                                <span class="text-info fw-bold">${formatNumber(emp.totalChars)}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                                <strong>Tổng tiền: </strong>
+                                <span class="text-success fw-bold fs-5">${formatCurrency(emp.totalEarnings)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        `
+        tbody.appendChild(summaryRow)
     })
-    
-    // Update chart with filtered data
-    updatePerformanceChart(filteredEmployees)
 }
 
 function showLoading(show) {

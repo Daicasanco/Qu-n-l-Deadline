@@ -324,6 +324,46 @@
             margin-bottom: 0;
         }
         
+        /* Employee Summary Row Styling */
+        .employee-summary-row {
+            border-left: 4px solid #28a745;
+            background-color: #e8f5e8 !important;
+        }
+        
+        .employee-summary {
+            padding: 1rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border: 1px solid #c3e6c3;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .summary-item i {
+            font-size: 1.2rem;
+        }
+        
+        .summary-item strong {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+        
+        .summary-item .badge {
+            font-size: 0.9rem;
+            padding: 0.4em 0.8em;
+        }
+        
+        .summary-item .fw-bold {
+            font-size: 1.1rem;
+        }
+        
+        .summary-item .fs-5 {
+            font-size: 1.3rem !important;
+        }
+        
         /* Responsive improvements */
         @media (max-width: 768px) {
             .project-details .row {
@@ -356,6 +396,14 @@
             }
             
             .stat-item {
+                margin-bottom: 0.5rem;
+            }
+            
+            .employee-summary .row {
+                flex-direction: column;
+            }
+            
+            .summary-item {
                 margin-bottom: 0.5rem;
             }
         }
@@ -479,13 +527,14 @@
                 </div>
             </div>
 
-            <!-- Employee Performance Chart -->
-            <div class="chart-container">
-                <h5 class="mb-3">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    Biểu đồ hiệu suất nhân viên
-                </h5>
-                <canvas id="performanceChart" width="400" height="200"></canvas>
+            <!-- Project Summary Button -->
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <button class="btn btn-info btn-lg" onclick="showProjectSummary()">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Xem tổng hợp dự án
+                    </button>
+                </div>
             </div>
 
             <!-- Detailed Employee Report -->
@@ -560,6 +609,45 @@
         </div>
     </div>
 
+    <!-- Project Summary Modal -->
+    <div class="modal fade" id="projectSummaryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Tổng hợp dự án
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="projectSummaryTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Tên dự án</th>
+                                    <th>Số nhân viên</th>
+                                    <th>Tổng chap</th>
+                                    <th>Tổng chữ</th>
+                                    <th>Tổng tiền cần chi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectSummaryTableBody">
+                                <!-- Project summary data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-success" onclick="exportProjectSummary()">
+                        <i class="fas fa-download me-1"></i>Xuất Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Export Buttons -->
     <div class="export-buttons">
         <div class="btn-group-vertical" role="group">
@@ -578,7 +666,6 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="employee-summary-report.js"></script>
 </body>
 </html>
